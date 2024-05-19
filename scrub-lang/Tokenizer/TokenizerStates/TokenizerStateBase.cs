@@ -1,6 +1,8 @@
 ﻿namespace scrub_lang.Tokenizer;
 
-public abstract class TokenizerState
+public abstract class TokenizerStateBase(Tokenizer context)
 {
-	public abstract void Consume(ref Tokenizer context, char c);
+	protected Tokenizer context = context;
+
+	public abstract void Consume( char c, int line, int col);
 }

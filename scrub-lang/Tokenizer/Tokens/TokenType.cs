@@ -1,6 +1,31 @@
 ﻿namespace scrub_lang.Tokenizer.Tokens;
 
-public class IntegerLiteral(string literal, int line, int column) : TokenBase(literal, line, column)
+public enum TokenType
 {
-	public int value;
+	EOF,
+	Identifier,
+	NumberLiteral,
+	Assignment,
+	Plus,
+	Minus,
+	Multiply,
+	PowerOf,
+	Modulo,
+	Division,
+	NotEquals,
+	EqualTo,
+	Not,
+	OpenParen,
+	CloseParen,
+	GreaterThan,
+	GreaterThanOrEqualTo,
+	LessThan,
+	LessThanOrEqualTo,
+	String,
+	IfKeyword,
+	WhileKeyword,
+	EndExpression,//semicolon
+	StartExpressionBlock,
+	EndExpressionBlock,
+	Unexpected,
 }

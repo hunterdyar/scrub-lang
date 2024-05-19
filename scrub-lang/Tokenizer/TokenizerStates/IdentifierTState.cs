@@ -3,7 +3,7 @@ using scrub_lang.Tokenizer.Tokens;
 
 namespace scrub_lang.Tokenizer;
 
-public class LiteralTState(Tokenizer context) : TokenizerStateBase(context)
+public class IdentifierTState(Tokenizer context) : TokenizerStateBase(context)
 {
 	private StringBuilder _builder = new StringBuilder();
 	private int firstLine;
