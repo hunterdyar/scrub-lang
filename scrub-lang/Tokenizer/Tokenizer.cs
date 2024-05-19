@@ -121,10 +121,18 @@ public class Tokenizer
 				_state.Consume(c,l,col);
 				return;
 			case '^':
-				AddToken(new Token(TokenType.PowerOf, c, l, col));
+				AddToken(new Token(TokenType.PowerOfXOR, c, l, col));
 				return;
 			case '%':
 				AddToken(new Token(TokenType.Modulo, c, l, col));
+				return;
+			case '&':
+			case '|':
+				_state = new ComparisonTState(this);
+				_state.Consume(c, l, col);
+				return;
+			case '~':
+				AddToken(new Token(TokenType.BitwiseNot, c, l, col));
 				return;
 			case '"':
 				_state = new StringTState(this);

@@ -51,6 +51,12 @@ public class EqualityTState(Tokenizer context) : TokenizerStateBase(context)
 			else if (s == "<=")
 			{
 				context.AddToken(new Token(TokenType.LessThanOrEqualTo, s, line, firstCol));
+			}else if (s == "<<")
+			{
+				context.AddToken(new Token(TokenType.BitwiseLeftShift,s,line,firstCol));
+			}else if (s == ">>")
+			{
+				context.AddToken(new Token(TokenType.BitwiseRightShift,s,line,firstCol));
 			}
 			else
 			{

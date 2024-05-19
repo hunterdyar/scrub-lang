@@ -1,15 +1,11 @@
 ﻿var x = 4;
 //This is a comment.
 
-
-func banana(y){    
+func banana(y){
 //thisis another comment.
-
+    if(true && false){
+       x = 4 | (1 << 3) 
+    }
+    
     y*2+(2*8);
 }
-
-/*This comment
-goes on multiple
-***
-lines
-*/
