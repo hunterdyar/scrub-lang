@@ -6,18 +6,25 @@ namespace scrub_lang.Tokenizer;
 public class IdentifierTState(Tokenizer context) : TokenizerStateBase(context)
 {
 	private StringBuilder _builder = new StringBuilder();
-	private int firstLine;
-	private int firstCol;
+	private int firstLine = -1;
+	private int firstCol = -1;
 
 	private readonly Dictionary<string, TokenType> Literals = new Dictionary<string, TokenType>()
 	{
 		{"if",TokenType.IfKeyword},
 		{"while",TokenType.WhileKeyword},
+		{"var",TokenType.VarKeyword},
+		{"func",TokenType.FunctionKeyword}
 	};
 	public override void Consume(char c, int line, int col)
 	{
+		if (firstLine < 0)
+		{
+			firstLine = line;
+			firstCol = col;
+		}
 		
-		if (Char.IsWhiteSpace(c) || !char.IsLetter(c) || !char.IsDigit(c))
+		if (Char.IsWhiteSpace(c) || (!char.IsLetter(c) && !char.IsDigit(c)))
 		{
 			var literal = _builder.ToString();
 			CreateAndAddToken(literal);

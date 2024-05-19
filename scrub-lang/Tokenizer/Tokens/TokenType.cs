@@ -15,6 +15,7 @@ public enum TokenType
 	NotEquals,
 	EqualTo,
 	Not,
+	Comma,
 	OpenParen,
 	CloseParen,
 	GreaterThan,
@@ -24,6 +25,8 @@ public enum TokenType
 	String,
 	IfKeyword,
 	WhileKeyword,
+	VarKeyword,
+	FunctionKeyword,
 	EndExpression,//semicolon
 	StartExpressionBlock,
 	EndExpressionBlock,

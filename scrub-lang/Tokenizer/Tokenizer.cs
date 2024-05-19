@@ -3,6 +3,8 @@ using scrub_lang.Tokenizer.Tokens;
 
 namespace scrub_lang.Tokenizer;
 
+//The Tokenizer uses a simple class-based FSM. WHile it is overkill for many of the minimal lookaheads, iiiiiii like it.
+//todo: bundle up "line,col" into a "location" struct.
 public class Tokenizer
 {
 	private TokenizerStateBase? _state;
@@ -46,21 +48,43 @@ public class Tokenizer
 		}
 	}
 
-	public void ConsumeLine(string line)
+	public async Task TokenizeString(string source)
+	{
+		_tokens = new List<Token>();
+		CurrentLine = 0;
+		isSyntaxError = false;
+		var splits = source.Split('\n');
+		foreach(var line in splits)
+		{
+			CurrentLine++;
+			ConsumeLine(line);
+			if (isSyntaxError)
+			{
+				break;
+			}
+		}
+
+		ConsumeNext('\n', CurrentLine, 0);
+		AddToken(new Token(TokenType.EOF, "", CurrentLine, 0));
+	}
+
+	public void ConsumeLine(string line, bool consumeAdditionalLineEnd = true)
 	{
 		Console.WriteLine($"Consume Line: {line}");
 		for (CurrentColumn = 0; CurrentColumn < line.Length; CurrentColumn++)
 		{
 			char c = line[CurrentColumn];
 
-			if (_state == null)
+			ConsumeNext(c, CurrentLine, CurrentColumn);
+			if (isSyntaxError)
 			{
-				ConsumeNext(c, CurrentLine, CurrentColumn);
+				break;
 			}
-			else
-			{
-				_state.Consume(c, CurrentLine, CurrentColumn);
-			}
+		}
+
+		if (consumeAdditionalLineEnd)
+		{
+			ConsumeNext('\n',CurrentLine,CurrentColumn+1);
 		}
 	}
 
@@ -94,7 +118,8 @@ public class Tokenizer
 				return;
 			case '/':
 				//we have to parse comments....
-				AddToken(new Token(TokenType.Division, c, l, col));
+				_state = new CommentTState(this);
+				_state.Consume(c,l,col);
 				return;
 			case '^':
 				AddToken(new Token(TokenType.PowerOf, c, l, col));
@@ -106,6 +131,9 @@ public class Tokenizer
 				_state = new StringTState(this);
 				//we "consume" the first " by ignoring it.
 				//_state.Consume(c,l,col);
+				return;
+			case ',':
+				AddToken(new Token(TokenType.Comma, c, l, col));
 				return;
 			case '{':
 				AddToken(new Token(TokenType.StartExpressionBlock, c, l, col));

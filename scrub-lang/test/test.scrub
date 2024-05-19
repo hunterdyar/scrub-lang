@@ -1,1 +1,15 @@
-﻿2+3*4
+﻿var x = 4;
+//This is a comment.
+
+
+func banana(y){    
+//thisis another comment.
+
+    y*2+(2*8);
+}
+
+/*This comment
+goes on multiple
+***
+lines
+*/
