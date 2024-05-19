@@ -70,7 +70,6 @@ public class Tokenizer
 
 	public void ConsumeLine(string line, bool consumeAdditionalLineEnd = true)
 	{
-		Console.WriteLine($"Consume Line: {line}");
 		for (CurrentColumn = 0; CurrentColumn < line.Length; CurrentColumn++)
 		{
 			char c = line[CurrentColumn];
