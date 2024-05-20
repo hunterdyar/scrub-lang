@@ -34,7 +34,7 @@ public static class MathEvaluator
 			case TokenType.PowerOf:
 				return EvalPower(left.ScrubObject, right.ScrubObject);
 			case TokenType.Modulo:
-				return new Result(new ScrubRuntimeError("Modulo not yet implemented :p"));
+				return EvalModulo(left.ScrubObject, right.ScrubObject);
 		}
 
 		return new Result(
@@ -342,6 +342,67 @@ public static class MathEvaluator
 
 		return new Result(null,
 			new ScrubRuntimeError($"Unable to take power of objects of type {left.ScrubType} and {right.ScrubType}"));
+	}
+
+	private static Result EvalModulo(ScrubObject left, ScrubObject right)
+	{
+		if (left.ScrubType == ScrubType.sInt)
+		{
+			if (right.ScrubType == ScrubType.sInt)
+			{
+				return new Result(new ScrubObject(left.ToNativeInt() % right.ToNativeInt()));
+			}
+
+			if (right.ScrubType == ScrubType.sDouble)
+			{
+				return new Result(new ScrubObject((double)left.ToNativeInt() % (double)right.ToNativeDouble()));
+			}
+
+			if (right.ScrubType == ScrubType.sUint)
+			{
+				return new Result(new ScrubObject(left.ToNativeInt() % (int)right.ToNativeUInt()));
+			}
+		}
+
+		if (left.ScrubType == ScrubType.sDouble)
+		{
+			if (right.ScrubType == ScrubType.sDouble)
+			{
+				return new Result(new ScrubObject((double)left.ToNativeDouble() % (double)right.ToNativeDouble()));
+			}
+
+			if (right.ScrubType == ScrubType.sInt)
+			{
+				return new Result(new ScrubObject(left.ToNativeDouble() % (double)right.ToNativeInt()));
+			}
+
+			if (right.ScrubType == ScrubType.sUint)
+			{
+				return new Result(new ScrubObject(left.ToNativeDouble() % (int)right.ToNativeUInt()));
+			}
+		}
+
+		if (left.ScrubType == ScrubType.sUint)
+		{
+			if (right.ScrubType == ScrubType.sUint)
+			{
+				return new Result(new ScrubObject(left.ToNativeUInt() % (int)right.ToNativeUInt()));
+			}
+
+			if (right.ScrubType == ScrubType.sInt)
+			{
+				return new Result(new ScrubObject((int)left.ToNativeUInt() % right.ToNativeInt()));
+			}
+
+			if (right.ScrubType == ScrubType.sDouble)
+			{
+				return new Result(new ScrubObject((double)left.ToNativeUInt() % (double)right.ToNativeDouble()));
+			}
+
+		}
+
+		return new Result(null,
+			new ScrubRuntimeError($"Unable to modulo objects of type {left.ScrubType} and {right.ScrubType}"));
 	}
 
 }
