@@ -6,7 +6,7 @@ public static class BindingPower
 	//https://en.cppreference.com/w/c/language/operator_precedence
 	public static readonly int Comma = 1; // ,
 
-	public static readonly int AssignmentBySum = 4;//+=
+	public static readonly int AssignmentBySum = 4;//+=, -=
 	public static readonly int Assignment = 4;// =
 	public static readonly int Ternery = 5;//?=
 	public static readonly int LogicalOr = 6;// ||
@@ -22,7 +22,6 @@ public static class BindingPower
 	
 	public static readonly int Product = 15; // * /
 	public static readonly int Modulo = 15; //%
-
 	
 	public static readonly int Exponent = 16; // **
 	public static readonly int Prefix = 17; // -a genericly
@@ -31,7 +30,7 @@ public static class BindingPower
 	public static readonly int BitwiseNot = 19;
 	public static readonly int UnarySum = 19;// -a
 	public static readonly int Not = 19;// !
-	public static readonly int Cast = 19;
+	public static readonly int Cast = 19;//what would a cast even be in scrub.
 	// private static readonly int 
 
 	public static readonly int MemberAccess = 20;// .

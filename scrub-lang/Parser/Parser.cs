@@ -50,6 +50,8 @@ public class Parser
 		InfixLeft(TokenType.LessThan, BindingPower.NumericCompare);
 		InfixLeft(TokenType.GreaterThanOrEqualTo, BindingPower.NumericCompare);
 		InfixLeft(TokenType.LessThanOrEqualTo, BindingPower.NumericCompare);
+		InfixLeft(TokenType.And, BindingPower.LogicalAnd);
+		InfixLeft(TokenType.Or, BindingPower.LogicalOr);
 
 		//bitwise
 		InfixLeft(TokenType.BitwiseLeftShift, BindingPower.BitwiseShift);

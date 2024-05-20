@@ -17,7 +17,18 @@ public class BinaryOperatorParselet : IInfixParselet
 	{
 		//right hand side slightly lower so that ^binary and 2^3 work correctly.
 		IExpression right = parser.ParseExpression(_bindingPower - (_isRight ? 1 : 0));
-		return new BinaryOperatorExpression(left, token.TokenType, right);
+		if (BinaryMathExpression.IsBinaryMathOperator(token.TokenType))
+		{
+			return new BinaryMathExpression(left, token.TokenType, right);
+		}else if (BinaryBitwiseExpression.IsBinaryBitwiseOperator(token.TokenType))
+		{
+			return new BinaryBitwiseExpression(left, token.TokenType, right);
+		}else if (BinaryConditionalExpression.IsBinaryConditionalOperator(token.TokenType))
+		{
+			return new BinaryConditionalExpression(left, token.TokenType, right);
+		}
+
+		throw new ParseException($"Cannot parse {token.Literal} as binary operator. ");
 	}
 
 	public int GetBindingPower()

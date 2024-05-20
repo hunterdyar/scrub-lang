@@ -3,13 +3,13 @@ using scrub_lang.Tokenizer.Tokens;
 
 namespace scrub_lang.Parser;
 
-public class BinaryOperatorExpression : IExpression
+public abstract class BinaryOperatorExpressionBase : IExpression
 {
 	private IExpression _leftExpression;
 	private TokenType _operator;
 	private IExpression _rightExpression;
 
-	public BinaryOperatorExpression(IExpression leftExpression, TokenType op, IExpression rightExpression)
+	public BinaryOperatorExpressionBase(IExpression leftExpression, TokenType op, IExpression rightExpression)
 	{
 		_leftExpression = leftExpression;
 		_operator = op;

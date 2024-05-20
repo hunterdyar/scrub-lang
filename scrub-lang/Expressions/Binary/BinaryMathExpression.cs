@@ -3,7 +3,7 @@ using scrub_lang.Tokenizer.Tokens;
 
 namespace scrub_lang.Parser;
 
-public class BinaryMathExpression : BinaryOperatorExpression
+public class BinaryMathExpression : BinaryOperatorExpressionBase
 {
 	private IExpression _leftExpression;
 	private TokenType _operator;
@@ -19,7 +19,11 @@ public class BinaryMathExpression : BinaryOperatorExpression
 	}
 	public static bool IsBinaryMathOperator(TokenType op)
 	{
-		return op == TokenType.Plus || op == TokenType.Multiply || op == TokenType.Minus || op == TokenType.Division ||
-		       op == TokenType.PowerOf || op == TokenType.Modulo;
+		return op == TokenType.Plus 
+		       || op == TokenType.Multiply 
+		       || op == TokenType.Minus
+		       || op == TokenType.Division 
+		       || op == TokenType.PowerOf
+		       || op == TokenType.Modulo;
 	}
 }
