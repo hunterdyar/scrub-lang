@@ -2,7 +2,7 @@
 
 public class StringProvider : ISourceProvider
 {
-	private int _loc = 0;
+	private int _loc = -1;
 	private int _length;
 	private string _source;
 

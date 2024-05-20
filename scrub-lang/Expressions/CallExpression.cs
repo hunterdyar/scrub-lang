@@ -25,6 +25,6 @@ public class CallExpression : IExpression
 			_argumentExprs[i].Print(sb);
 		}
 
-		sb.Append(");");
+		sb.Append(")");
 	}
 }

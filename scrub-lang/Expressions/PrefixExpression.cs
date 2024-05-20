@@ -16,7 +16,7 @@ public class PrefixExpression : IExpression
 
 	public void Print(StringBuilder sb)
 	{
-		sb.Append('(').Append(_operator);
+		sb.Append('(').Append(Token.OperatorToString(_operator));
 		_rightExpr.Print(sb);
 		sb.Append(')');
 	}

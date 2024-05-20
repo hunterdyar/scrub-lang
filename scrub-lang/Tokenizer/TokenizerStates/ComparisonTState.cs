@@ -66,13 +66,5 @@ public class ComparisonTState(Tokenizer context) : TokenizerStateBase(context)
 			context.ConsumeNext(c,line,col);
 			return;
 		}
-
-		if (firstChar == '&' && secondChar != '&')
-		{
-			context.AddToken(new Token(TokenType.BitwiseAnd, firstChar.ToString(), line, firstCol));
-			context.ExitState(this);
-			context.ConsumeNext(c, line, col);
-			return;
-		}
 	}
 }

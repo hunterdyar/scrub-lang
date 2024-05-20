@@ -2,6 +2,7 @@
 
 namespace scrub_lang.Parser.Parselets;
 
+//a = b = c is parsed as a = (b = c)
 public class AssignParselet : IInfixParselet
 {
 	public IExpression Parse(Parser parser, IExpression left, Token token)
@@ -11,7 +12,7 @@ public class AssignParselet : IInfixParselet
 		if (!(left is IdentifierExpression))
 			throw new ParseException("The left-hand side of an assignment must be an identifier.");
 
-		var name = ((IdentifierExpression)left).Identifier;
+		var name = ((IdentifierExpression)left);
 		return new AssignExpression(name, right);
 	}
 

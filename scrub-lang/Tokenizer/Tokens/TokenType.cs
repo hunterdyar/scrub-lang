@@ -7,6 +7,8 @@ public enum TokenType
 	NumberLiteral,
 	Assignment,
 	Plus,
+	Increment,
+	Decrement,
 	Minus,
 	Multiply,
 	PowerOfXOR,//^

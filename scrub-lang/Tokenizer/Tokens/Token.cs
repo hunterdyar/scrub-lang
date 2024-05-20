@@ -43,6 +43,24 @@ public class Token
 				return ",";
 			case TokenType.Minus:
 				return "-";
+			case TokenType.PowerOfXOR:
+				return "^";
+			case TokenType.Question:
+				return "?";
+			case TokenType.Colon:
+				return ":";
+			case TokenType.BitwiseAnd:
+				return "&";
+			case TokenType.Multiply:
+				return "*";
+			case TokenType.Division:
+				return "/";
+			case TokenType.BitwiseNot:
+				return "~";
+			case TokenType.Increment:
+				return "++";
+			case TokenType.Decrement:
+				return "--";
 		}
 
 		return tokenType.ToString();

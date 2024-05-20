@@ -12,15 +12,13 @@ public class Parser
 
 	public Parser(Tokenizer.Tokenizer tokenizer)
 	{
-		
 		_tokenizer = tokenizer;
 		//in prefix dictionary
 		Register(TokenType.Identifier,new IdentifierParselet());
-		
 		Register(TokenType.Assignment, new AssignParselet());
 		Register(TokenType.Question, new TernaryParselet());
-		Register(TokenType.OpenParen, new InlineGroupParselet());
-		Register(TokenType.OpenParen, new CallParselet());
+		Register(TokenType.OpenParen, new InlineGroupParselet());//prefix
+		Register(TokenType.OpenParen, new CallParselet());//infix
 		Register(TokenType.FunctionKeyword, new FunctionDeclarationParselet());
 		Register(TokenType.StartExpressionBlock, new ExpressionGroupParselet());
 		Register(TokenType.NumberLiteral, new LiteralParselet());
@@ -33,68 +31,61 @@ public class Parser
 		Prefix(TokenType.Bang, BindingPower.Prefix);
 		
 		//postix:
+		Postfix(TokenType.Increment, BindingPower.PostFix);
+		Postfix(TokenType.Decrement, BindingPower.PostFix);
+			
 		//++
-		
 		InfixLeft(TokenType.Plus,BindingPower.Sum);
 		InfixLeft(TokenType.Minus,BindingPower.Sum);
 		InfixLeft(TokenType.Multiply, BindingPower.Product);
 		InfixLeft(TokenType.Division, BindingPower.Product);
+		
 		InfixRight(TokenType.PowerOfXOR, BindingPower.Exponent);
 	}
 
-	#region RegisterUtility
-
-	public void Register(TokenType token, IPrefixParselet parselet)
+	public IExpression ParseProgram()
 	{
-		_prefixParselets.Add(token, parselet);
-	}
+		List<IExpression> expressions = new List<IExpression>();
+		bool compete = false;
+		//Parse until we end up with null which we get at EOF or some surviveable error.
+		do
+		{
+			var e = ParseExpression();
+			if (e != null)
+			{
+				expressions.Add(e);
+			}
+			else
+			{
+				compete = true;
+			}
+		} while (!compete);
 
-	public void Register(TokenType token, IInfixParselet parselet)
-	{
-		_infixParselets.Add(token, parselet);
+		if (expressions.Count == 1)
+		{
+			return expressions[0];
+		}
+		else
+		{
+			return new Program(expressions);
+		}
 	}
-
-	/// <summary>
-	/// Registers a postfix unary operator parselet for the given token and binding power.
-	/// </summary>
-	public void Postfix(TokenType token, int bindingPower)
-	{
-		Register(token, new PostfixOperatorParselet(bindingPower));
-	}
-
-	/// <summary>
-	/// Registers a prefix unary operator parselet for the given token and binding power.
-	/// </summary>
-	public void Prefix(TokenType token, int bindingPower)
-	{
-		Register(token, new PrefixOperatorParselet(bindingPower));
-	}
-
-	/// <summary>
-	///  Registers a left-associative binary operator parselet for the given token and binding power.
-	/// </summary>
-	public void InfixLeft(TokenType token, int bindingPower)
-	{
-		Register(token, new BinaryOperatorParselet(bindingPower, false));
-	}
-
-	/// <summary>
-	/// Registers a right-associative binary operator parselet for the given token and binding power.
-	/// </summary>
-	public void InfixRight(TokenType token, int bindingPower)
-	{
-		Register(token, new BinaryOperatorParselet(bindingPower, true));
-	}
-
-	#endregion
+	
 	public IExpression ParseExpression(int precedence = 0)
 	{
 		var token = Consume();
 		
 		//Skip over ;'s
+		//We can't actually do this, will need to handle Break as a unary that has very low precedence.
+		//Or maybe as a postFix that just returns the left side of the expression?
 		if (token.TokenType == TokenType.EndExpression)
 		{
 			token = Consume(TokenType.EndExpression);
+		}
+
+		if (token.TokenType == TokenType.EOF)
+		{
+			return null;
 		}
 		
 		if (!_prefixParselets.TryGetValue(token.TokenType, out var prefix))
@@ -170,4 +161,50 @@ public class Parser
 
 		return 0;
 	}
+
+	#region RegisterUtility
+
+	public void Register(TokenType token, IPrefixParselet parselet)
+	{
+		_prefixParselets.Add(token, parselet);
+	}
+
+	public void Register(TokenType token, IInfixParselet parselet)
+	{
+		_infixParselets.Add(token, parselet);
+	}
+
+	/// <summary>
+	/// Registers a postfix unary operator parselet for the given token and binding power.
+	/// </summary>
+	public void Postfix(TokenType token, int bindingPower)
+	{
+		Register(token, new PostfixOperatorParselet(bindingPower));
+	}
+
+	/// <summary>
+	/// Registers a prefix unary operator parselet for the given token and binding power.
+	/// </summary>
+	public void Prefix(TokenType token, int bindingPower)
+	{
+		Register(token, new PrefixOperatorParselet(bindingPower));
+	}
+
+	/// <summary>
+	///  Registers a left-associative binary operator parselet for the given token and binding power.
+	/// </summary>
+	public void InfixLeft(TokenType token, int bindingPower)
+	{
+		Register(token, new BinaryOperatorParselet(bindingPower, false));
+	}
+
+	/// <summary>
+	/// Registers a right-associative binary operator parselet for the given token and binding power.
+	/// </summary>
+	public void InfixRight(TokenType token, int bindingPower)
+	{
+		Register(token, new BinaryOperatorParselet(bindingPower, true));
+	}
+
+	#endregion
 }

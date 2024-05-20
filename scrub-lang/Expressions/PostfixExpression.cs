@@ -18,6 +18,6 @@ public class PostfixExpression : IExpression
 	{
 		sb.Append('(');
 		_leftExpr.Print(sb);
-		sb.Append(_operator.ToString()).Append(')');
+		sb.Append(Token.OperatorToString(_operator)).Append(')');
 	}
 }

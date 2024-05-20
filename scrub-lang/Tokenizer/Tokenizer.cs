@@ -21,6 +21,7 @@ public class Tokenizer
 	private bool isSyntaxError = false;//todo: status enum?
 	private int _lastTokenProvided = -1;
 	private int _prevCount;
+	private string _returned = "";
 
 	private ISourceProvider _source;
 
@@ -46,6 +47,7 @@ public class Tokenizer
 		if (_lastTokenProvided < _tokens.Count - 1)
 		{
 			_lastTokenProvided++;
+			_returned += _tokens[_lastTokenProvided].Literal;
 			return _tokens[_lastTokenProvided];
 		}
 		//keep going until the size of tokens.count changes.
@@ -57,32 +59,22 @@ public class Tokenizer
 			}
 			else
 			{
-				//just keep returning EOF's so we don't break lookahead.
-				return new Token(TokenType.EOF,"", CurrentLine, CurrentColumn);
+				//just keep returning break's so _states (e.g. identifier) exit.
+				if (_state != null)
+				{
+					_state.Consume('\n', CurrentLine, CurrentColumn);
+				}
+				else
+				{
+					//just keep giving the parser EOF's. If it's doing lookahead, it can get as many EOF's as it wants.
+					AddToken(new Token(TokenType.EOF,"",CurrentLine,CurrentColumn));
+				}
 			}
 		}
 
 		_lastTokenProvided++;
+		_returned += _tokens[_lastTokenProvided].Literal;
 		return _tokens[_lastTokenProvided];
-	}
-
-	public void ConsumeLine(string line, bool consumeAdditionalLineEnd = true)
-	{
-		for (CurrentColumn = 0; CurrentColumn < line.Length; CurrentColumn++)
-		{
-			char c = line[CurrentColumn];
-
-			ConsumeNext(c, CurrentLine, CurrentColumn);
-			if (isSyntaxError)
-			{
-				break;
-			}
-		}
-
-		if (consumeAdditionalLineEnd)
-		{
-			ConsumeNext('\n',CurrentLine,CurrentColumn+1);
-		}
 	}
 
 	public void ConsumeNext(char c, int l, int col)
@@ -105,10 +97,9 @@ public class Tokenizer
 				AddToken(new Token(TokenType.EndExpression, c, l, col));
 				return;
 			case '+':
-				AddToken(new Token(TokenType.Plus,c,l,col));
-				return;
 			case '-':
-				AddToken(new Token(TokenType.Minus,c,l,col));
+				_state = new IncrementTState(this);
+				_state.Consume(c, l, col);
 				return;
 			case '*':
 				AddToken(new Token(TokenType.Multiply, c, l, col));

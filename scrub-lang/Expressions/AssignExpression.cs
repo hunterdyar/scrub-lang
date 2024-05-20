@@ -4,10 +4,10 @@ namespace scrub_lang.Parser;
 
 public class AssignExpression : IExpression
 {
-	private readonly string _identifier;
+	private readonly IdentifierExpression _identifier;
 	private readonly IExpression _valueExpression;
 
-	public AssignExpression(string ident, IExpression valueExpr)
+	public AssignExpression(IdentifierExpression ident, IExpression valueExpr)
 	{
 		_identifier = ident;
 		_valueExpression = valueExpr;
@@ -15,7 +15,7 @@ public class AssignExpression : IExpression
 
 	public void Print(StringBuilder sb)
 	{
-		sb.Append('(').Append(_identifier).Append(" = ");
+		sb.Append('(').Append(_identifier.Identifier).Append(" = ");
 		_valueExpression.Print(sb);
 		sb.Append(')');
 	}

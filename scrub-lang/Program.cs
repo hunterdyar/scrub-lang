@@ -6,29 +6,92 @@ using scrub_lang.Tokenizer;
 
 static class Scrub
 {
+	private static int _passed = 0;
+	private static int _failed = 0;
 	public static async Task Main()
 	{
-		// try
-		// {
-			// Create an instance of StreamReader to read from a file.
-			// The using statement also closes the StreamReader.
-			Console.WriteLine("Starting Scrub");
-			
-			using (StreamReader stream = new StreamReader("test/test.scrub"))
+		// Function call.
+		Test("a()", "a()");
+		Test("a(b)", "a(b)");
+		Test("a(b, c)", "a(b, c)");
+		Test("a(b)(c)", "a(b)(c)");
+		Test("a(b) + c(d)", "(a(b) + c(d))");
+		Test("a(b ? c : d, e + f)", "a((b ? c : d), (e + f))");
+
+		// Unary binding power.
+		Test("~!-+a", "(~(!(-(+a))))");
+		Test("a++++++", "(((a++)++)++)");
+
+		// Unary and binary binding power.
+		Test("-a * b", "((-a) * b)");
+		Test("!a + b", "((!a) + b)");
+		Test("~a ^ b", "((~a) ^ b)");
+		Test("-a--", "(-(a--))");
+		Test("-a++", "(-(a++))");
+
+		// Binary binding power.
+		Test("a = b + c * d ^ e - f / g", "(a = ((b + (c * (d ^ e))) - (f / g)))");
+
+		// Function Declare
+		Test("func a(){}", "func a(){\n}");
+		Test("func a(b){a*a}","func a(b){\n(a * a)\n}");
+		Test("func a(){a()}", "func a(){\na()\n}");
+
+		
+		// Binary associativity.
+		Test("a = b = c", "(a = (b = c))");
+		Test("a + b - c", "((a + b) - c)");
+		Test("a * b / c", "((a * b) / c)");
+		Test("a ^ b ^ c", "(a ^ (b ^ c))");
+
+		// Conditional operator.
+		Test("a ? b : c ? d : e", "(a ? b : (c ? d : e))");
+		Test("a ? b ? c : d : e", "(a ? (b ? c : d) : e)");
+		Test("a + b ? c * d : e / f", "((a + b) ? (c * d) : (e / f))");
+
+		// Grouping.
+		Test("a + (b + c) + d", "((a + (b + c)) + d)");
+		Test("a ^ (b + c)", "(a ^ (b + c))");
+		Test("(!a)++", "((!a)++)");
+		
+		//Blocks
+		Test("{}","{\n}");
+
+		if (_failed != 0) Console.WriteLine("----");
+		Console.WriteLine("Passed: " + _passed);
+		Console.WriteLine("Failed: " + _failed);
+	}
+
+	public static void Test(string source, string expected)
+	{
+		var t = new Tokenizer(source);
+		var parser = new Parser(t);
+
+		try
+		{
+			var result = parser.ParseProgram();
+			var builder = new StringBuilder();
+			result.Print(builder);
+			var actual = builder.ToString();
+
+			if (expected.Equals(actual))
 			{
-				Tokenizer t = new Tokenizer(stream);
-				Parser p = new Parser(t);
-				var result = p.ParseExpression();
-				var sb = new StringBuilder();
-				result.Print(sb);
-				Console.WriteLine(sb.ToString());
+				_passed++;
 			}
-		// }
-		// catch (Exception e)
-		// {
-		// 	// Let the user know what went wrong.
-		// 	Console.WriteLine("uh oh:");
-		// 	Console.WriteLine(e.Message);
-		// }
+			else
+			{
+				_failed++;
+				Console.WriteLine("[FAIL] Source: " + source);
+				Console.WriteLine("     Expected: " + expected);
+				Console.WriteLine("       Actual: " + actual);
+			}
+		}
+		catch (ParseException ex)
+		{
+			_failed++;
+			Console.WriteLine("[FAIL] Source: " + source);
+			Console.WriteLine("     Expected: " + expected);
+			Console.WriteLine("        Error: " + ex.Message);
+		}
 	}
 }
