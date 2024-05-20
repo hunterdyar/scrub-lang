@@ -35,7 +35,7 @@ public class EqualityTState(Tokenizer context) : TokenizerStateBase(context)
 				context.AddToken(new Token(TokenType.NotEquals, s, line, firstCol));
 			}else if (s == "!")
 			{
-				context.AddToken(new Token(TokenType.Not, s, line, firstCol));
+				context.AddToken(new Token(TokenType.Bang, s, line, firstCol));
 			}
 			else if (s == ">")
 			{

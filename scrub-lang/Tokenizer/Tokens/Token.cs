@@ -1,4 +1,6 @@
-﻿namespace scrub_lang.Tokenizer.Tokens;
+﻿using System.Runtime.CompilerServices;
+
+namespace scrub_lang.Tokenizer.Tokens;
 
 public class Token
 {
@@ -20,5 +22,29 @@ public class Token
 		this.Literal = literal.ToString();
 		this.Line = line;
 		this.Column = column;
+	}
+
+	public string ToString()
+	{
+		return Literal;
+	}
+
+	public static string OperatorToString(TokenType tokenType)
+	{
+		switch(tokenType)
+		{
+			case Tokens.TokenType.Assignment:
+				return "=";
+			case TokenType.Plus:
+				return "+";
+			case TokenType.Bang:
+				return "!";
+			case TokenType.Comma:
+				return ",";
+			case TokenType.Minus:
+				return "-";
+		}
+
+		return tokenType.ToString();
 	}
 }

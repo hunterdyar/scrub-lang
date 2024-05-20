@@ -1,33 +1,34 @@
 ﻿
 using System.Diagnostics;
+using System.Text;
+using scrub_lang.Parser;
 using scrub_lang.Tokenizer;
 
 static class Scrub
 {
 	public static async Task Main()
 	{
-		try
-		{
+		// try
+		// {
 			// Create an instance of StreamReader to read from a file.
 			// The using statement also closes the StreamReader.
 			Console.WriteLine("Starting Scrub");
-		
-			Tokenizer t = new Tokenizer();
-			await t.TokenizeStream("test/test.scrub");
-
-			Console.WriteLine($"Done. {t.Tokens.Count} Tokens:");
-
-			foreach (var token in t.Tokens)
-			{
-				Console.Write(token.TokenType.ToString()+", ");
-			}
 			
-		}
-		catch (Exception e)
-		{
-			// Let the user know what went wrong.
-			Console.WriteLine("The file could not be read:");
-			Console.WriteLine(e.Message);
-		}
+			using (StreamReader stream = new StreamReader("test/test.scrub"))
+			{
+				Tokenizer t = new Tokenizer(stream);
+				Parser p = new Parser(t);
+				var result = p.ParseExpression();
+				var sb = new StringBuilder();
+				result.Print(sb);
+				Console.WriteLine(sb.ToString());
+			}
+		// }
+		// catch (Exception e)
+		// {
+		// 	// Let the user know what went wrong.
+		// 	Console.WriteLine("uh oh:");
+		// 	Console.WriteLine(e.Message);
+		// }
 	}
 }

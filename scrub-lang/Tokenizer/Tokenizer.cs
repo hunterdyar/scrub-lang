@@ -5,67 +5,65 @@ namespace scrub_lang.Tokenizer;
 
 //The Tokenizer uses a simple class-based FSM. WHile it is overkill for many of the minimal lookaheads, iiiiiii like it.
 //todo: bundle up "line,col" into a "location" struct.
+/// <summary>
+/// The Lexer
+/// </summary>
+///
 public class Tokenizer
 {
 	private TokenizerStateBase? _state;
 	private StreamReader _stream;
-	private int CurrentLine;
-	private int CurrentColumn;
+	private int CurrentLine = 0;
+	private int CurrentColumn = 0;
 
 	public List<Token> Tokens => _tokens;
 	private List<Token> _tokens = new List<Token>();
 	private bool isSyntaxError = false;//todo: status enum?
-	
-	public async Task TokenizeStream(string path)
-	{
-		using (StreamReader stream = new StreamReader(path))
-		{
-			_tokens = new List<Token>();
-			CurrentLine = 0;
-			_stream = stream;
-			isSyntaxError = false;
-			bool streaming = true;
-			while (streaming)
-			{
-				string? line = await _stream.ReadLineAsync();
-				CurrentLine++;
-				if (line == null)
-				{
-					//Force end-of-file. whitespace will ensure any remaining tokens/literals end.
-					ConsumeNext('\n',CurrentLine,0);
-					streaming = false;
-					AddToken(new Token(TokenType.EOF, "", CurrentLine, 0));
-					break;
-				}
+	private int _lastTokenProvided = -1;
+	private int _prevCount;
 
-				ConsumeLine(line);
-				if (isSyntaxError)
-				{
-					streaming = false;
-					break;
-				}
-			}
-		}
+	private ISourceProvider _source;
+
+	public Tokenizer(string source)
+	{
+		_source = new StringProvider(source);
 	}
 
-	public async Task TokenizeString(string source)
+	public Tokenizer(StreamReader source)
 	{
-		_tokens = new List<Token>();
-		CurrentLine = 0;
-		isSyntaxError = false;
-		var splits = source.Split('\n');
-		foreach(var line in splits)
+		_source = new StreamProvider(source);
+	}
+	public Tokenizer(ISourceProvider source)
+	{
+		_source = source;
+	}
+
+	public Token Next()
+	{
+		//int count return...
+		//Going to change this to a IEnumerator syntax. Foreach token in Tokenizer...
+		//if we have a new token already.
+		if (_lastTokenProvided < _tokens.Count - 1)
 		{
-			CurrentLine++;
-			ConsumeLine(line);
-			if (isSyntaxError)
+			_lastTokenProvided++;
+			return _tokens[_lastTokenProvided];
+		}
+		//keep going until the size of tokens.count changes.
+		while (_lastTokenProvided == _tokens.Count-1)
+		{
+			if (_source.TryGetNextCharacter(out var c, ref CurrentLine, ref CurrentLine))
 			{
-				break;
+				ConsumeNext(c, CurrentLine, CurrentColumn);
+			}
+			else
+			{
+				//just keep returning EOF's so we don't break lookahead.
+				return new Token(TokenType.EOF,"", CurrentLine, CurrentColumn);
 			}
 		}
 
-		ConsumeNext('\n', CurrentLine, 0);
-		AddToken(new Token(TokenType.EOF, "", CurrentLine, 0));
+		_lastTokenProvided++;
+		return _tokens[_lastTokenProvided];
 	}
 
 	public void ConsumeLine(string line, bool consumeAdditionalLineEnd = true)
@@ -141,6 +139,12 @@ public class Tokenizer
 				return;
 			case ',':
 				AddToken(new Token(TokenType.Comma, c, l, col));
+				return;
+			case '?':
+				AddToken(new Token(TokenType.Question, c, l, col));
+				return;
+			case ':':
+				AddToken(new Token(TokenType.Colon, c, l, col));
 				return;
 			case '{':
 				AddToken(new Token(TokenType.StartExpressionBlock, c, l, col));
