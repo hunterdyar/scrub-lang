@@ -48,14 +48,18 @@ static class Scrub
 		Test("a ? b : c ? d : e", "(a ? b : (c ? d : e))");
 		Test("a ? b ? c : d : e", "(a ? (b ? c : d) : e)");
 		Test("a + b ? c * d : e / f", "((a + b) ? (c * d) : (e / f))");
+		
+		//Binary Operator
 
 		// Grouping.
 		Test("a + (b + c) + d", "((a + (b + c)) + d)");
 		Test("a ^ (b + c)", "(a ^ (b + c))");
 		Test("(!a)++", "((!a)++)");
+
 		
 		//Blocks
 		Test("{}","{\n}");
+		Test("{a+b\nb++}","{\n(a + b)\n(b++)\n}");
 
 		if (_failed != 0) Console.WriteLine("----");
 		Console.WriteLine("Passed: " + _passed);
