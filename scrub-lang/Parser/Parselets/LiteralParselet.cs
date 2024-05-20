@@ -13,7 +13,7 @@ public class LiteralParselet : IPrefixParselet
 
 		if (token.TokenType == TokenType.String)
 		{
-			return new StringExpression(token.Literal);
+			return new StringLiteralExpression(token.Literal);
 		}
 		throw new ParseException("uh oh!");
 	}

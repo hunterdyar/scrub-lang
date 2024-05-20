@@ -31,7 +31,6 @@ public static class BindingPower
 	public static readonly int UnarySum = 19;// -a
 	public static readonly int Not = 19;// !
 	public static readonly int Cast = 19;//what would a cast even be in scrub.
-	// private static readonly int 
 
 	public static readonly int MemberAccess = 20;// .
 	public static readonly int ArraySubscript = 20;// []

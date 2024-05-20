@@ -2,11 +2,11 @@
 
 namespace scrub_lang.Parser;
 
-public class StringExpression : IExpression
+public class StringLiteralExpression : IExpression
 {
 	private readonly string _literal;
 
-	public StringExpression(string literal)
+	public StringLiteralExpression(string literal)
 	{
 		_literal = literal;
 	}
