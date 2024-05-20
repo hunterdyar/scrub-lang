@@ -43,8 +43,10 @@ public class Token
 				return ",";
 			case TokenType.Minus:
 				return "-";
-			case TokenType.PowerOfXOR:
+			case TokenType.BitwiseXOR:
 				return "^";
+			case TokenType.PowerOf:
+				return "**";
 			case TokenType.Question:
 				return "?";
 			case TokenType.Colon:
@@ -61,6 +63,18 @@ public class Token
 				return "++";
 			case TokenType.Decrement:
 				return "--";
+			case TokenType.EqualTo:
+				return "==";
+			case TokenType.GreaterThan:
+				return ">";
+			case TokenType.LessThan:
+				return "<";
+			case TokenType.GreaterThanOrEqualTo:
+				return ">=";
+			case TokenType.LessThanOrEqualTo:
+				return "<=";
+			case TokenType.BitwiseOr:
+				return "|";
 		}
 
 		return tokenType.ToString();

@@ -30,27 +30,26 @@ static class Scrub
 		Test("-a++", "(-(a++))");
 
 		// Binary binding power.
-		Test("a = b + c * d ^ e - f / g", "(a = ((b + (c * (d ^ e))) - (f / g)))");
+		Test("a = b + c * d ** e - f / g", "(a = ((b + (c * (d ** e))) - (f / g)))");
 
 		// Function Declare
 		Test("func a(){}", "func a(){\n}");
 		Test("func a(b){a*a}","func a(b){\n(a * a)\n}");
 		Test("func a(){a()}", "func a(){\na()\n}");
-
 		
 		// Binary associativity.
 		Test("a = b = c", "(a = (b = c))");
 		Test("a + b - c", "((a + b) - c)");
 		Test("a * b / c", "((a * b) / c)");
-		Test("a ^ b ^ c", "(a ^ (b ^ c))");
+		Test("a ** b ** c", "(a ** (b ** c))");
 
-		// Conditional operator.
+		// Tenary operator.
 		Test("a ? b : c ? d : e", "(a ? b : (c ? d : e))");
 		Test("a ? b ? c : d : e", "(a ? (b ? c : d) : e)");
 		Test("a + b ? c * d : e / f", "((a + b) ? (c * d) : (e / f))");
 		
 		//Binary Operator
-
+		Test("a == b", "(a == b)");
 		// Grouping.
 		Test("a + (b + c) + d", "((a + (b + c)) + d)");
 		Test("a ^ (b + c)", "(a ^ (b + c))");

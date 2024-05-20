@@ -11,7 +11,8 @@ public enum TokenType
 	Decrement,
 	Minus,
 	Multiply,
-	PowerOfXOR,//^
+	PowerOf,// **
+	BitwiseXOR, //^
 	Modulo,
 	Division,
 	NotEquals,

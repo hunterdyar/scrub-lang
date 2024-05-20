@@ -102,7 +102,8 @@ public class Tokenizer
 				_state.Consume(c, l, col);
 				return;
 			case '*':
-				AddToken(new Token(TokenType.Multiply, c, l, col));
+				_state = new AsteriskTState(this);
+				_state.Consume(c, l, col);
 				return;
 			case '/':
 				//we have to parse comments....
@@ -110,7 +111,7 @@ public class Tokenizer
 				_state.Consume(c,l,col);
 				return;
 			case '^':
-				AddToken(new Token(TokenType.PowerOfXOR, c, l, col));
+				AddToken(new Token(TokenType.BitwiseXOR, c, l, col));
 				return;
 			case '%':
 				AddToken(new Token(TokenType.Modulo, c, l, col));

@@ -10,13 +10,13 @@ public class TernaryParselet : IInfixParselet
 		//left ? then : else
 		var thenBranch = parser.ParseExpression();
 		parser.Consume(TokenType.Colon);
-		var elseBranch = parser.ParseExpression(BindingPower.Conditional - 1);
+		var elseBranch = parser.ParseExpression(BindingPower.Ternery - 1);
 
 		return new  TerneryExpression(left, thenBranch, elseBranch);
 	}
 
 	public int GetBindingPower()
 	{
-		return BindingPower.Conditional;
+		return BindingPower.Ternery;
 	}
 }

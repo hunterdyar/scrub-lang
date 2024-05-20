@@ -25,22 +25,40 @@ public class Parser
 		Register(TokenType.String, new LiteralParselet());
 		
 		//+1, -1, ~1, !true
-		Prefix(TokenType.Plus, BindingPower.Prefix);
-		Prefix(TokenType.Minus, BindingPower.Prefix);
-		Prefix(TokenType.BitwiseNot, BindingPower.Prefix);
-		Prefix(TokenType.Bang, BindingPower.Prefix);
+		Prefix(TokenType.Plus, BindingPower.UnarySum);
+		Prefix(TokenType.Minus, BindingPower.UnarySum);
+		Prefix(TokenType.BitwiseNot, BindingPower.BitwiseNot);
+		Prefix(TokenType.Bang, BindingPower.Not);
 		
-		//postix:
-		Postfix(TokenType.Increment, BindingPower.PostFix);
-		Postfix(TokenType.Decrement, BindingPower.PostFix);
-			
-		//++
+		//postfix's
+		Postfix(TokenType.Increment, BindingPower.Increment);
+		Postfix(TokenType.Decrement, BindingPower.Increment);
+		
+		//infix operators... most of them (a op b)
+		
+		//math
 		InfixLeft(TokenType.Plus,BindingPower.Sum);
-		InfixLeft(TokenType.Minus,BindingPower.Sum);
+		InfixLeft(TokenType.Minus,BindingPower.Sum); 
+		InfixLeft(TokenType.Modulo,BindingPower.Modulo);
 		InfixLeft(TokenType.Multiply, BindingPower.Product);
 		InfixLeft(TokenType.Division, BindingPower.Product);
 		
-		InfixRight(TokenType.PowerOfXOR, BindingPower.Exponent);
+		//conditional
+		InfixLeft(TokenType.NotEquals, BindingPower.Equality);
+		InfixLeft(TokenType.EqualTo, BindingPower.Equality);
+		InfixLeft(TokenType.GreaterThan, BindingPower.NumericCompare);
+		InfixLeft(TokenType.LessThan, BindingPower.NumericCompare);
+		InfixLeft(TokenType.GreaterThanOrEqualTo, BindingPower.NumericCompare);
+		InfixLeft(TokenType.LessThanOrEqualTo, BindingPower.NumericCompare);
+
+		//bitwise
+		InfixLeft(TokenType.BitwiseLeftShift, BindingPower.BitwiseShift);
+		InfixLeft(TokenType.BitwiseRightShift, BindingPower.BitwiseShift);
+		InfixLeft(TokenType.BitwiseAnd, BindingPower.BitwiseAnd);
+		InfixLeft(TokenType.BitwiseOr, BindingPower.BitwiseOr);
+		InfixLeft(TokenType.BitwiseXOR, BindingPower.BitwiseXor);
+		
+		InfixRight(TokenType.PowerOf, BindingPower.Exponent);
 	}
 
 	public IExpression ParseProgram()
