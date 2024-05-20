@@ -13,7 +13,8 @@ public class Parser
 	public Parser(Tokenizer.Tokenizer tokenizer)
 	{
 		_tokenizer = tokenizer;
-		//in prefix dictionary
+		
+		//in prefix dictionary. These are how we start any expression.
 		Register(TokenType.Identifier,new IdentifierParselet());
 		Register(TokenType.Assignment, new AssignParselet());
 		Register(TokenType.Question, new TernaryParselet());
@@ -23,6 +24,7 @@ public class Parser
 		Register(TokenType.StartExpressionBlock, new ExpressionGroupParselet());
 		Register(TokenType.NumberLiteral, new LiteralParselet());
 		Register(TokenType.String, new LiteralParselet());
+		Register(TokenType.ReturnKeyword,new ReturnParselet());
 		
 		//+1, -1, ~1, !true
 		Prefix(TokenType.Plus, BindingPower.UnarySum);

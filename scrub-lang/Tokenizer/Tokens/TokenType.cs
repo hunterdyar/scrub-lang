@@ -40,6 +40,7 @@ public enum TokenType
 	FunctionKeyword,
 	TrueKeyword,
 	FalseKeyword,
+	ReturnKeyword,
 	EndExpression,//semicolon
 	StartExpressionBlock,
 	EndExpressionBlock,
