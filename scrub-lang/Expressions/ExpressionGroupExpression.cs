@@ -13,7 +13,7 @@ public class ExpressionGroupExpression : IExpression
 
 	public void Print(StringBuilder sb)
 	{
-		sb.Append('{');
+		sb.Append("{\n");
 		foreach (var e in _expressions)
 		{
 			e.Print(sb);

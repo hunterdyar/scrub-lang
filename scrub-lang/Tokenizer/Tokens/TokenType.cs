@@ -34,7 +34,6 @@ public enum TokenType
 	String,
 	IfKeyword,
 	WhileKeyword,
-	VarKeyword,
 	FunctionKeyword,
 	TrueKeyword,
 	FalseKeyword,

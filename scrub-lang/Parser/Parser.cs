@@ -21,7 +21,6 @@ public class Parser
 		Register(TokenType.Question, new TernaryParselet());
 		Register(TokenType.OpenParen, new InlineGroupParselet());
 		Register(TokenType.OpenParen, new CallParselet());
-		Register(TokenType.VarKeyword, new VariableDeclarationParselet());
 		Register(TokenType.FunctionKeyword, new FunctionDeclarationParselet());
 		Register(TokenType.StartExpressionBlock, new ExpressionGroupParselet());
 		Register(TokenType.NumberLiteral, new LiteralParselet());
