@@ -7,10 +7,12 @@ namespace scrub_lang.Evaluator.Evaluators;
 
 public static class MathEvaluator
 {
-	public static Result Evaluate(Evaluator evaluator, BinaryMathExpression bme)
+	public static Result Evaluate(Evaluator evaluator, BinaryMathExpression bme, Environment environment)
 	{
-		var left = evaluator.Eval(bme.Left);
-		var right = evaluator.Eval(bme.Right);
+		environment.Ascend(Token.OperatorToString(bme.Operator));
+		var left = evaluator.Eval(bme.Left, environment);
+		var right = evaluator.Eval(bme.Right, environment);
+
 		if (left.HasError)
 		{
 			return left;
@@ -20,25 +22,41 @@ public static class MathEvaluator
 		{
 			return right;
 		}
-		//
+
+		Result? res = null;
 		switch (bme.Operator)
 		{
 			case TokenType.Plus:
-				return EvalPlus(left.ScrubObject, right.ScrubObject);
+				res = EvalPlus(left.ScrubObject, right.ScrubObject);
+				break;
 			case TokenType.Minus:
-				return EvalMinus(left.ScrubObject, right.ScrubObject);
+				res = EvalMinus(left.ScrubObject, right.ScrubObject);
+				break;
 			case TokenType.Multiply:
-				return EvalProduct(left.ScrubObject, right.ScrubObject);
+				res = EvalProduct(left.ScrubObject, right.ScrubObject);
+				break;
 			case TokenType.Division:
-				return EvalDivide(left.ScrubObject, right.ScrubObject);
+				res = EvalDivide(left.ScrubObject, right.ScrubObject);
+				break;
 			case TokenType.PowerOf:
-				return EvalPower(left.ScrubObject, right.ScrubObject);
+				res = EvalPower(left.ScrubObject, right.ScrubObject);
+				break;
 			case TokenType.Modulo:
-				return EvalModulo(left.ScrubObject, right.ScrubObject);
+				res = EvalModulo(left.ScrubObject, right.ScrubObject);
+				break;
 		}
 
-		return new Result(
-			new ScrubRuntimeError($"Unable to do operation {bme.Operator} on {right.ScrubObject} and {left.ScrubObject}"));
+		if (res == null)
+		{
+			res = new Result(
+				new ScrubRuntimeError(
+					$"Unable to do operation {bme.Operator} on {right.ScrubObject} and {left.ScrubObject}"));
+		}
+		
+		environment.StepExecution(bme, res, $"{left.ScrubObject} {Token.OperatorToString(bme.Operator)} {right.ScrubObject}");
+		environment.Descend(res);
+		return res;
+		
 	}
 
 	private static Result EvalPlus(ScrubObject left, ScrubObject right)

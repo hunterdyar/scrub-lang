@@ -10,16 +10,22 @@ namespace scrub_lang.Evaluator;
 public class Evaluator
 {
 	private IExpression _root;
+	public Environment Environment => _environment;//i've done something wrong.
+	private Environment _environment;
 	public Evaluator(IExpression root)
 	{
 		_root = root;
+		//_environment = new Environment.Environment();
 	}
+
 
 	public void Evaluate()
 	{
 		//clear everything and set.
+		//.Clear
+		_environment = new Environment();
 		//clear root and set.
-		var result = Eval(_root);
+		var result = Eval(_root, _environment);
 		if (result.HasError)//error
 		{
 			//change syntax
@@ -31,7 +37,7 @@ public class Evaluator
 		}
 	}
 	//todo: make a Result Type
-	public Result Eval(IExpression expression)
+	public Result Eval(IExpression expression, Environment environment)
 	{
 		if (expression == null)
 		{
@@ -40,12 +46,14 @@ public class Evaluator
 		if (expression is ProgramExpression program)
 		{
 			Result res = new Result();
+			environment.Ascend("Program");
 			foreach (var e in program.Expressions)
 			{
 				//step? Pass memory context along.
 				//return the last value.
-				res = Eval(e);
+				res = Eval(e,environment);
 			}
+			environment.Descend(res);
 
 			if (!res.HasObject)
 			{
@@ -56,13 +64,14 @@ public class Evaluator
 		}else if (expression is ExpressionGroupExpression expressionGroupExpression)
 		{
 			Result res = new Result();
+			environment.Ascend("{}");
 			foreach (var e in expressionGroupExpression.Expressions)
 			{
 				//step? Pass memory context along.
 				//return the last value.
-				res = Eval(e);
+				res = Eval(e,environment);
 			}
-
+			environment.Descend(res);
 			if (res.HasError)
 			{
 				return res;
@@ -70,7 +79,9 @@ public class Evaluator
 			
 			if (!res.HasObject)//and no object... this is basically if expressions.count == 0.
 			{
-				return new Result(res.ScrubObject, new ScrubRuntimeError("No Expression in Expression Group!"));
+				res = new Result(res.ScrubObject, new ScrubRuntimeError("No Expression in Expression Group!"));
+				environment.StepExecution(expression,res);
+				return res;
 			}
 
 			return res;
@@ -92,7 +103,8 @@ public class Evaluator
 			}
 		}else if (expression is BinaryMathExpression bme)
 		{
-			return MathEvaluator.Evaluate(this, bme);
+			var result = MathEvaluator.Evaluate(this, bme, environment);
+			return result;
 		}
 
 		StringBuilder sb = new StringBuilder();

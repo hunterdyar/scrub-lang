@@ -19,8 +19,10 @@ static class Scrub
 		program.Print(sb);
 		Console.WriteLine(sb);
 		var evaluator = new Evaluator(program);
-		Console.WriteLine("---");
+		Console.WriteLine("---eval");
 		evaluator.Evaluate();
+		Console.WriteLine("---env");
+		evaluator.Environment.PrintExecution();
 	}
 	public static void TestParse()
 	{
