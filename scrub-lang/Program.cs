@@ -1,6 +1,7 @@
 ﻿
 using System.Diagnostics;
 using System.Text;
+using scrub_lang.Evaluator;
 using scrub_lang.Parser;
 using scrub_lang.Tokenizer;
 
@@ -8,7 +9,20 @@ static class Scrub
 {
 	private static int _passed = 0;
 	private static int _failed = 0;
-	public static async Task Main()
+
+	public static void Main()
+	{
+		var t = new Tokenizer("2+2*3");
+		var parser = new Parser(t);
+		var program = parser.ParseProgram();
+		var sb = new StringBuilder();
+		program.Print(sb);
+		Console.WriteLine(sb);
+		var evaluator = new Evaluator(program);
+		Console.WriteLine("---");
+		evaluator.Evaluate();
+	}
+	public static void TestParse()
 	{
 		// Function call.
 		Test("a()", "a()");

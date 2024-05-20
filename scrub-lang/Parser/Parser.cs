@@ -16,6 +16,8 @@ public class Parser
 		
 		//in prefix dictionary. These are how we start any expression.
 		Register(TokenType.Identifier,new IdentifierParselet());
+		Register(TokenType.TrueKeyword, new IdentifierParselet());
+		Register(TokenType.FalseKeyword, new IdentifierParselet());
 		Register(TokenType.Assignment, new AssignParselet());
 		Register(TokenType.Question, new TernaryParselet());
 		Register(TokenType.OpenParen, new InlineGroupParselet());//prefix
@@ -23,6 +25,7 @@ public class Parser
 		Register(TokenType.FunctionKeyword, new FunctionDeclarationParselet());
 		Register(TokenType.StartExpressionBlock, new ExpressionGroupParselet());
 		Register(TokenType.NumberLiteral, new LiteralParselet());
+
 		Register(TokenType.String, new LiteralParselet());
 		Register(TokenType.ReturnKeyword,new ReturnParselet());
 		
@@ -89,7 +92,7 @@ public class Parser
 		}
 		else
 		{
-			return new Program(expressions);
+			return new ProgramExpression(expressions);
 		}
 	}
 	
@@ -100,10 +103,6 @@ public class Parser
 		//Skip over ;'s
 		//We can't actually do this, will need to handle Break as a unary that has very low precedence.
 		//Or maybe as a postFix that just returns the left side of the expression?
-		if (token.TokenType == TokenType.EndExpression)
-		{
-			token = Consume(TokenType.EndExpression);
-		}
 
 		if (token.TokenType == TokenType.EOF)
 		{

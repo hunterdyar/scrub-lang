@@ -2,11 +2,12 @@
 
 namespace scrub_lang.Parser;
 
-public class Program : IExpression
+public class ProgramExpression : IExpression
 {
+	public List<IExpression> Expressions => _expressions;
 	private List<IExpression> _expressions;
 
-	public Program(List<IExpression> expressions)
+	public ProgramExpression(List<IExpression> expressions)
 	{
 		_expressions = expressions;
 	}

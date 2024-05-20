@@ -8,7 +8,7 @@ public class LiteralParselet : IPrefixParselet
 	{
 		if (token.TokenType == TokenType.NumberLiteral)
 		{
-			return new NumberExpression(token.Literal);
+			return new NumberLiteralExpression(token.Literal);
 		}
 
 		if (token.TokenType == TokenType.String)

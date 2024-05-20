@@ -1,1 +1,7 @@
-﻿a+(2-4)
+﻿//here's a question.
+//if you do this:
+3+3
+-3
+//what does that evaluate to?
+//answer: it should be -3, a program block with the last statement of "-3"
+//but: it's 3+3-3, since the newline break is ignored AND we have no semicolons.

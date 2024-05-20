@@ -5,16 +5,17 @@ namespace scrub_lang.Parser;
 
 public class BoolLiteralExpression : IExpression
 {
-	private bool literalValue;
+	public bool Literal => _literalValue;
+	private bool _literalValue;
 
 	public BoolLiteralExpression(TokenType keyword)
 	{
 		if (keyword == TokenType.TrueKeyword)
 		{
-			literalValue = true;
+			_literalValue = true;
 		}else if (keyword == TokenType.FalseKeyword)
 		{
-			literalValue = false;
+			_literalValue = false;
 		}
 		else
 		{
@@ -24,6 +25,6 @@ public class BoolLiteralExpression : IExpression
 
 	public void Print(StringBuilder sb)
 	{
-		sb.Append(literalValue ? "true" : "false");
+		sb.Append(_literalValue ? "true" : "false");
 	}
 }
