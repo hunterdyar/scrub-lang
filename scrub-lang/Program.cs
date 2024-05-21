@@ -1,6 +1,7 @@
 ﻿
 using System.Diagnostics;
 using System.Text;
+using scrub_lang.Code;
 using scrub_lang.Evaluator;
 using scrub_lang.Parser;
 using scrub_lang.Tokenizer;
@@ -12,7 +13,9 @@ static class Scrub
 
 	public static void Main()
 	{
-		var t = new Tokenizer("2+2*3 == 8");
+		Stopwatch sw = new Stopwatch();
+		sw.Start();
+		var t = new Tokenizer("2+2*3*4*5*6== 8");
 		var parser = new Parser(t);
 		var program = parser.ParseProgram();
 		var sb = new StringBuilder();
@@ -21,6 +24,13 @@ static class Scrub
 		var evaluator = new Evaluator(program);
 		Console.WriteLine("---eval");
 		evaluator.Evaluate();
+		sw.Stop();
+		TimeSpan ts = sw.Elapsed;
+		var elapsedTime = $"{ts.Seconds}s; {ts.Microseconds} Microseconds. { ts.Ticks} ticks.";
+		Console.WriteLine($"---\nCompleted in {elapsedTime}");
+
+		var x = Op.Make(OpCode.OpConstant, 65534);
+		Console.WriteLine(x);
 	}
 	public static void TestParse()
 	{
