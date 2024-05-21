@@ -21,8 +21,6 @@ static class Scrub
 		var evaluator = new Evaluator(program);
 		Console.WriteLine("---eval");
 		evaluator.Evaluate();
-		Console.WriteLine("---env");
-		evaluator.Environment.PrintExecution();
 	}
 	public static void TestParse()
 	{

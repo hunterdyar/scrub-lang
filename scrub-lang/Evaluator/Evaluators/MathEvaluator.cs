@@ -9,7 +9,6 @@ public static class MathEvaluator
 {
 	public static Result Evaluate(Evaluator evaluator, BinaryMathExpression bme, Environment environment)
 	{
-		environment.Ascend(Token.OperatorToString(bme.Operator));
 		var left = evaluator.Eval(bme.Left, environment);
 		var right = evaluator.Eval(bme.Right, environment);
 
@@ -53,8 +52,6 @@ public static class MathEvaluator
 					$"Unable to do operation {bme.Operator} on {right.ScrubObject} and {left.ScrubObject}"));
 		}
 		
-		environment.StepExecution(bme, res, $"{left.ScrubObject} {Token.OperatorToString(bme.Operator)} {right.ScrubObject}");
-		environment.Descend(res);
 		return res;
 		
 	}

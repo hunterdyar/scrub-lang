@@ -46,14 +46,12 @@ public class Evaluator
 		if (expression is ProgramExpression program)
 		{
 			Result res = new Result();
-			environment.Ascend("Program");
 			foreach (var e in program.Expressions)
 			{
 				//step? Pass memory context along.
 				//return the last value.
 				res = Eval(e,environment);
 			}
-			environment.Descend(res);
 
 			if (!res.HasObject)
 			{
@@ -64,14 +62,12 @@ public class Evaluator
 		}else if (expression is ExpressionGroupExpression expressionGroupExpression)
 		{
 			Result res = new Result();
-			environment.Ascend("{}");
 			foreach (var e in expressionGroupExpression.Expressions)
 			{
 				//step? Pass memory context along.
 				//return the last value.
 				res = Eval(e,environment);
 			}
-			environment.Descend(res);
 			if (res.HasError)
 			{
 				return res;
@@ -80,7 +76,6 @@ public class Evaluator
 			if (!res.HasObject)//and no object... this is basically if expressions.count == 0.
 			{
 				res = new Result(res.ScrubObject, new ScrubRuntimeError("No Expression in Expression Group!"));
-				environment.StepExecution(expression,res);
 				return res;
 			}
 
