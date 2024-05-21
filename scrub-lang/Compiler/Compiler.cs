@@ -26,8 +26,9 @@ public class Compiler
 				{
 					throw new CompileException(error.Message);
 				}
-			}
 
+				Emit(OpCode.OpPop);
+			}
 			return null;
 		}else if (expression is BinaryOperatorExpressionBase bin)
 		{
@@ -47,6 +48,15 @@ public class Compiler
 			{
 				case TokenType.Plus:
 					Emit(OpCode.OpAdd);
+					break;
+				case TokenType.Minus:
+					Emit(OpCode.OpSubtract);
+					break;
+				case TokenType.Multiply:
+					Emit(OpCode.OpMult);
+					break;
+				case TokenType.Division:
+					Emit(OpCode.OpDivide);
 					break;
 				default:
 					return new ScrubCompilerError($"Unable to Compile Operator {Token.OperatorToString(bin.Operator)}");

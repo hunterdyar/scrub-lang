@@ -18,6 +18,9 @@ static class Scrub
 
 	public static void Main()
 	{
+		//todo: REPL instead of testsuite.
+		
+		
 		Stopwatch sw = new Stopwatch();
 		sw.Start();
 		Console.WriteLine("Parsing Tests...");
@@ -96,8 +99,9 @@ static class Scrub
 		_passed = 0;
 		
 		//0 and 1 are the locations in the constants pool.
-		CompileTest("1 + 2", [1,2], Op.Make(OpCode.OpConstant, 0), Op.Make(OpCode.OpConstant, 1), Op.Make(OpCode.OpAdd));
-		
+		CompileTest("1 + 2", [1,2], Op.Make(OpCode.OpConstant, 0), Op.Make(OpCode.OpConstant, 1), Op.Make(OpCode.OpAdd), Op.Make(OpCode.OpPop));
+
+
 		if (_failed != 0) Console.WriteLine("----");
 		Console.WriteLine("Passed: " + _passed);
 		Console.WriteLine("Failed: " + _failed);

@@ -9,6 +9,10 @@ public enum OpCode: byte
 {
 	OpConstant,
 	OpAdd,
+	OpPop,
+	OpSubtract,
+	OpMult,
+	OpDivide,
 }
 
 public struct Definition
@@ -59,7 +63,11 @@ public static class Op
 	public static Dictionary<OpCode, Definition> Definitions = new Dictionary<OpCode, Definition>()
 	{
 		{ OpCode.OpConstant, new Definition("OpConstant", new int[] { 2 }) },
-		{ OpCode.OpAdd, new Definition("OpAdd", new int[] { }) }
+		{ OpCode.OpPop, new Definition("OpPop", new int[] { })},
+		{ OpCode.OpAdd, new Definition("OpAdd", new int[] { })},
+		{ OpCode.OpMult, new Definition("OpAdd", new int[] { })},
+		{ OpCode.OpSubtract, new Definition("OpAdd", new int[] { })},
+		{ OpCode.OpDivide, new Definition("OpAdd", new int[] { }) }
 	};
 
 	public static byte[] Make(OpCode op, params int[] operands)

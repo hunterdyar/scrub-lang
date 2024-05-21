@@ -59,7 +59,7 @@ public static class VMTests
 			}
 			
 			//todo: compare the stacks
-			var top = vm.StackTop();
+			var top = vm.LastPopped();
 			CompareObjects(test.expected, top);
 		}
 	}

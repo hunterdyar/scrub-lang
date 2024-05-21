@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using scrub_lang.Code;
 using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
@@ -55,17 +56,61 @@ public class VM
 					}
 					break;
 				case OpCode.OpAdd:
-					var r = Pop();
-					var l = Pop();
-					//hmmm
-					var leftVal = (int)l;
-					var rightVal = (int)r;
-					var result = leftVal + rightVal;
-					Push(result);
+				case OpCode.OpSubtract:
+				case OpCode.OpMult:
+				case OpCode.OpDivide:
+					error = RunBinaryOperation(op);
+					if (error != null)
+					{
+						return error;
+					}
+					break;
+				case OpCode.OpPop:
+					Pop();
 					break;
 			}
 		}
 		return null;
+	}
+
+	private ScrubVMError? RunBinaryOperation(OpCode op)
+	{
+		var r = Pop();
+		var l = Pop();
+		
+		//var leftType = left.Type();
+		//var rightTYpe = right.Type();
+		
+		//hmmm
+		if (l is int li && r is int ri)
+		{
+			return RunBinaryintegerOperation(op,  li, ri);
+		}
+
+		return new ScrubVMError("Unsupported types for binary operation {op}");
+	}
+
+	private ScrubVMError? RunBinaryintegerOperation(OpCode op, int left, int right)
+	{
+		long result = 0;
+		switch (op)
+		{
+			case OpCode.OpAdd: 
+				result = left + right;
+				break;
+			case OpCode.OpSubtract:
+				result = left - right;
+				break;
+			case OpCode.OpMult:
+				result = left * right;
+				break;
+			case OpCode.OpDivide:
+				result = left / right;
+				break;
+			default:
+				return new ScrubVMError($"Unkown Integer Operation {op}");
+		}
+		return Push((int)result);
 	}
 
 	private ScrubVMError Push(object o)
@@ -87,13 +132,18 @@ public class VM
 		return o;
 	}
 
-	public object StackTop()
+	// public object StackTop()
+	// {
+	// 	if (sp == 0)
+	// 	{
+	// 		return null;
+	// 	}
+	// 	return stack[sp-1];
+	// }
+
+	public object LastPopped()
 	{
-		if (sp == 0)
-		{
-			return null;
-		}
-		return stack[sp-1];
+		return stack[sp];
 	}
 
 	
