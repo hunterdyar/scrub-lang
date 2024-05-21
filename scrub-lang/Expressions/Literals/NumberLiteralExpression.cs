@@ -1,4 +1,7 @@
 ﻿using System.Text;
+using scrub_lang.Compiler;
+using scrub_lang.Objects;
+using Object = System.Object;
 
 namespace scrub_lang.Parser;
 
@@ -37,5 +40,26 @@ public class NumberLiteralExpression : IExpression
 	public void Print(StringBuilder sb)
 	{
 		sb.Append(_literal);
+	}
+
+	public Objects.Object GetScrubObject()
+	{
+		if (_isDouble)
+		{
+			//return double
+		}
+
+		if (_isInt)
+		{
+			return new Integer(AsInt);
+		}
+
+		if (_isUint)
+		{
+			//eh uints are a later todo.
+			return new Integer((int)AsUint);
+		}
+
+		throw new CompileException($"Unable to Convert '{_literal}' into Object");
 	}
 }

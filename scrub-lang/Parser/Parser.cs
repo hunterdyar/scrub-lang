@@ -88,7 +88,7 @@ public class Parser
 
 		if (expressions.Count == 1)
 		{
-			return expressions[0];
+			return new ProgramExpression(expressions);
 		}
 		else
 		{

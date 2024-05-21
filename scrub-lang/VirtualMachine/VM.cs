@@ -1,20 +1,26 @@
 ﻿using System.Diagnostics;
 using System.Text;
-using scrub_lang.Code;
+using System.Xml.Xsl;
 using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
+using scrub_lang.Objects;
 using scrub_lang.Parser;
+using Object = scrub_lang.Objects.Object;
 
 namespace scrub_lang.VirtualMachine;
 
 public class VM
 {
 	public const int StackSize = 2048;
+	
+	//some consts because why have many number when two number do.
+	public static readonly Bool True = new Bool(true);
+	public static readonly Bool False = new Bool(false);
 	public ByteCode ByteCode { get; }
 
 	private List<byte> instructions;
-	private List<object> constants;
-	private object[] stack;//I do think I want to replace this with my own base ScrubObject object, instead of C# object.
+	private List<Object> constants;
+	private object[] stack;//I do think I want to replace this with my own base ScrubObject? Not sure.
 	
 	//StackPointer will always point to the next free slot in the stack. Top element will be sp-1
 	//we put something in SP, then increment it.
@@ -25,7 +31,7 @@ public class VM
 		
 		instructions = byteCode.Instructions.ToList();
 		constants = byteCode.Constants.ToList();
-		stack = new object[StackSize];
+		stack = new object[StackSize];//todo: will this become a different base type? 
 		sp = 0;
 	}
 
@@ -68,31 +74,86 @@ public class VM
 				case OpCode.OpPop:
 					Pop();
 					break;
+				case OpCode.OpTrue:
+					Push(True);
+					break;
+				case OpCode.OpFalse:
+					Push(False);
+					break;
+				case OpCode.OpEqual:
+				case OpCode.OpNotEqual:
+				case OpCode.OpGreaterThan:
+					error = RunComparisonOperation(op);
+					if (error != null)
+					{
+						return error;
+					}
+
+					break;
 			}
 		}
 		return null;
 	}
 
+	private ScrubVMError? RunComparisonOperation(OpCode op)
+	{
+		var r = PopScrubObject();
+		var l = PopScrubObject();
+
+		if (l.GetType() == ScrubType.Int && r.GetType() == ScrubType.Int)
+		{
+			return RunIntegerComparisonOperation(op, (Integer)l, (Integer)r);
+		}
+		switch (op)
+		{
+			case OpCode.OpEqual:
+				return Push(NativeBoolToBooleanObject(l == r));
+			case OpCode.OpNotEqual:
+				return Push(NativeBoolToBooleanObject(l != r));
+			default:
+				return new ScrubVMError($"Unknown Operator {{op}} for {l.GetType()} and {r.GetType()}");
+		}
+	}
+
+	private ScrubVMError? RunIntegerComparisonOperation(OpCode op, Integer a, Integer b)
+	{
+		switch (op)
+		{
+			//comparing native types here means we can't do false == 0, which scrub should evaluate to true.
+			case OpCode.OpEqual:
+				return Push(NativeBoolToBooleanObject(a.NativeInt == b.NativeInt));
+			case OpCode.OpNotEqual:
+				return Push(NativeBoolToBooleanObject(a.NativeInt != b.NativeInt));
+			case OpCode.OpGreaterThan:
+				return Push(NativeBoolToBooleanObject(a.NativeInt > b.NativeInt));
+			default:
+				return new ScrubVMError($"Unknown Operator {op}");
+		}
+	}
+
 	private ScrubVMError? RunBinaryOperation(OpCode op)
 	{
-		var r = Pop();
-		var l = Pop();
+		var r = PopScrubObject();
+		var l = PopScrubObject();
 		
+		//Do we cast to Object here, to get the type?
 		//var leftType = left.Type();
 		//var rightTYpe = right.Type();
 		
-		//hmmm
-		if (l is int li && r is int ri)
+		//hmmm. Feeels like we are casting twice. But, hey, at least we are sure it will work.
+		//I low-key want to use a single type for all of the underlying objects, and just switch case? is that stupid? It feels stupid, but casting everywhere does too. 
+		//I thought aobut it and yeah its stupid. Just weird to write a dynamic-ish language in a staticly typed one no matter which way you slice it.
+		if(l.GetType() == ScrubType.Int && r.GetType() == ScrubType.Int)
 		{
-			return RunBinaryintegerOperation(op,  li, ri);
+			return RunBinaryintegerOperation(op,  (Integer)l, (Integer)r);
 		}
 
 		return new ScrubVMError("Unsupported types for binary operation {op}");
 	}
 
-	private ScrubVMError? RunBinaryintegerOperation(OpCode op, int left, int right)
+	private ScrubVMError? RunBinaryintegerOperation(OpCode op, Integer left, Integer right)
 	{
-		long result = 0;
+		Integer result = new Integer(0);
 		switch (op)
 		{
 			case OpCode.OpAdd: 
@@ -110,7 +171,7 @@ public class VM
 			default:
 				return new ScrubVMError($"Unkown Integer Operation {op}");
 		}
-		return Push((int)result);
+		return Push(result);
 	}
 
 	private ScrubVMError Push(object o)
@@ -132,6 +193,18 @@ public class VM
 		return o;
 	}
 
+	public Object PopScrubObject()
+	{
+		var o = stack[sp - 1];
+		sp--;
+		if (!(o is Object so))
+		{
+			throw new VMException($"Unable To Pop ScrubObject. Popped {o} instead");
+		}
+
+		return so;
+	}
+
 	// public object StackTop()
 	// {
 	// 	if (sp == 0)
@@ -146,8 +219,11 @@ public class VM
 		return stack[sp];
 	}
 
-	
 
+	public static Bool NativeBoolToBooleanObject(bool b)
+	{
+		return b ? True : False;
+	}
 	public static IExpression Parse(string input)
 	{
 		var t = new Tokenizer.Tokenizer(input);

@@ -2,7 +2,7 @@
 using System.Text;
 using scrub_lang.Compiler;
 
-namespace scrub_lang.Code;
+namespace scrub_lang.Compiler;
 
 //this is the first time i've used this enum: type casting syntax and it's also probably the list time I ever will.
 public enum OpCode: byte
@@ -13,6 +13,11 @@ public enum OpCode: byte
 	OpSubtract,
 	OpMult,
 	OpDivide,
+	OpTrue,
+	OpFalse,
+	OpEqual,
+	OpNotEqual,
+	OpGreaterThan,
 }
 
 public struct Definition
@@ -67,7 +72,12 @@ public static class Op
 		{ OpCode.OpAdd, new Definition("OpAdd", new int[] { })},
 		{ OpCode.OpMult, new Definition("OpAdd", new int[] { })},
 		{ OpCode.OpSubtract, new Definition("OpAdd", new int[] { })},
-		{ OpCode.OpDivide, new Definition("OpAdd", new int[] { }) }
+		{ OpCode.OpDivide, new Definition("OpAdd", new int[] { }) },
+		{ OpCode.OpTrue, new Definition("OpAdd", new int[] { })},
+		{ OpCode.OpFalse, new Definition("OpAdd", new int[] { })},
+		{ OpCode.OpEqual, new Definition("OpAdd", new int[] { }) },
+		{ OpCode.OpNotEqual, new Definition("OpAdd", new int[] { }) },
+		{ OpCode.OpGreaterThan, new Definition("OpAdd", new int[] { }) },
 	};
 
 	public static byte[] Make(OpCode op, params int[] operands)

@@ -1,4 +1,5 @@
 ﻿using scrub_lang.Compiler;
+using scrub_lang.Objects;
 
 namespace scrub_lang.VirtualMachine;
 
@@ -26,9 +27,9 @@ public static class VMTests
 		Failures = 0;
 		Tests = new List<VMTestCase>()
 		{
-			new VMTestCase("1", 1),
-			new VMTestCase("2", 2),
-			new VMTestCase("1+2", 3)
+			new VMTestCase("1", new Integer(1)),
+			new VMTestCase("2", new Integer(2)),
+			new VMTestCase("1+2", new Integer(3))
 		};
 		RunTests();
 		Console.WriteLine($"Failures: {Failures}");
@@ -66,11 +67,16 @@ public static class VMTests
 
 	static bool CompareObjects(object expected, object actual)
 	{
-		if (expected is int i)
+		if (actual == null)
 		{
-			if (int.TryParse(actual.ToString(), out var a))
+			throw new VMException($"Test Failure. Expected {expected}, got null");
+			//todo: this won't catch if we want null... low priority.
+		}
+		if (expected is Integer i)
+		{
+			if (actual is Integer a)
 			{
-				bool r = (Int64)i == (Int64)a;
+				bool r = i.NativeInt == a.NativeInt;
 				if (!r)
 				{
 					Failures++;
@@ -81,7 +87,7 @@ public static class VMTests
 			}
 
 			Failures++;
-			throw new VMException($"Test Failure. e: {i} is not a: {a.ToString()}.");
+			throw new VMException($"Test Failure. e: {i} is not a: {actual.ToString()}.");
 		}
 
 		Failures++;

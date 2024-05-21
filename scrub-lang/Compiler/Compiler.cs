@@ -1,16 +1,17 @@
 ﻿using Microsoft.VisualBasic.CompilerServices;
-using scrub_lang.Code;
 using scrub_lang.Evaluator;
 using scrub_lang.Memory;
+using scrub_lang.Objects;
 using scrub_lang.Parser;
 using scrub_lang.Tokenizer.Tokens;
+using Object = scrub_lang.Objects.Object;
 
 namespace scrub_lang.Compiler;
 
 public class Compiler
 {
 	private List<byte> instructions = new List<byte>();
-	private List<object> constants = new List<object>();//ScrubObject?
+	private List<Object> constants = new List<Object>();//ScrubObject?
 	public Compiler()
 	{
 		
@@ -24,7 +25,7 @@ public class Compiler
 				var error = Compile(e);
 				if (error != null)
 				{
-					throw new CompileException(error.Message);
+					return new ScrubCompilerError(error.Message);
 				}
 
 				Emit(OpCode.OpPop);
@@ -32,16 +33,34 @@ public class Compiler
 			return null;
 		}else if (expression is BinaryOperatorExpressionBase bin)
 		{
+			if (bin.Operator == TokenType.LessThan)
+			{
+				var rightErr = Compile(bin.Right);
+				if (rightErr != null)
+				{
+					return new ScrubCompilerError(rightErr.Message);
+				}
+				
+				var leftErr = Compile(bin.Left);
+				if (leftErr != null)
+				{
+					return new ScrubCompilerError(leftErr.Message);
+				}
+
+				// a<b gets sent to the stack as b>a. we do right before left (above), then a > op
+				Emit(OpCode.OpGreaterThan);
+				return null;
+			}
 			var leftError = Compile(bin.Left);
 			if (leftError != null)
 			{
-				throw new CompileException(leftError.Message);
+				return new ScrubCompilerError(leftError.Message);
 			}
 
 			var rightError = Compile(bin.Right);
 			if (rightError != null)
 			{
-				throw new CompileException(rightError.Message);
+				return new ScrubCompilerError(rightError.Message);
 			}
 
 			switch (bin.Operator)
@@ -58,6 +77,15 @@ public class Compiler
 				case TokenType.Division:
 					Emit(OpCode.OpDivide);
 					break;
+				case TokenType.EqualTo:
+					Emit(OpCode.OpEqual);
+					break;
+				case TokenType.NotEquals:
+					Emit(OpCode.OpNotEqual);
+					break;
+				case TokenType.GreaterThan:
+					Emit(OpCode.OpGreaterThan);
+					break;
 				default:
 					return new ScrubCompilerError($"Unable to Compile Operator {Token.OperatorToString(bin.Operator)}");
 			}
@@ -68,7 +96,7 @@ public class Compiler
 			var error = Compile(pre.Right);
 			if (error != null)
 			{
-				throw new CompileException(error.Message);
+				return new ScrubCompilerError(error.Message);
 			}
 
 			return null;
@@ -77,7 +105,7 @@ public class Compiler
 			var leftError = Compile(post.Left);
 			if (leftError != null)
 			{
-				throw new CompileException(leftError.Message);
+				return new ScrubCompilerError(leftError.Message);
 			}
 
 			return null;
@@ -88,10 +116,13 @@ public class Compiler
 		else if (expression is NumberLiteralExpression numLitExp)
 		{
 			//todo: we are only supporting int's to start.
-			int number = numLitExp.AsInt;
+			var number = numLitExp.GetScrubObject();
 			//create a new instruction. The operatand is the index of number in our constants pool, basically.
 			Emit(OpCode.OpConstant, AddConstant(number));
 			return null;
+		}else if (expression is BoolLiteralExpression boolLitExp)
+		{
+			Emit(boolLitExp.Literal ? OpCode.OpTrue : OpCode.OpFalse);
 		}
 
 		return new ScrubCompilerError($"Unable to parse expression {expression}. Probably not implemented the type yet.");
@@ -115,8 +146,8 @@ public class Compiler
 		return posNewInstruction;
 	}
 	
-	/// <returns>Returns this constants index in the constants pool.</returns>
-	public int AddConstant(object obj)
+	/// <returns>Returns this constants insdex in the constants pool.</returns>
+	public int AddConstant(Object obj)
 	{
 		this.constants.Add(obj);
 		return this.constants.Count - 1;
