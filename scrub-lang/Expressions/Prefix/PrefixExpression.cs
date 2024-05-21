@@ -5,7 +5,9 @@ namespace scrub_lang.Parser;
 
 public class PrefixExpression : IExpression
 {
+	public TokenType Op => _operator;
 	private TokenType _operator;
+	public IExpression Right => _rightExpr;
 	private IExpression _rightExpr;
 
 	public PrefixExpression(TokenType op, IExpression rightExpr)

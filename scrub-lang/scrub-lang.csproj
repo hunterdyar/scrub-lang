@@ -14,8 +14,4 @@
       </None>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Compiler\" />
-    </ItemGroup>
-
 </Project>

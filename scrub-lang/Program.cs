@@ -1,10 +1,15 @@
 ﻿
 using System.Diagnostics;
 using System.Text;
+using scrub_lang;
 using scrub_lang.Code;
+using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
+using scrub_lang.Memory;
 using scrub_lang.Parser;
 using scrub_lang.Tokenizer;
+using scrub_lang.Tokenizer.Tokens;
+using scrub_lang.VirtualMachine;
 
 static class Scrub
 {
@@ -15,81 +20,141 @@ static class Scrub
 	{
 		Stopwatch sw = new Stopwatch();
 		sw.Start();
-		var t = new Tokenizer("2+2*3*4*5*6== 8");
-		var parser = new Parser(t);
-		var program = parser.ParseProgram();
-		var sb = new StringBuilder();
-		program.Print(sb);
-		Console.WriteLine(sb);
-		var evaluator = new Evaluator(program);
-		Console.WriteLine("---eval");
-		evaluator.Evaluate();
-		sw.Stop();
+		Console.WriteLine("Parsing Tests...");
+		TestParse();
+		Console.WriteLine("Compiler Tests...");
+		TestCompile();
+		//VM tests...
+		VMTests.TestIntegerArithmetic();
+		
 		TimeSpan ts = sw.Elapsed;
-		var elapsedTime = $"{ts.Seconds}s; {ts.Microseconds} Microseconds. { ts.Ticks} ticks.";
+		var elapsedTime = $"{ts.Seconds}s; {ts.Microseconds} Microseconds. {ts.Ticks} ticks.";
 		Console.WriteLine($"---\nCompleted in {elapsedTime}");
-
-		var x = Op.Make(OpCode.OpConstant, 65534);
-		Console.WriteLine(x);
 	}
 	public static void TestParse()
 	{
+		_failed = 0;
+		_passed = 0;
 		// Function call.
-		Test("a()", "a()");
-		Test("a(b)", "a(b)");
-		Test("a(b, c)", "a(b, c)");
-		Test("a(b)(c)", "a(b)(c)");
-		Test("a(b) + c(d)", "(a(b) + c(d))");
-		Test("a(b ? c : d, e + f)", "a((b ? c : d), (e + f))");
+		ParseTest("a()", "a()");
+		ParseTest("a(b)", "a(b)");
+		ParseTest("a(b, c)", "a(b, c)");
+		ParseTest("a(b)(c)", "a(b)(c)");
+		ParseTest("a(b) + c(d)", "(a(b) + c(d))");
+		ParseTest("a(b ? c : d, e + f)", "a((b ? c : d), (e + f))");
 
 		// Unary binding power.
-		Test("~!-+a", "(~(!(-(+a))))");
-		Test("a++++++", "(((a++)++)++)");
+		ParseTest("~!-+a", "(~(!(-(+a))))");
+		ParseTest("a++++++", "(((a++)++)++)");
 
 		// Unary and binary binding power.
-		Test("-a * b", "((-a) * b)");
-		Test("!a + b", "((!a) + b)");
-		Test("~a ^ b", "((~a) ^ b)");
-		Test("-a--", "(-(a--))");
-		Test("-a++", "(-(a++))");
+		ParseTest("-a * b", "((-a) * b)");
+		ParseTest("!a + b", "((!a) + b)");
+		ParseTest("~a ^ b", "((~a) ^ b)");
+		ParseTest("-a--", "(-(a--))");
+		ParseTest("-a++", "(-(a++))");
 
 		// Binary binding power.
-		Test("a = b + c * d ** e - f / g", "(a = ((b + (c * (d ** e))) - (f / g)))");
+		ParseTest("a = b + c * d ** e - f / g", "(a = ((b + (c * (d ** e))) - (f / g)))");
 
 		// Function Declare
-		Test("func a(){}", "func a(){\n}");
-		Test("func a(b){a*a}","func a(b){\n(a * a)\n}");
-		Test("func a(){a()}", "func a(){\na()\n}");
+		ParseTest("func a(){}", "func a(){\n}");
+		ParseTest("func a(b){a*a}","func a(b){\n(a * a)\n}");
+		ParseTest("func a(){a()}", "func a(){\na()\n}");
 		
 		// Binary associativity.
-		Test("a = b = c", "(a = (b = c))");
-		Test("a + b - c", "((a + b) - c)");
-		Test("a * b / c", "((a * b) / c)");
-		Test("a ** b ** c", "(a ** (b ** c))");
+		ParseTest("a = b = c", "(a = (b = c))");
+		ParseTest("a + b - c", "((a + b) - c)");
+		ParseTest("a * b / c", "((a * b) / c)");
+		ParseTest("a ** b ** c", "(a ** (b ** c))");
 
 		// Tenary operator.
-		Test("a ? b : c ? d : e", "(a ? b : (c ? d : e))");
-		Test("a ? b ? c : d : e", "(a ? (b ? c : d) : e)");
-		Test("a + b ? c * d : e / f", "((a + b) ? (c * d) : (e / f))");
+		ParseTest("a ? b : c ? d : e", "(a ? b : (c ? d : e))");
+		ParseTest("a ? b ? c : d : e", "(a ? (b ? c : d) : e)");
+		ParseTest("a + b ? c * d : e / f", "((a + b) ? (c * d) : (e / f))");
 		
 		//Binary Operator
-		Test("a == b", "(a == b)");
+		ParseTest("a == b", "(a == b)");
 		// Grouping.
-		Test("a + (b + c) + d", "((a + (b + c)) + d)");
-		Test("a ^ (b + c)", "(a ^ (b + c))");
-		Test("(!a)++", "((!a)++)");
+		ParseTest("a + (b + c) + d", "((a + (b + c)) + d)");
+		ParseTest("a ^ (b + c)", "(a ^ (b + c))");
+		ParseTest("(!a)++", "((!a)++)");
 
 		
 		//Blocks
-		Test("{}","{\n}");
-		Test("{a+b\nb++}","{\n(a + b)\n(b++)\n}");
+		ParseTest("{}","{\n}");
+		ParseTest("{a+b\nb++}","{\n(a + b)\n(b++)\n}");
 
 		if (_failed != 0) Console.WriteLine("----");
 		Console.WriteLine("Passed: " + _passed);
 		Console.WriteLine("Failed: " + _failed);
 	}
 
-	public static void Test(string source, string expected)
+	public static void TestCompile()
+	{
+		_failed = 0;
+		_passed = 0;
+		
+		//0 and 1 are the locations in the constants pool.
+		CompileTest("1 + 2", [1,2], Op.Make(OpCode.OpConstant, 0), Op.Make(OpCode.OpConstant, 1), Op.Make(OpCode.OpAdd));
+		
+		if (_failed != 0) Console.WriteLine("----");
+		Console.WriteLine("Passed: " + _passed);
+		Console.WriteLine("Failed: " + _failed);
+	}
+
+	public static void CompileTest(string input, object[] expectedConstants, params byte[][] expectedInstructions)
+	{
+		var expInstructions = Op.ConcatInstructions(expectedInstructions);
+	
+		try
+		{
+			var t = new Tokenizer(input);
+			var p = new Parser(t);
+			var ast = p.ParseProgram();
+			var c = new Compiler();
+			var e = c.Compile(ast);
+			if (e != null)
+			{
+				_failed++;
+				Console.WriteLine("[FAIL] Source: " + input);
+				Console.WriteLine("       CompileError: " + e);
+				return;
+			}
+
+			var byteCode = c.ByteCode();
+			bool failed = false;
+
+			if (!expectedConstants.SequenceEqual(byteCode.Constants))
+			{
+				Console.WriteLine("[FAIL] Source: " + input);
+				Console.WriteLine("       Expected Constants:\n " + expectedConstants.ToDelimitedString());
+				Console.WriteLine("       Actual Constants:\n " + byteCode.Constants.ToDelimitedString());
+				failed = true;
+			}
+
+			if (!expInstructions.SequenceEqual(byteCode.Instructions))
+			{
+				if (!failed)
+				{
+					Console.WriteLine("[FAIL] Source: " + input);
+					failed = true;
+				}
+
+				Console.WriteLine("       Expected Instructions:\n " + Op.InstructionsToString(expInstructions));
+				Console.WriteLine("       Actual Instructions:\n " + Op.InstructionsToString(byteCode.Instructions));
+			}
+
+			_failed += failed ? 1 : 0;
+			_passed += failed ? 0 : 1;
+		}catch (CompileException cx)
+		{
+			_failed++;
+			Console.WriteLine("[FAIL] Source: " + input);
+			Console.WriteLine("        Error: " + cx.Message);
+		}
+	}
+	public static void ParseTest(string source, string expected)
 	{
 		var t = new Tokenizer(source);
 		var parser = new Parser(t);
@@ -121,4 +186,6 @@ static class Scrub
 			Console.WriteLine("        Error: " + ex.Message);
 		}
 	}
+
+	
 }
