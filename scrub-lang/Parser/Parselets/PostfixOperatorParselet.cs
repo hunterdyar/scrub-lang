@@ -13,7 +13,15 @@ public class PostfixOperatorParselet : IInfixParselet
 
 	public IExpression Parse(Parser parser, IExpression left, Token token)
 	{
-		return new PostfixExpression(left, token.TokenType);
+		if (token.TokenType == TokenType.Increment)
+		{
+			return new IncrementExpression(left, token.TokenType);
+		}else if (token.TokenType == TokenType.Decrement)
+		{
+			return new DecrementExpression(left, token.TokenType);
+		}
+
+		throw new ParseException($"Unable to parse Postfix operator {token.TokenType}");
 	}
 
 	public int GetBindingPower()

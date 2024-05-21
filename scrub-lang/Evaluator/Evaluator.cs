@@ -109,6 +109,19 @@ public class Evaluator
 		{
 			var result = BitwiseEvaluator.Evaluate(this, bbe, environment);
 			return result;
+		}else if (expression is IncrementExpression incrementExpression)
+		{
+			var left = Eval(incrementExpression.Left, environment);
+			if (left.HasError)
+			{
+				return left;
+			}
+
+			if (left.ScrubObject.IsNumeric)
+			{
+				//++
+			}
+			return new Result(new ScrubRuntimeError("Increment not implemented yet."));
 		}
 
 		StringBuilder sb = new StringBuilder();

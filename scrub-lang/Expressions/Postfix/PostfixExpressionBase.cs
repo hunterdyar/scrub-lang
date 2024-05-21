@@ -3,12 +3,14 @@ using scrub_lang.Tokenizer.Tokens;
 
 namespace scrub_lang.Parser;
 
-public class PostfixExpression : IExpression
+public abstract class PostfixExpressionBase : IExpression
 {
+	public IExpression Left => _leftExpr;
 	private IExpression _leftExpr;
+	public TokenType Operator => _operator;
 	private TokenType _operator;
 
-	public PostfixExpression(IExpression left, TokenType op)
+	public PostfixExpressionBase(IExpression left, TokenType op)
 	{
 		_leftExpr = left;
 		_operator = op;
