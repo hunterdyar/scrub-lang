@@ -7,6 +7,9 @@ public class ScrubObject
 	public byte[] Data;
 	public ScrubType ScrubType;
 
+	public bool IsNumeric =>
+		ScrubType == ScrubType.sDouble || ScrubType == ScrubType.sInt || ScrubType == ScrubType.sUint;
+
 	#region Constructors
 
 	public ScrubObject(bool value)
@@ -38,6 +41,13 @@ public class ScrubObject
 		ScrubType = ScrubType.sDouble;
 		Data = BitConverter.GetBytes(value);
 	}
+
+	public ScrubObject(byte[] bytes, ScrubType sType)
+	{
+		Data = bytes;
+		ScrubType = sType;
+	}
+
 
 	#endregion
 	

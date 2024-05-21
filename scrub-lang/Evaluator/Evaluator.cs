@@ -100,6 +100,15 @@ public class Evaluator
 		{
 			var result = MathEvaluator.Evaluate(this, bme, environment);
 			return result;
+		}else if (expression is BinaryConditionalExpression bce)
+		{
+			var result = ConditionalEvaluator.Evaluate(this, bce, environment);
+			return result;
+		}
+		else if (expression is BinaryBitwiseExpression bbe)
+		{
+			var result = BitwiseEvaluator.Evaluate(this, bbe, environment);
+			return result;
 		}
 
 		StringBuilder sb = new StringBuilder();

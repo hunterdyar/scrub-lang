@@ -1,4 +1,5 @@
-﻿using scrub_lang.Tokenizer.Tokens;
+﻿using System.Reflection.Metadata.Ecma335;
+using scrub_lang.Tokenizer.Tokens;
 
 namespace scrub_lang.Parser;
 
@@ -6,6 +7,10 @@ public class BinaryBitwiseExpression : BinaryOperatorExpressionBase
 {
 	public BinaryBitwiseExpression(IExpression leftExpression, TokenType op, IExpression rightExpression) : base(leftExpression, op, rightExpression)
 	{
+		_leftExpression = leftExpression;
+		_operator = op;
+		_rightExpression = rightExpression;
+		
 		if (!IsBinaryBitwiseOperator(op))
 		{
 			throw new ParseException($"{op} is not a Bitwise Operator!");

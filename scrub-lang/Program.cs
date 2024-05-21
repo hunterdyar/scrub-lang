@@ -12,7 +12,7 @@ static class Scrub
 
 	public static void Main()
 	{
-		var t = new Tokenizer("2+2*3");
+		var t = new Tokenizer("2+2*3 == 8");
 		var parser = new Parser(t);
 		var program = parser.ParseProgram();
 		var sb = new StringBuilder();

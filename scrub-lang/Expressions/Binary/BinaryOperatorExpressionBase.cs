@@ -5,9 +5,12 @@ namespace scrub_lang.Parser;
 
 public abstract class BinaryOperatorExpressionBase : IExpression
 {
-	private IExpression _leftExpression;
-	private TokenType _operator;
-	private IExpression _rightExpression;
+	public IExpression Left => _leftExpression;
+	protected IExpression _leftExpression;
+	public TokenType Operator => _operator;
+	protected TokenType _operator;
+	public IExpression Right => _rightExpression;
+	protected IExpression _rightExpression;
 
 	public BinaryOperatorExpressionBase(IExpression leftExpression, TokenType op, IExpression rightExpression)
 	{
