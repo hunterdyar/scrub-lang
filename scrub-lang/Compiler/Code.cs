@@ -31,7 +31,8 @@ public enum OpCode: byte
 	OpIndex,
 	OpCall,
 	OpReturnValue,
-	OpReturnNull,//i think we can compile such that null is added and this never happens. Have to replace empty expression blocks with null.... is that it
+	OpGetLocal,
+	OpSetLocal,
 }
 
 public struct Definition
@@ -58,7 +59,7 @@ public struct Definition
 			{
 				case 0: break;
 				case 1:
-					operands[i] = instructions[offset];
+					operands[i] = (ushort)Op.ReadUInt8(instructions[offset]);
 					break;
 				case 2:
 					operands[i] = Op.ReadUInt16([instructions[offset+0], instructions[offset +1]]);
@@ -84,6 +85,7 @@ public static class Op
 {
 	public static Dictionary<OpCode, Definition> Definitions = new Dictionary<OpCode, Definition>()
 	{
+		//todo: remobe 'op' prefix from the name strings.
 		{ OpCode.OpConstant, new Definition("OpConstant", new int[] { 2 }) },
 		{ OpCode.OpPop, new Definition("OpPop", new int[] { })},
 		{ OpCode.OpAdd, new Definition("OpAdd", new int[] { })},
@@ -105,10 +107,11 @@ public static class Op
 		{ OpCode.OpConcat, new Definition("OpConcat", new int[] { }) },
 		{ OpCode.OpArray, new Definition("OpArray", new int[] { 2 }) },
 		{ OpCode.OpIndex, new Definition("OpIndex", new int[] { }) },//no operands, it expects two values on the stack. an object and an index.
-		{ OpCode.OpCall, new Definition("OpCall", new int[] { }) },
+		{ OpCode.OpCall, new Definition("OpCall", new int[] { 1 }) },
 		{ OpCode.OpReturnValue, new Definition("OpReturn", new int[] { }) },//no arguments. The value to be returned will be on the stack.
-		{ OpCode.OpReturnNull, new Definition("OpReturn", new int[] { }) },
-
+		{ OpCode.OpGetLocal, new Definition("OpGetLocal", new int[] { 1 }) },//todo: make these 2bytes? 256 local variables vs ... more than that.
+		{ OpCode.OpSetLocal, new Definition("OpSetLocal", new int[] { 1 }) },
+		
 
 	};
 
@@ -136,11 +139,10 @@ public static class Op
 				case 0:
 					break;
 				case 1:
-					var o = BitConverter.GetBytes((char)operands[i]);
-					instruction[offset] = o[0];
+					instruction[offset] = ReadUInt8(operands[i]);
 					break;
 				case 2:
-					o = BitConverter.GetBytes(((ushort)operands[i]));
+					var o = BitConverter.GetBytes(((ushort)operands[i]));
 					//c# doesn't define endian-ness, so we have to check this flag.
 					//note: MiscUtil EndianBitConverter.
 					instruction[offset] = BitConverter.IsLittleEndian ? o[1] : o[0];
@@ -163,6 +165,17 @@ public static class Op
 
 		return BitConverter.ToUInt16(b);
 	}
+
+	public static byte ReadUInt8(byte[] b)
+	{
+		return (byte)b[0];
+	}
+
+	public static byte ReadUInt8(int b)
+	{
+		return (byte)b;
+	}
+
 	
 	//This is the opposite of Make.
 	
@@ -220,4 +233,6 @@ public static class Op
 
 		return expInstructions.ToArray();
 	}
+
+	
 }

@@ -113,19 +113,39 @@ public class Compiler
 				RemoveLastInstruction();
 			}
 
-			if (symbolTable.TryResolve(assignExpression.Identifier.Identifier, out var symbol))
+			if (symbolTable.TryResolve(assignExpression.Identifier.Identifier, out var symbol, false))//only check the current scope on assignment. we need some override for global access.
 			{
-				//assign
-				Emit(OpCode.OpSetGlobal, symbol.Index);//assign
-				Emit(OpCode.OpGetGlobal, symbol.Index);//return the value we assigned as the result of the expression.
+				//assign (overwrite)
+				if (symbol.Scope == SymbolTable.GlobalScope)
+				{
+					Emit(OpCode.OpSetGlobal, symbol.Index); //assign
+					Emit(OpCode.OpGetGlobal, symbol.Index); //return the value we assigned as the result of the expression.
+				}
+				else
+				{
+					//else local scope
+					Emit(OpCode.OpSetLocal, symbol.Index);
+					Emit(OpCode.OpGetLocal, symbol.Index);
+				}
+
 				return null;
 			}
 			else
 			{
 				//This symbol does not exist yet. Creating it.
 				symbol = symbolTable.Define(assignExpression.Identifier.Identifier);
-				Emit(OpCode.OpSetGlobal, symbol.Index);
-				Emit(OpCode.OpGetGlobal, symbol.Index);
+				if (symbol.Scope == SymbolTable.GlobalScope)
+				{
+					Emit(OpCode.OpSetGlobal, symbol.Index);
+					Emit(OpCode.OpGetGlobal, symbol.Index);
+				}
+				else
+				{
+					//else local scope.
+					Emit(OpCode.OpSetLocal, symbol.Index);
+					Emit(OpCode.OpGetLocal, symbol.Index);
+				}
+
 				return null;
 			}
 			//return null			
@@ -133,7 +153,14 @@ public class Compiler
 		{
 			if (symbolTable.TryResolve(identExpr.Identifier, out var symbol))
 			{
-				Emit(OpCode.OpGetGlobal, symbol.Index);
+				if (symbol.Scope == SymbolTable.GlobalScope)
+				{
+					Emit(OpCode.OpGetGlobal, symbol.Index);
+				}
+				else //scope is Local.
+				{
+					Emit(OpCode.OpGetLocal, symbol.Index);
+				}
 			}
 			else
 			{
@@ -355,14 +382,21 @@ public class Compiler
 			return null;
 		}else if (expression is FunctionDeclarationExpression fde)
 		{
-			var args = fde.Arguments;
-			
 			EnterScope();
+
+			var args = fde.Arguments;
+			foreach (var arg in args)
+			{
+				symbolTable.Define(arg.Identifier);
+			}
+			
 			var err = Compile(fde.Expression);
 			if (err != null)
 			{
 				return err;
 			}
+
+
 
 			//again I think I bypass this case that Monkey has, because everything is an expression.
 			if (LastInstructionIs(OpCode.OpPop))
@@ -380,8 +414,10 @@ public class Compiler
 				Emit(OpCode.OpReturnValue);
 			}
 			//Add a function literal direclty onto the stack.
+			var numLocals = symbolTable.NumDefinitions;
 			var instructions = LeaveScope();
-			var compiledFunction = new Function(instructions);
+			
+			var compiledFunction = new Function(instructions,numLocals);
 			Emit(OpCode.OpConstant, AddConstant(compiledFunction));
 			return null;
 		}else if (expression is ReturnExpression rete)
@@ -402,8 +438,17 @@ public class Compiler
 			{
 				return err;
 			}
+			//push all of the values onto the stack after the function.
+			foreach (var arg in callExpr.Args)
+			{
+				err = Compile(arg);
+				if (err != null)
+				{
+					return err;
+				}
+			}
 			
-			Emit(OpCode.OpCall);
+			Emit(OpCode.OpCall,callExpr.Args.Length);
 			return null;
 		}
 
@@ -452,6 +497,7 @@ public class Compiler
 		var s = new CompilationScope();
 		Scopes.Add(s);
 		_scopeIndex++;
+		symbolTable = symbolTable.NewEnclosedSymbolTable();
 	}
 
 	private byte[] LeaveScope()
@@ -459,6 +505,7 @@ public class Compiler
 		var instructions = CurrentScope.Instuctions.ToArray();
 		Scopes.RemoveAt(_scopeIndex);
 		_scopeIndex--;
+		symbolTable = symbolTable.Outer;
 		return instructions;
 	}
 	/// <returns>Returns this constants insdex in the constants pool.</returns>
@@ -502,7 +549,7 @@ public class Compiler
 	//this is what gets passed to the VM.
 	public ByteCode ByteCode()
 	{
-		return new ByteCode(CurrentScope.Instuctions.ToArray(),constants.ToArray());
+		return new ByteCode(CurrentScope.Instuctions.ToArray(),constants.ToArray(), symbolTable.NumDefinitions);
 	}
 	
 }

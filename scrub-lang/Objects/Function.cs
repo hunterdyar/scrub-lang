@@ -3,9 +3,11 @@
 //A function Object is a -compiled- function.
 public class Function : Object
 {
-	public Function (byte[] instructions)
+	public int NumLocals;//
+	public Function(byte[] instructions, int numLocals)
 	{
 		Bytes = instructions;
+		NumLocals = numLocals;
 	}
 
 	public override ScrubType GetType() => ScrubType.Function;

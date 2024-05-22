@@ -38,12 +38,13 @@ public class VM
 	private int sp;//stack pointer
 	private int usp; //unstack pointer.
 	
+	//tdoo: refactor constructors
 	public VM(ByteCode byteCode)
 	{
 		ByteCode = byteCode;//keep a copy.
 		//instructions
-		var mainFunction = new Function(byteCode.Instructions);
-		var mainFrame = new Frame(mainFunction);
+		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols);
+		var mainFrame = new Frame(mainFunction,0);
 		Frames = new Stack<Frame>();
 		Frames.Push(mainFrame);
 		
@@ -59,8 +60,8 @@ public class VM
 	{
 		ByteCode = byteCode; //keep a copy.
 		//instructions
-		var mainFunction = new Function(byteCode.Instructions);
-		var mainFrame = new Frame(mainFunction);
+		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols);//we track numSymbols here just for fun. 
+		var mainFrame = new Frame(mainFunction,0);
 		Frames = new Stack<Frame>();
 		Frames.Push(mainFrame);
 
@@ -105,18 +106,23 @@ public class VM
 					}
 					break;
 				case OpCode.OpCall:
-					var fnobj = stack[sp - 1];
-					if (fnobj is not Function fun)
+					var numArgs = Op.ReadUInt8(ins[ip + 1]);
+					CurrentFrame().ip += 1;//move instruction pointer past the operand.
+
+					Frame frame;
+					error = CallFunction(numArgs);
+					if(error!=null)
 					{
-						return new ScrubVMError("function calling a not-a-function");
+						return error;
 					}
-					var frame = new Frame(fun);
-					PushFrame(frame);
 					break;
 				case OpCode.OpReturnValue:
-					var returnValue = Pop();
-					PopFrame();
-					Pop();//
+					var returnValue = Pop(); 
+					frame = PopFrame();
+					
+					//pop. THe -1 gets rid of the function call too.
+					sp = frame.basePointer - 1;
+					
 					error = Push(returnValue);
 					if (error != null)
 					{
@@ -190,10 +196,27 @@ public class VM
 					CurrentFrame().ip += 2;
 					globals[globalIndex] = PopScrubObject();
 					break;
+				case OpCode.OpSetLocal:
+					var localIndex = Op.ReadUInt8(ins[ip + 1]);
+					CurrentFrame().ip += 1;
+					frame = CurrentFrame();
+					//set the stack in our buffer area to our object.
+					stack[frame.basePointer + (int)localIndex] = PopScrubObject();//popscrubObject is to force errors if we pop an instruction.
+					break;
 				case OpCode.OpGetGlobal:
 					globalIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
 					CurrentFrame().ip += 2;
 					Push(globals[globalIndex]);
+					break;
+				case OpCode.OpGetLocal:
+					localIndex = Op.ReadUInt8(ins[ip + 1]);
+					CurrentFrame().ip += 1;
+					frame = CurrentFrame();
+					var err = Push(stack[frame.basePointer+(int)localIndex]);
+					if (err != null)
+					{
+						return err;
+					}
 					break;
 				case OpCode.OpArray:
 					int numElements = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
@@ -201,7 +224,7 @@ public class VM
 
 					var array = BuildArray(sp - numElements, sp);
 					sp = sp - numElements;
-					var err = Push(array);
+					err = Push(array);
 					if (err != null)
 					{
 						return err;
@@ -219,6 +242,20 @@ public class VM
 					break;
 			}
 		}
+		return null;
+	}
+
+	private ScrubVMError? CallFunction(int numArgs)
+	{
+		//reach further down the stack to get the function, past the locals (arguments)
+		var fnobj = stack[sp-1-numArgs];
+		if (fnobj is not Function fun)
+		{
+			return new ScrubVMError("function calling a not-a-function");
+		}
+		var frame = new Frame(fun,sp-numArgs);
+		PushFrame(frame);
+		sp = frame.basePointer + fun.NumLocals;//give us a buffer of the number of local variables we will store in this area on the stack.
 		return null;
 	}
 
@@ -258,9 +295,9 @@ public class VM
 			{
 				return Push(Null);
 			}
-		}
-		else if (lt != ScrubType.Null && it == ScrubType.Int) {
-			//get the byte data.
+		}else if (lt != ScrubType.Null && it == ScrubType.Int) {
+			//get the byte data. booleans return 1/0, strings return uni8 characters, and functions return their bytecode.
+			//it's read-only right now, however.
 			var i = ((Integer)index).NativeInt;
 			var max = left.Bytes.Length - 1;
 			if (i < 0 || i > max)

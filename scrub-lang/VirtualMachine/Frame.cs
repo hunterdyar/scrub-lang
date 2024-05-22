@@ -10,11 +10,13 @@ public class Frame
 	public Function fn;
 	//compiled instruction pointer.s
 	public int ip;
+	public int basePointer;
 
-	public Frame(Function fn)
+	public Frame(Function fn, int basePointer)
 	{
 		this.fn = fn;
 		ip = -1;
+		this.basePointer = basePointer;
 	}
 
 	public byte[] Instructions()

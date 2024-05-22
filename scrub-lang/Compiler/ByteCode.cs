@@ -7,10 +7,11 @@ public class ByteCode
 {
 	public Instructions Instructions;
 	public Object[] Constants;
-
-	public ByteCode(Instructions instructions, Object[] constants)
+	public int NumSymbols;
+	public ByteCode(Instructions instructions, Object[] constants, int numSymbols)
 	{
 		Instructions = instructions;
 		Constants = constants;
+		NumSymbols = numSymbols;
 	}
 }

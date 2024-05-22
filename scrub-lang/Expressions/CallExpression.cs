@@ -8,7 +8,7 @@ public class CallExpression : IExpression
 {
 	public IExpression Expression => _functionExpression;
 	private IExpression _functionExpression;
-	public IExpression[] _Args => _argumentExprs;
+	public IExpression[] Args => _argumentExprs;
 	private IExpression[] _argumentExprs;
 
 	public CallExpression(IExpression functionExpression, List<IExpression> argumentExpressions)
