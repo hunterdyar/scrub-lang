@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using scrub_lang.Compiler;
 
@@ -36,10 +37,10 @@ public struct Definition
 	}
 
 	//this is the opposite of Make()
-	public (int[], int) ReadOperands(byte[] instructions)
+	public (UInt16[], int) ReadOperands(byte[] instructions, int start)
 	{
-		var operands = new int[this.OperandWidths.Length];
-		var offset = 0;
+		var operands = new UInt16[this.OperandWidths.Length];
+		int offset = start;
 		for (int i = 0; i < OperandWidths.Length; i++)
 		{
 			switch (OperandWidths[i])
@@ -49,18 +50,19 @@ public struct Definition
 					operands[i] = instructions[offset];
 					break;
 				case 2:
-					if (BitConverter.IsLittleEndian)
-					{
-						operands[i] = BitConverter.ToInt16([instructions[offset + 1], instructions[offset]]);
-					}
-					else
-					{
-						operands[i] = BitConverter.ToInt16(instructions, offset);
-					}
+					operands[i] = Op.ReadUInt16([instructions[offset+1], instructions[offset +0]]);
+					// if (BitConverter.IsLittleEndian)
+					// {
+					// 	operands[i] = BitConverter.ToInt16([instructions[offset + 1], instructions[offset]]);
+					// }
+					// else
+					// {
+					// 	operands[i] = BitConverter.ToInt16(instructions, offset);
+					// }
 					break;
 			}
 
-			offset += OperandWidths[i];
+			offset += (UInt16)OperandWidths[i];
 		}
 
 		return (operands, offset);
@@ -74,18 +76,18 @@ public static class Op
 		{ OpCode.OpConstant, new Definition("OpConstant", new int[] { 2 }) },
 		{ OpCode.OpPop, new Definition("OpPop", new int[] { })},
 		{ OpCode.OpAdd, new Definition("OpAdd", new int[] { })},
-		{ OpCode.OpMult, new Definition("OpAdd", new int[] { })},
-		{ OpCode.OpSubtract, new Definition("OpAdd", new int[] { })},
-		{ OpCode.OpDivide, new Definition("OpAdd", new int[] { }) },
-		{ OpCode.OpTrue, new Definition("OpAdd", new int[] { })},
-		{ OpCode.OpFalse, new Definition("OpAdd", new int[] { })},
-		{ OpCode.OpEqual, new Definition("OpAdd", new int[] { }) },
-		{ OpCode.OpNotEqual, new Definition("OpAdd", new int[] { }) },
-		{ OpCode.OpGreaterThan, new Definition("OpAdd", new int[] { }) },
-		{ OpCode.OpNegate, new Definition("OpAdd", new int[] { }) },
-		{ OpCode.OpBang, new Definition("OpAdd", new int[] { }) },
-		{ OpCode.OpJump, new Definition("OpConstant", new int[] { 2 }) },
-		{ OpCode.OpJumpNotTruthy, new Definition("OpConstant", new int[] { 2 }) },
+		{ OpCode.OpMult, new Definition("OpMult", new int[] { })},
+		{ OpCode.OpSubtract, new Definition("OpSubtract", new int[] { })},
+		{ OpCode.OpDivide, new Definition("OpDivide", new int[] { }) },
+		{ OpCode.OpTrue, new Definition("OpTrue", new int[] { })},
+		{ OpCode.OpFalse, new Definition("OpFalse", new int[] { })},
+		{ OpCode.OpEqual, new Definition("OpEqual", new int[] { }) },
+		{ OpCode.OpNotEqual, new Definition("OpNotEqual", new int[] { }) },
+		{ OpCode.OpGreaterThan, new Definition("OpGreaterThan", new int[] { }) },
+		{ OpCode.OpNegate, new Definition("OpNegate", new int[] { }) },
+		{ OpCode.OpBang, new Definition("OpBang", new int[] { }) },
+		{ OpCode.OpJump, new Definition("OpJump", new int[] { 2 }) },
+		{ OpCode.OpJumpNotTruthy, new Definition("OpJumpNotTruthy", new int[] { 2 }) },
 
 	};
 
@@ -131,6 +133,16 @@ public static class Op
 		return instruction;
 	}
 
+	public static UInt16 ReadUInt16(byte[] b)
+	{
+		if (BitConverter.IsLittleEndian)
+		{
+			return BitConverter.ToUInt16([b[1], b[0]]);
+		}
+
+		return BitConverter.ToUInt16(b);
+	}
+	
 	//This is the opposite of Make.
 	
 	//helper
@@ -141,15 +153,20 @@ public static class Op
 		var sb = new StringBuilder();
 		for (int i = 0; i < instructions.Length; i++)
 		{
-			if (!Op.Definitions.TryGetValue((OpCode)instructions[i], out var def))
+			var op = (OpCode)(instructions[i]);
+			if (!Op.Definitions.TryGetValue(op, out var def))
 			{
 				throw new CompileException($"Can't find OpCode {instructions[i]}.");
 			}
-
-			var read = def.ReadOperands(instructions);
+			// var operands = instructions.co
+			var read = def.ReadOperands(instructions,i+1);
+			if ((OpCode)instructions[i] != op)
+			{
+				Console.WriteLine("dafuqs");
+			}
 			string instruction = "";
 			
-			//todo: THis is broken.
+			
 			switch (def.OperandWidths.Length)
 			{
 				case 0:

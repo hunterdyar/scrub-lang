@@ -109,7 +109,19 @@ public class VM
 					{
 						return error;
 					}
-
+					break;
+				case OpCode.OpJump:
+					int pos = BitConverter.ToInt16([instructions[ip+1],instructions[ip+2]]);
+					ip = pos - 1;//+1 when the loop ends :p
+					break;
+				case OpCode.OpJumpNotTruthy:
+					pos = Op.ReadUInt16( [instructions[ip+1], instructions[ip+2]]);
+					ip += 2;//skipPastTheJump if we are truthy
+					var condition = PopScrubObject();
+					if (IsTruthy(condition))
+					{
+						ip = pos - 1;
+					}
 					break;
 			}
 		}
@@ -277,6 +289,18 @@ public class VM
 	}
 
 
+	public static bool IsTruthy(Object obj)
+	{
+		switch (obj.GetType())
+		{
+			case ScrubType.Bool:
+				return ((obj as Bool)!).NativeBool;
+			case ScrubType.Int:
+				//todo: is 0 falsy? this isn't the only place in code we assert truthyness. At least also the ! op.
+			default:
+				return true;
+		}
+	}
 	public static Bool NativeBoolToBooleanObject(bool b)
 	{
 		return b ? True : False;

@@ -12,10 +12,10 @@ public class ConditionalExpression : IExpression
 	private readonly IExpression _conditionExpr;
 	public IExpression Consequence => _conditionExpr;
 	private readonly IExpression _consequenceExpr;
-	public IExpression Alternative =>_alterativeExpr;
-	private readonly IExpression _alterativeExpr;
+	public IExpression? Alternative =>_alterativeExpr;
+	private readonly IExpression? _alterativeExpr;
 
-	public ConditionalExpression(IExpression conditionExpr, IExpression consequenceExpr, IExpression aterativeExpr)
+	public ConditionalExpression(IExpression conditionExpr, IExpression consequenceExpr, IExpression? aterativeExpr)
 	{
 		_conditionExpr = conditionExpr;
 		_consequenceExpr = consequenceExpr;
@@ -28,8 +28,12 @@ public class ConditionalExpression : IExpression
 		_conditionExpr.Print(sb);
 		sb.Append(" ? ");
 		_consequenceExpr.Print(sb);
-		sb.Append(" : ");
-		_alterativeExpr.Print(sb);
+		if (_alterativeExpr != null)
+		{
+			sb.Append(" : ");
+			_alterativeExpr.Print(sb);
+		}
+
 		sb.Append(')');
 	}
 }

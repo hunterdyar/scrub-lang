@@ -1,4 +1,5 @@
-﻿using scrub_lang.Compiler;
+﻿using scrub_lang;
+using scrub_lang.Compiler;
 using scrub_lang.Parser;
 using scrub_lang.VirtualMachine;
 using Environment = scrub_lang.Evaluator.Environment;
@@ -70,6 +71,10 @@ static class Scrub
 		}
 
 		var vm = new VM(comp.ByteCode());
+		Console.WriteLine("Executing Bytecode instructions:");
+		var s = Op.InstructionsToString(vm.ByteCode.Instructions);
+		Console.WriteLine(s);
+		Console.WriteLine("---");
 		try
 		{
 			var vmerror = vm.Run();
