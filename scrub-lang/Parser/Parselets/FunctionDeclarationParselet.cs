@@ -6,9 +6,14 @@ public class FunctionDeclarationParselet : IPrefixParselet
 {
 	public IExpression Parse(Parser parser, Token token)
 	{
-		//consume func
-		var idtoken = parser.Consume(TokenType.Identifier);
-		var id = new IdentifierExpression(idtoken.Literal);
+		//consume func(){} and func a(){}
+		IdentifierExpression id = null;
+		if (parser.Peek(TokenType.Identifier))
+		{
+			var idtoken = parser.Consume(TokenType.Identifier);
+			id = new IdentifierExpression(idtoken.Literal);
+		}
+
 		var args = new List<IdentifierExpression>();
 
 		parser.Consume(TokenType.OpenParen);
@@ -22,9 +27,17 @@ public class FunctionDeclarationParselet : IPrefixParselet
 
 		parser.Consume(TokenType.CloseParen);
 		var exp = parser.ParseExpression();
-		return new FunctionDeclarationExpression(id, args, exp);
-		
-		
+
+		if (id == null)
+		{
+			return new FunctionDeclarationExpression(args, exp);
+		}
+		else
+		{
+			return new AssignExpression(id, new FunctionDeclarationExpression(args, exp));
+		}
+
+
 		//consume function signature
 		//consume expression block
 	}

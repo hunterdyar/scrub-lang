@@ -355,8 +355,6 @@ public class Compiler
 			return null;
 		}else if (expression is FunctionDeclarationExpression fde)
 		{
-			//we ignore both of these for now...
-			var ident = fde.Identity;
 			var args = fde.Arguments;
 			
 			EnterScope();
