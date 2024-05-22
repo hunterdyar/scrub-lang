@@ -88,11 +88,54 @@ public class VM
 					{
 						return error;
 					}
+					break;
+				case OpCode.OpBang:
+					error = RunBangOperator(op);
+					if (error != null)
+					{
+						return error;
+					}
+					break;
+				case OpCode.OpNegate:
+					error = RunNegateOperator(op);
+					if (error != null)
+					{
+						return error;
+					}
 
 					break;
 			}
 		}
 		return null;
+	}
+
+	private ScrubVMError? RunNegateOperator(OpCode op)
+	{
+		var operand = PopScrubObject();
+		if (operand.GetType() == ScrubType.Int)
+		{
+			return Push(new Integer(-(operand as Integer).NativeInt));
+		}
+
+		return new ScrubVMError($"Unable to negate (-) {operand}");
+	}
+
+	private ScrubVMError? RunBangOperator(OpCode op)
+	{
+		var operand = PopScrubObject();
+
+		if (operand == True)
+		{
+			return Push(False);
+		}else if (operand == False)
+		{
+			return Push(True);
+		}
+		else
+		{
+			//uh oh. warning? everythnig that is not false is truthy. Not so sure! todo: Investigate truthiness table.
+			return Push(False);
+		}
 	}
 
 	private ScrubVMError? RunComparisonOperation(OpCode op)

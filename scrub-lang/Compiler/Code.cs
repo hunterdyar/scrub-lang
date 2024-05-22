@@ -18,6 +18,8 @@ public enum OpCode: byte
 	OpEqual,
 	OpNotEqual,
 	OpGreaterThan,
+	OpBang,
+	OpNegate,
 }
 
 public struct Definition
@@ -78,6 +80,8 @@ public static class Op
 		{ OpCode.OpEqual, new Definition("OpAdd", new int[] { }) },
 		{ OpCode.OpNotEqual, new Definition("OpAdd", new int[] { }) },
 		{ OpCode.OpGreaterThan, new Definition("OpAdd", new int[] { }) },
+		{ OpCode.OpNegate, new Definition("OpAdd", new int[] { }) },
+		{ OpCode.OpBang, new Definition("OpAdd", new int[] { }) },
 	};
 
 	public static byte[] Make(OpCode op, params int[] operands)

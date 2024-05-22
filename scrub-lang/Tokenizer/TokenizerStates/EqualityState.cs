@@ -4,6 +4,7 @@ using scrub_lang.Tokenizer.Tokens;
 namespace scrub_lang.Tokenizer;
 
 //Sub-lexer for all things that are valid combinations of "=,!,>,<"
+//todo: This needs to get heck refactored.
 public class EqualityTState(Tokenizer context) : TokenizerStateBase(context)
 {
 	private StringBuilder literal = new StringBuilder();
@@ -33,9 +34,6 @@ public class EqualityTState(Tokenizer context) : TokenizerStateBase(context)
 			}else if (s == "!=")
 			{
 				context.AddToken(new Token(TokenType.NotEquals, s, line, firstCol));
-			}else if (s == "!")
-			{
-				context.AddToken(new Token(TokenType.Bang, s, line, firstCol));
 			}
 			else if (s == ">")
 			{
@@ -60,7 +58,18 @@ public class EqualityTState(Tokenizer context) : TokenizerStateBase(context)
 			}
 			else
 			{
-				context.AddToken(new Token(TokenType.Unexpected,s,line,firstCol));
+				for (int i = 0; i < s.Length; i++)
+				{
+					if (s[i] == '!')
+					{
+						context.AddToken(new Token(TokenType.Bang, s, line, firstCol));
+					}
+					else
+					{
+						context.AddToken(new Token(TokenType.Unexpected, s, line, firstCol));
+						break;
+					}
+				}
 			}
 			
 			context.ExitState(this); //leave, but we haven't consumed anything yet, so we need to switch states.

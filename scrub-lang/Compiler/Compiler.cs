@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualBasic.CompilerServices;
+﻿using System.Net.Security;
+using Microsoft.VisualBasic.CompilerServices;
 using scrub_lang.Evaluator;
 using scrub_lang.Memory;
 using scrub_lang.Objects;
@@ -93,10 +94,22 @@ public class Compiler
 			return null;
 		}else if (expression is PrefixExpression pre)
 		{
-			var error = Compile(pre.Right);
+			var error = Compile(pre.Right);//should leave an integer, true, or false on the stack.
 			if (error != null)
 			{
 				return new ScrubCompilerError(error.Message);
+			}
+
+			switch (pre.Op)
+			{
+				case TokenType.Minus:
+					Emit(OpCode.OpNegate);
+					break;
+				case TokenType.Bang:
+					Emit(OpCode.OpBang);
+					break;
+				default:
+					return new ScrubCompilerError($"Unable to Compile Prefix Operator {pre.Op}");
 			}
 
 			return null;
@@ -123,6 +136,7 @@ public class Compiler
 		}else if (expression is BoolLiteralExpression boolLitExp)
 		{
 			Emit(boolLitExp.Literal ? OpCode.OpTrue : OpCode.OpFalse);
+			return null;
 		}
 
 		return new ScrubCompilerError($"Unable to parse expression {expression}. Probably not implemented the type yet.");

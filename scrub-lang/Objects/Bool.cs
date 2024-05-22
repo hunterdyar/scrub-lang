@@ -9,4 +9,9 @@ public class Bool : Objects.Object
 		NativeBool = b;
 		Bytes = BitConverter.GetBytes(b);
 	}
+
+	public override string ToString()
+	{
+		return NativeBool ? "true" : "false";
+	}
 }
