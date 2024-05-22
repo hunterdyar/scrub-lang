@@ -42,5 +42,7 @@ public class StringTState(Tokenizer context) : TokenizerStateBase(context)
 			context.ExitState(this);
 			//ignore this closign " in order to consume it.
 		}
+
+		_builder.Append(c);
 	}
 }
