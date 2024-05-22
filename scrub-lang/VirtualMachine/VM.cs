@@ -1,11 +1,13 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Security.AccessControl;
 using System.Text;
 using System.Xml.Xsl;
 using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
 using scrub_lang.Objects;
 using scrub_lang.Parser;
+using Array = scrub_lang.Objects.Array;
 using Environment = scrub_lang.Evaluator.Environment;
 using Object = scrub_lang.Objects.Object;
 using String = scrub_lang.Objects.String;
@@ -156,9 +158,78 @@ public class VM
 					ip += 2;
 					Push(globals[globalIndex]);
 					break;
+				case OpCode.OpArray:
+					int numElements = Op.ReadUInt16([instructions[ip + 1], instructions[ip + 2]]);
+					ip += 2;
+
+					var array = BuildArray(sp - numElements, sp);
+					sp = sp - numElements;
+					var err = Push(array);
+					if (err != null)
+					{
+						return err;
+					}
+					break;
+				case OpCode.OpIndex:
+					var index = PopScrubObject();
+					var left = PopScrubObject();
+					err = RunIndexExpression(left, index);
+					if (err != null)
+					{
+						return err;
+					}
+
+					break;
 			}
 		}
 		return null;
+	}
+
+	private ScrubVMError? RunIndexExpression(Object left, Object index)
+	{
+		var lt = left.GetType();
+		var it = index.GetType();
+		if (lt == ScrubType.Array && it == ScrubType.Int)
+		{
+			//execute array index
+			return RunArrayIndex((Array)left, (Integer)index);
+		}else if (lt != ScrubType.Null && it == ScrubType.Int) {
+			//get the byte data.
+			var i = ((Integer)index).NativeInt;
+			var max = left.Bytes.Length - 1;
+			if (i < 0 || i > max)
+			{
+				return Push(Null);
+			}
+			//todo: we don't have a byte type... or a char type. Keep your UTF8 lookup tables handly!
+			return Push(new Integer(left.Bytes[i]));
+		}else{
+			return new ScrubVMError($"Unable to index {lt} with {it}");
+		}
+
+		return null;
+	}
+
+	private ScrubVMError? RunArrayIndex(Array array, Integer index)
+	{
+		var i = index.NativeInt;
+		var max = array.Length.NativeInt-1;
+		if (i < 0 || i > max)
+		{
+			return Push(Null);
+		}
+		return Push(array.NativeArray[i]);
+	}
+
+	public Object BuildArray(int startIndex, int endIndex)
+	{
+		var elements = new Object[endIndex - startIndex];
+		for (int i = startIndex; i < endIndex; i++)
+		{
+			elements[i - startIndex] = (Object)stack[i];//todo: wrap this cast with error handling.
+		}
+
+		return new Array(elements);
 	}
 
 	private ScrubVMError? RunNegateOperator(OpCode op)
@@ -328,7 +399,7 @@ public class VM
 
 		return RunBinaryStringOperation(op,ls, rs);
 	}
-	private ScrubVMError Push(object o)
+	private ScrubVMError? Push(object o)
 	{
 		if (sp >= StackSize)
 		{

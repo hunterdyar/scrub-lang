@@ -6,14 +6,9 @@ public class ArrayLookupParselet : IInfixParselet
 {
 	public IExpression Parse(Parser parser, IExpression left, Token token)
 	{
-		if(!(left is IdentifierExpression ie))
-		{
-			throw new ParseException($"Unable to Parse array lookup[] on {left}");
-		}
-
 		var index = parser.ParseExpression();
 		parser.Consume(TokenType.CloseBracket);
-		return new ArrayLookupExpression(ie, index);
+		return new IndexExpression(left, index);
 	}
 
 	public int GetBindingPower()

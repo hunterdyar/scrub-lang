@@ -26,8 +26,9 @@ public enum OpCode: byte
 	OpJumpNotTruthy,
 	OpSetGlobal,
 	OpGetGlobal,
-	OpConcat,
+	OpConcat,//could we cast to string at compile time instead of runtime?
 	OpArray,
+	OpIndex,
 }
 
 public struct Definition
@@ -98,8 +99,9 @@ public static class Op
 		{ OpCode.OpNull, new Definition("OpNull", new int[] { }) },
 		{ OpCode.OpSetGlobal, new Definition("OpSetGlobal", new int[] { 2 }) },
 		{ OpCode.OpGetGlobal, new Definition("OpGetGlobal", new int[] { 2 }) },
-		{ OpCode.OpConcat, new Definition("OpNull", new int[] { }) },
-
+		{ OpCode.OpConcat, new Definition("OpConcat", new int[] { }) },
+		{ OpCode.OpArray, new Definition("OpArray", new int[] { 2 }) },
+		{ OpCode.OpIndex, new Definition("OpIndex", new int[] { }) },//no operands, it expects two values on the stack. an object and an index.
 	};
 
 	public static byte[] Make(OpCode op, params int[] operands)

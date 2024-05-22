@@ -313,6 +313,37 @@ public class Compiler
 			var str = stringlitExpr.GetScrubObject();
 			Emit(OpCode.OpConstant, AddConstant(str));
 			return null;
+		}else if (expression is ArrayLiteralExpression arrayLiteralExpression)
+		{
+			int length = arrayLiteralExpression.Values.Count;
+			for (int i = 0; i < length; i++)
+			{
+				var err = Compile(arrayLiteralExpression.Values[i]);
+				if (err != null)
+				{
+					return err;
+				}
+			}
+
+			Emit(OpCode.OpArray, length);
+			return null;
+		}else if (expression is IndexExpression arrayLookupExpression)
+		{
+			//first put the array on the stack.
+			var err = Compile(arrayLookupExpression.Left);
+			if (err != null)
+			{
+				return err;
+			}
+			//put the index on the stack.
+			err = Compile(arrayLookupExpression.Index);
+			if (err != null)
+			{
+				return err;
+			}
+
+			Emit(OpCode.OpIndex);
+			return null;
 		}
 
 		if (expression == null)
