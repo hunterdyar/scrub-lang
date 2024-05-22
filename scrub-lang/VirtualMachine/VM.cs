@@ -193,7 +193,36 @@ public class VM
 		{
 			//execute array index
 			return RunArrayIndex((Array)left, (Integer)index);
-		}else if (lt != ScrubType.Null && it == ScrubType.Int) {
+		}else if (lt == ScrubType.Int && it == ScrubType.Int)
+		{
+			//This could actually work on .... all the types? It would just be terrible. We'd have to manually check the length of the byte data.
+			
+			var i = ((Integer)index).NativeInt;
+			//Get the bit (as a bool?) at the binary position in the array.
+			//They are stored as 32 bit signed integers, so thats' 4 bytes.
+			if (i < 0)
+			{
+				return null;
+			}else if (i < 8)
+			{
+				return Push(new Bool(((left.Bytes[BitConverter.IsLittleEndian ? 3 : 0] >> i) & 1) != 0));
+			}else if (i < 16)
+			{
+				return Push(new Bool(((left.Bytes[BitConverter.IsLittleEndian ? 2 : 1] >> (i-8)) & 1) != 0));
+			}else if (i < 24)
+			{
+				return Push(new Bool(((left.Bytes[BitConverter.IsLittleEndian ? 1 : 2] >> (i - 16)) & 1) != 0));
+			}
+			else if (i < 32)
+			{
+				return Push(new Bool(((left.Bytes[BitConverter.IsLittleEndian ? 0 : 3] >> (i - 24)) & 1) != 0));
+			}
+			else
+			{
+				return Push(Null);
+			}
+		}
+		else if (lt != ScrubType.Null && it == ScrubType.Int) {
 			//get the byte data.
 			var i = ((Integer)index).NativeInt;
 			var max = left.Bytes.Length - 1;
@@ -204,6 +233,7 @@ public class VM
 			//todo: we don't have a byte type... or a char type. Keep your UTF8 lookup tables handly!
 			return Push(new Integer(left.Bytes[i]));
 		}else{
+			
 			return new ScrubVMError($"Unable to index {lt} with {it}");
 		}
 
