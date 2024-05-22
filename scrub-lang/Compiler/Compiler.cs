@@ -1,6 +1,7 @@
 ﻿using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using scrub_lang.Evaluator;
+using scrub_lang.Objects;
 using scrub_lang.Parser;
 using scrub_lang.Tokenizer.Tokens;
 using ConditionalExpression = scrub_lang.Parser.ConditionalExpression;
@@ -13,17 +14,20 @@ namespace scrub_lang.Compiler;
 public class Compiler
 {
 	private SymbolTable symbolTable = new SymbolTable();
-	private List<byte> instructions = new List<byte>();
 	private List<Object> constants = new List<Object>();//ScrubObject?
 	//todo; replace this with a ring buffer. AMong other reasons the naming is more clear.
-	private EmittedInstruction _lastInstruction;//the very last instruction
-	private EmittedInstruction _previousinstruction;//the one before last.
 
+	public List<CompilationScope> Scopes = new List<CompilationScope>();//todo: Replace with Stack<compscope>
+	private int _scopeIndex = 0;
+	public CompilationScope CurrentScope => Scopes[_scopeIndex];
+	
 	public Compiler()
 	{
-		
+		CompilationScope cs = new CompilationScope();
+		cs.Instuctions = new List<byte>();
+		Scopes.Add(cs);
+		_scopeIndex = 0;
 	}
-
 	public Compiler(Environment env)
 	{
 		if (env.SymbolTable != null)
@@ -35,6 +39,11 @@ public class Compiler
 		{
 			constants = env.Constants;
 		}
+
+		CompilationScope cs = new CompilationScope();
+		cs.Instuctions = new List<byte>();
+		Scopes.Add(cs);
+		_scopeIndex = 0;
 	}
 
 	public Environment Environment()
@@ -99,7 +108,7 @@ public class Compiler
 				return err;
 			}
 
-			if (LastInstructionisPop())
+			if (LastInstructionIs(OpCode.OpPop))
 			{
 				RemoveLastInstruction();
 			}
@@ -254,13 +263,13 @@ public class Compiler
 			
 			// //not using this as a return value, so pop it? or dont?
 			// Emit(OpCode.OpPop);
-			if (LastInstructionisPop())
+			if (LastInstructionIs(OpCode.OpPop))
 			{
 				RemoveLastInstruction();
 			}
 
 			var jumpPos = Emit(OpCode.OpJump, 99999);
-			var afterConsequencePos = instructions.Count;
+			var afterConsequencePos = CurrentScope.Instuctions.Count;
 			ChangeOperand(jumpNqePos, afterConsequencePos);
 
 			//Update the jump-if-conditional-is-not-true destination to be the destination after we compiled the consequence.
@@ -280,13 +289,13 @@ public class Compiler
 					return err;
 				}
 
-				if (LastInstructionisPop())
+				if (LastInstructionIs(OpCode.OpPop))
 				{
 					RemoveLastInstruction();
 				}
 			}
 
-			var afterAlternativePos = instructions.Count;
+			var afterAlternativePos = CurrentScope.Instuctions.Count;
 			ChangeOperand(jumpPos, afterAlternativePos); //backpatch to fix the bogus value.
 			
 			return null;
@@ -344,6 +353,60 @@ public class Compiler
 
 			Emit(OpCode.OpIndex);
 			return null;
+		}else if (expression is FunctionDeclarationExpression fde)
+		{
+			//we ignore both of these for now...
+			var ident = fde.Identity;
+			var args = fde.Arguments;
+			
+			EnterScope();
+			var err = Compile(fde.Expression);
+			if (err != null)
+			{
+				return err;
+			}
+
+			//again I think I bypass this case that Monkey has, because everything is an expression.
+			if (LastInstructionIs(OpCode.OpPop))
+			{
+				Console.WriteLine("Warning: Function ended with a pop.");
+				//there's a more optimized way to do this in one, using replaceInstruction and also replace the opcode.
+				RemoveLastInstruction();
+				Emit(OpCode.OpReturnValue);
+			}
+
+			if (!LastInstructionIs(OpCode.OpReturnValue))
+			{
+				//Console.WriteLine("Warning: Function didn't return a value. That's a problemo!");
+				//Emit(OpCode.OpNull);
+				Emit(OpCode.OpReturnValue);
+			}
+			//Add a function literal direclty onto the stack.
+			var instructions = LeaveScope();
+			var compiledFunction = new Function(instructions);
+			Emit(OpCode.OpConstant, AddConstant(compiledFunction));
+			return null;
+		}else if (expression is ReturnExpression rete)
+		{
+			var err = Compile(rete.ReturnValue);
+			if (err != null)
+			{
+				return err;
+			}
+			//presumably, the return value is now on the stack. If there wasn't one, it's null.
+			Emit(OpCode.OpReturnValue);
+			return null;
+		}else if (expression is CallExpression callExpr)
+		{
+			var err = Compile(callExpr.Expression);
+			//if this is the identifier, it will leave it's data on the stack... which is the instructions to call.
+			if (err != null)
+			{
+				return err;
+			}
+			
+			Emit(OpCode.OpCall);
+			return null;
 		}
 
 		if (expression == null)
@@ -369,23 +432,37 @@ public class Compiler
 
 	private void SetLastInstruction(OpCode op, int pos)
 	{
-		var previous = _lastInstruction;
+		var previous = CurrentScope.LastInstruction;
 		var last = new EmittedInstruction(op, pos);
-		_previousinstruction = previous;
-		_lastInstruction = last;
+		CurrentScope.PreviousInstruction = previous;
+		CurrentScope.LastInstruction = last;
 	}
 
 	public int AddInstruction(byte[] instruction)
 	{
-		var posNewInstruction = instructions.Count;
+		var posNewInstruction = CurrentScope.Instuctions.Count;
 		foreach (byte b in instruction)
 		{
-			instructions.Add(b);
+			CurrentScope.Instuctions.Add(b);
 		}
 
 		return posNewInstruction;
 	}
-	
+
+	private void EnterScope()
+	{
+		var s = new CompilationScope();
+		Scopes.Add(s);
+		_scopeIndex++;
+	}
+
+	private byte[] LeaveScope()
+	{
+		var instructions = CurrentScope.Instuctions.ToArray();
+		Scopes.RemoveAt(_scopeIndex);
+		_scopeIndex--;
+		return instructions;
+	}
 	/// <returns>Returns this constants insdex in the constants pool.</returns>
 	public int AddConstant(Object obj)
 	{
@@ -393,29 +470,33 @@ public class Compiler
 		return this.constants.Count - 1;
 	}
 
-	private bool LastInstructionisPop()
+	private bool LastInstructionIs(OpCode op)
 	{
-		return _lastInstruction.Op == OpCode.OpPop;
+		if (CurrentScope.Instuctions.Count == 0)
+		{
+			return false;
+		}
+		return CurrentScope.LastInstruction.Op == op;
 	}
 
 	private void RemoveLastInstruction()
 	{
-		instructions = instructions.Slice(0, _lastInstruction.Position);
-		_lastInstruction = _previousinstruction;
+		CurrentScope.Instuctions = CurrentScope.Instuctions.Slice(0, CurrentScope.LastInstruction.Position);
+		CurrentScope.LastInstruction = CurrentScope.PreviousInstruction;
 	}
 
 	private void ReplaceInstruction(int pos, byte[] newInstruction)
 	{
 		for (int i = 0; i < newInstruction.Length; i++)
 		{
-			instructions[pos + i] = newInstruction[i];
+			CurrentScope.Instuctions[pos + i] = newInstruction[i];
 		}
 	}
 
 	private void ChangeOperand(int opPos, int operand)
 	{
 		//we assume that we only change op's of the same type.
-		var op = (OpCode)instructions[opPos];
+		var op = (OpCode)CurrentScope.Instuctions[opPos];
 		var newInstruction = Op.Make(op, operand);
 		
 		ReplaceInstruction(opPos, newInstruction);
@@ -423,8 +504,7 @@ public class Compiler
 	//this is what gets passed to the VM.
 	public ByteCode ByteCode()
 	{
-		return new ByteCode(instructions.ToArray(),constants.ToArray());
+		return new ByteCode(CurrentScope.Instuctions.ToArray(),constants.ToArray());
 	}
-
-
+	
 }

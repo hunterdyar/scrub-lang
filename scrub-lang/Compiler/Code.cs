@@ -29,6 +29,9 @@ public enum OpCode: byte
 	OpConcat,//could we cast to string at compile time instead of runtime?
 	OpArray,
 	OpIndex,
+	OpCall,
+	OpReturnValue,
+	OpReturnNull,//i think we can compile such that null is added and this never happens. Have to replace empty expression blocks with null.... is that it
 }
 
 public struct Definition
@@ -102,6 +105,11 @@ public static class Op
 		{ OpCode.OpConcat, new Definition("OpConcat", new int[] { }) },
 		{ OpCode.OpArray, new Definition("OpArray", new int[] { 2 }) },
 		{ OpCode.OpIndex, new Definition("OpIndex", new int[] { }) },//no operands, it expects two values on the stack. an object and an index.
+		{ OpCode.OpCall, new Definition("OpCall", new int[] { }) },
+		{ OpCode.OpReturnValue, new Definition("OpReturn", new int[] { }) },//no arguments. The value to be returned will be on the stack.
+		{ OpCode.OpReturnNull, new Definition("OpReturn", new int[] { }) },
+
+
 	};
 
 	public static byte[] Make(OpCode op, params int[] operands)

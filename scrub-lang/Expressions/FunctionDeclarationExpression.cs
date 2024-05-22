@@ -4,32 +4,35 @@ namespace scrub_lang.Parser;
 
 public class FunctionDeclarationExpression : IExpression
 {
-	private IdentifierExpression id;
-	private List<IdentifierExpression> args;
-	private IExpression block;
+	public IdentifierExpression Identity => _id;
+	private readonly IdentifierExpression _id;
+	public List<IdentifierExpression> Arguments => _args;//todo: wait are these "arguments" or "parameters"?
+	private readonly List<IdentifierExpression> _args;
+	public IExpression Expression => _block;
+	private readonly IExpression _block;
 
 	public FunctionDeclarationExpression(IdentifierExpression id, List<IdentifierExpression> args, IExpression block)
 	{
-		this.id = id;
-		this.args = args;
-		this.block = block;
+		this._id = id;
+		this._args = args;
+		this._block = block;
 	}
 
 	public void Print(StringBuilder sb)
 	{
 		sb.Append("func ");
-		id.Print(sb);
+		_id.Print(sb);
 		sb.Append("(");
-		for (int i = 0; i < args.Count; i++)
+		for (int i = 0; i < _args.Count; i++)
 		{
-			args[i].Print(sb);
-			if (i < args.Count - 1)
+			_args[i].Print(sb);
+			if (i < _args.Count - 1)
 			{
 				sb.Append(",");
 			}
 		}
 
 		sb.Append(")");
-		block.Print(sb);
+		_block.Print(sb);
 	}
 }

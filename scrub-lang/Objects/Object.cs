@@ -19,6 +19,15 @@ public abstract class Object
 		return Bytes;
 	}
 
+	public Object(byte[] data)
+	{
+		Bytes = data;
+	}
+
+	public Object()
+	{
+	}
+
 	public String ToScrubString()
 	{
 		//todo calling this on String clones it. Which is? fine?

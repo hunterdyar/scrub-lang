@@ -6,20 +6,22 @@ namespace scrub_lang.Parser;
 /// </summary>
 public class CallExpression : IExpression
 {
+	public IExpression Expression => _functionExpression;
 	private IExpression _functionExpression;
-	private List<IExpression> _argumentExprs;
+	public IExpression[] _Args => _argumentExprs;
+	private IExpression[] _argumentExprs;
 
 	public CallExpression(IExpression functionExpression, List<IExpression> argumentExpressions)
 	{
 		_functionExpression = functionExpression;
-		_argumentExprs = argumentExpressions;
+		_argumentExprs = argumentExpressions.ToArray();
 	}
 
 	public void Print(StringBuilder sb)
 	{
 		_functionExpression.Print(sb);
 		sb.Append('(');
-		for (int i = 0; i < _argumentExprs.Count; i++)
+		for (int i = 0; i < _argumentExprs.Length; i++)
 		{
 			if (i > 0) sb.Append(", ");
 			_argumentExprs[i].Print(sb);

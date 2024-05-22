@@ -25,7 +25,9 @@ public class VM
 		
 	public ByteCode ByteCode { get; }
 
-	private List<byte> instructions;
+	public Stack<Frame> Frames = new Stack<Frame>();//todo: replace this with pre-allocated array (for SPEeeEEed)
+	private int frameIndex;
+	
 	private List<Object> constants;
 	private object[] stack;//I do think I want to replace this with my own base ScrubObject? Not sure.
 	private object[] unstack;//I am extremely split on calling this the UnStack or the AntiStack.
@@ -39,7 +41,12 @@ public class VM
 	public VM(ByteCode byteCode)
 	{
 		ByteCode = byteCode;//keep a copy.
-		instructions = byteCode.Instructions.ToList();
+		//instructions
+		var mainFunction = new Function(byteCode.Instructions);
+		var mainFrame = new Frame(mainFunction);
+		Frames = new Stack<Frame>();
+		Frames.Push(mainFrame);
+		
 		constants = byteCode.Constants.ToList();
 		stack = new object[StackSize];//todo: will this become a different base type? 
 		unstack = new object[StackSize];
@@ -51,7 +58,12 @@ public class VM
 	public VM(ByteCode byteCode, Object[] globalsStore)
 	{
 		ByteCode = byteCode; //keep a copy.
-		instructions = byteCode.Instructions.ToList();
+		//instructions
+		var mainFunction = new Function(byteCode.Instructions);
+		var mainFrame = new Frame(mainFunction);
+		Frames = new Stack<Frame>();
+		Frames.Push(mainFrame);
+
 		constants = byteCode.Constants.ToList();
 		stack = new object[StackSize]; //todo: will this become a different base type? 
 		unstack = new object[StackSize];
@@ -63,24 +75,49 @@ public class VM
 	public ScrubVMError? Run()
 	{
 		//this is the hot path. We actually care about performance.
-		
+		int ip = 0;
+		byte[] ins;
+		OpCode op;
 		//ip is instructionPointer
-		for (int ip = 0; ip < instructions.Count; ip++)
+		while (CurrentFrame().ip < CurrentFrame().Instructions().Length-1)
 		{
+			CurrentFrame().ip++;//increment at start instead of at end because of all the returns. THis is why we init the frame with an ip of -1.
+
 			//fetch -> decode -> execute
-			
+			ip = CurrentFrame().ip;
+			ins = CurrentFrame().Instructions();
 			//fetch
-			var op = (OpCode)instructions[ip];
+			op = (OpCode)ins[ip];
+			
 			//decode
 			switch (op)
 			{
 				case OpCode.OpConstant:
 					//todo: big/little endian
-					var constIndex = BitConverter.ToInt16([instructions[ip + 2], instructions[ip+1]]);//todo: write fast ReadUInt16 function and handle big/little endian
-					ip += 2;//increase the number of bytes re read to decode the operands. THis leaves the next instruction pointing at an OpCode.
+					var constIndex = BitConverter.ToInt16([ins[ip + 2], ins[ip+1]]);//todo: write fast ReadUInt16 function and handle big/little endian
+					CurrentFrame().ip += 2;//increase the number of bytes re read to decode the operands. THis leaves the next instruction pointing at an OpCode.
 					
 					//execute
 					var error = Push(constants[constIndex]);
+					if (error != null)
+					{
+						return error;
+					}
+					break;
+				case OpCode.OpCall:
+					var fnobj = stack[sp - 1];
+					if (fnobj is not Function fun)
+					{
+						return new ScrubVMError("function calling a not-a-function");
+					}
+					var frame = new Frame(fun);
+					PushFrame(frame);
+					break;
+				case OpCode.OpReturnValue:
+					var returnValue = Pop();
+					PopFrame();
+					Pop();//
+					error = Push(returnValue);
 					if (error != null)
 					{
 						return error;
@@ -133,34 +170,34 @@ public class VM
 					}
 					break;
 				case OpCode.OpJump:
-					int pos = Op.ReadUInt16([instructions[ip+1],instructions[ip+2]]);
-					ip = pos - 1;//+1 when the loop ends :p
+					int pos = Op.ReadUInt16([ins[ip+1],ins[ip+2]]);
+					CurrentFrame().ip = pos - 1;//+1 when the loop ends :p
 					break;
 				case OpCode.OpJumpNotTruthy:
-					pos = Op.ReadUInt16( [instructions[ip+1], instructions[ip+2]]);
-					ip += 2;//skipPastTheJump if we are truthy
+					pos = Op.ReadUInt16( [ins[ip+1], ins[ip+2]]);
+					CurrentFrame().ip += 2;//skipPastTheJump if we are truthy
 					var condition = PopScrubObject();
 					if (!IsTruthy(condition))
 					{
-						ip = pos - 1;
+						CurrentFrame().ip = pos - 1;
 					}
 					break;
 				case OpCode.OpNull:
 					Push(Null);
 					break;
 				case OpCode.OpSetGlobal:
-					var globalIndex = Op.ReadUInt16([instructions[ip + 1], instructions[ip + 2]]);
-					ip += 2;
+					var globalIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+					CurrentFrame().ip += 2;
 					globals[globalIndex] = PopScrubObject();
 					break;
 				case OpCode.OpGetGlobal:
-					globalIndex = Op.ReadUInt16([instructions[ip + 1], instructions[ip + 2]]);
-					ip += 2;
+					globalIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+					CurrentFrame().ip += 2;
 					Push(globals[globalIndex]);
 					break;
 				case OpCode.OpArray:
-					int numElements = Op.ReadUInt16([instructions[ip + 1], instructions[ip + 2]]);
-					ip += 2;
+					int numElements = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+					CurrentFrame().ip += 2;
 
 					var array = BuildArray(sp - numElements, sp);
 					sp = sp - numElements;
@@ -466,21 +503,16 @@ public class VM
 
 		return so;
 	}
-
-	// public object StackTop()
-	// {
-	// 	if (sp == 0)
-	// 	{
-	// 		return null;
-	// 	}
-	// 	return stack[sp-1];
-	// }
-
 	public object LastPopped()
 	{
 		return stack[sp];
 	}
 
+	public Frame CurrentFrame() => Frames.Peek();
+	public void PushFrame(Frame f) { Frames.Push(f);}
+	public Frame PopFrame() => Frames.Pop();
+	
+	
 
 	public static bool IsTruthy(Object obj)
 	{

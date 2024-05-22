@@ -4,19 +4,19 @@ namespace scrub_lang.Parser;
 
 public class ReturnExpression : IExpression
 {
-	private bool returnVoid;
+	public IExpression ReturnValue => _retExpression;
 	private IExpression _retExpression;
 
-	public ReturnExpression(IExpression returnExpression)
+	public ReturnExpression(IExpression? returnExpression)
 	{
-		if (!(returnExpression is NullExpression))
+		//not sure if this ever happens.
+		if (returnExpression == null)
 		{
-			returnVoid = false;
-			_retExpression = returnExpression;
+			_retExpression = new NullExpression();
 		}
 		else
 		{
-			returnVoid = true;
+			_retExpression = returnExpression;
 		}
 	}
 
