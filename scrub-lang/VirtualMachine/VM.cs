@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml.Xsl;
 using scrub_lang.Compiler;
@@ -21,10 +22,14 @@ public class VM
 	private List<byte> instructions;
 	private List<Object> constants;
 	private object[] stack;//I do think I want to replace this with my own base ScrubObject? Not sure.
+
+	private object[] unstack;//I am extremely split on calling this the UnStack or the AntiStack.
 	
 	//StackPointer will always point to the next free slot in the stack. Top element will be sp-1
 	//we put something in SP, then increment it.
 	private int sp;//stack pointer
+	private int usp; //unstack pointer.
+	
 	public VM(ByteCode byteCode)
 	{
 		ByteCode = byteCode;//keep a copy.
@@ -32,7 +37,9 @@ public class VM
 		instructions = byteCode.Instructions.ToList();
 		constants = byteCode.Constants.ToList();
 		stack = new object[StackSize];//todo: will this become a different base type? 
+		unstack = new object[StackSize];
 		sp = 0;
+		usp = 0;
 	}
 
 	public ScrubVMError? Run()
@@ -223,9 +230,10 @@ public class VM
 		{
 			return new ScrubVMError("Stack Overflow!");
 		}
-
+		
 		stack[sp] = o;
 		sp++;
+		usp = usp > 0 ? usp-1: usp;//decrease but floor at 0.
 		return null;
 	}
 
@@ -233,13 +241,19 @@ public class VM
 	{
 		var o = stack[sp - 1];
 		sp--;
+		unstack[usp] = o;
+		usp++;
 		return o;
 	}
 
 	public Object PopScrubObject()
 	{
+		//basically calling pop, but faster to just paste. (i know!? wild).
 		var o = stack[sp - 1];
 		sp--;
+		unstack[usp] = o;
+		usp++;
+		
 		if (!(o is Object so))
 		{
 			throw new VMException($"Unable To Pop ScrubObject. Popped {o} instead");
