@@ -6,6 +6,7 @@ using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
 using scrub_lang.Objects;
 using scrub_lang.Parser;
+using Environment = scrub_lang.Evaluator.Environment;
 using Object = scrub_lang.Objects.Object;
 
 namespace scrub_lang.VirtualMachine;
@@ -13,7 +14,7 @@ namespace scrub_lang.VirtualMachine;
 public class VM
 {
 	public const int StackSize = 2048;
-	
+	public const int GlobalsSize = UInt16.MaxValue;
 	//some consts because why have many number when two number do.
 	public static readonly Bool True = new Bool(true);
 	public static readonly Bool False = new Bool(false);
@@ -24,9 +25,9 @@ public class VM
 	private List<byte> instructions;
 	private List<Object> constants;
 	private object[] stack;//I do think I want to replace this with my own base ScrubObject? Not sure.
-
 	private object[] unstack;//I am extremely split on calling this the UnStack or the AntiStack.
-	
+	public Object[] Globals => globals;
+	private Object[] globals;//globals store. 
 	//StackPointer will always point to the next free slot in the stack. Top element will be sp-1
 	//we put something in SP, then increment it.
 	private int sp;//stack pointer
@@ -35,11 +36,23 @@ public class VM
 	public VM(ByteCode byteCode)
 	{
 		ByteCode = byteCode;//keep a copy.
-		
 		instructions = byteCode.Instructions.ToList();
 		constants = byteCode.Constants.ToList();
 		stack = new object[StackSize];//todo: will this become a different base type? 
 		unstack = new object[StackSize];
+		globals = new Object[GlobalsSize];
+		sp = 0;
+		usp = 0;
+	}
+
+	public VM(ByteCode byteCode, Object[] globalsStore)
+	{
+		ByteCode = byteCode; //keep a copy.
+		instructions = byteCode.Instructions.ToList();
+		constants = byteCode.Constants.ToList();
+		stack = new object[StackSize]; //todo: will this become a different base type? 
+		unstack = new object[StackSize];
+		globals = globalsStore;
 		sp = 0;
 		usp = 0;
 	}
@@ -127,6 +140,16 @@ public class VM
 					break;
 				case OpCode.OpNull:
 					Push(Null);
+					break;
+				case OpCode.OpSetGlobal:
+					var globalIndex = Op.ReadUInt16([instructions[ip + 1], instructions[ip + 2]]);
+					ip += 2;
+					globals[globalIndex] = PopScrubObject();
+					break;
+				case OpCode.OpGetGlobal:
+					globalIndex = Op.ReadUInt16([instructions[ip + 1], instructions[ip + 2]]);
+					ip += 2;
+					Push(globals[globalIndex]);
 					break;
 			}
 		}

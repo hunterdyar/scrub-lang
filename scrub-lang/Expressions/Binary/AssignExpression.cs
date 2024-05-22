@@ -4,7 +4,9 @@ namespace scrub_lang.Parser;
 
 public class AssignExpression : IExpression
 {
+	public IdentifierExpression Identifier => _identifier;
 	private readonly IdentifierExpression _identifier;
+	public IExpression Value => _valueExpression;
 	private readonly IExpression _valueExpression;
 
 	public AssignExpression(IdentifierExpression ident, IExpression valueExpr)

@@ -3,6 +3,7 @@ using scrub_lang.Compiler;
 using scrub_lang.Parser;
 using scrub_lang.VirtualMachine;
 using Environment = scrub_lang.Evaluator.Environment;
+using Object = scrub_lang.Objects.Object;
 
 static class Scrub
 {
@@ -11,6 +12,7 @@ static class Scrub
 	public static async Task<int> Main()
 	{
 		Tests.TestCompile();
+		VMTests.RunAllVMTests();
 		//Repl
 		await Repl(Console.In, Console.Out);
 		return 0;
@@ -19,7 +21,10 @@ static class Scrub
 	public static async Task Repl(TextReader reader, TextWriter writer)
 	{
 		bool repel = true;
+		//compiler env
 		Environment env = new Environment();
+		//VM env
+		Object[]? globals = null;
 		while (repel)
 		{
 			Console.Write("~~> ");
@@ -33,12 +38,12 @@ static class Scrub
 				break;
 			}
 
-			var output = await Execute(line, env);
+			var output = Execute(line, ref env, ref globals);
 			writer.WriteLineAsync(output);
 		}
 	}
 
-	public static async Task<string> Execute(string input, Environment? environment)
+	public static string Execute(string input, ref Environment? environment, ref Object[]? globals)
 	{
 		if (environment == null)
 		{
@@ -55,7 +60,9 @@ static class Scrub
 			return pe.Message;
 		}
 
-		var comp = new Compiler();
+
+
+		var comp = environment == null ? new Compiler() : new Compiler(environment);
 		
 		try
 		{
@@ -70,12 +77,12 @@ static class Scrub
 		{
 			return ce.Message;
 		}
-
-		var vm = new VM(comp.ByteCode());
-		Console.WriteLine("Executing Bytecode instructions:");
-		var s = Op.InstructionsToString(vm.ByteCode.Instructions);
-		Console.WriteLine(s);
-		Console.WriteLine("---");
+		
+		var vm = globals == null ? new VM(comp.ByteCode()) :  new VM(comp.ByteCode(), globals);
+		//Console.WriteLine("Executing Bytecode instructions:");
+		//var s = Op.InstructionsToString(vm.ByteCode.Instructions);
+		//Console.WriteLine(s);
+		//Console.WriteLine("---");
 		try
 		{
 			var vmerror = vm.Run();
@@ -89,6 +96,8 @@ static class Scrub
 			return vme.Message;
 		}
 
+		environment = comp.Environment();
+		globals = vm.Globals;
 		return vm.LastPopped()?.ToString();
 	}
 }

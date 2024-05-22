@@ -24,7 +24,8 @@ public class Tests
 		Console.WriteLine("Compiler Tests...");
 		TestCompile();
 		//VM tests...
-		VMTests.TestIntegerArithmetic();
+		VMTests.RunTests();
+		
 		
 		TimeSpan ts = sw.Elapsed;
 		var elapsedTime = $"{ts.Seconds}s; {ts.Microseconds} Microseconds. {ts.Ticks} ticks.";
@@ -106,6 +107,40 @@ public class Tests
 			Op.Make(OpCode.OpConstant, 1),
 			Op.Make(OpCode.OpPop)
 			);
+
+		CompileTest("one = 1\n two = 2\n",
+			[new Integer(1), new Integer(2)],
+			Op.Make(OpCode.OpConstant, 0),
+			Op.Make(OpCode.OpSetGlobal, 0),
+			Op.Make(OpCode.OpGetGlobal, 0),
+			Op.Make(OpCode.OpPop),
+			Op.Make(OpCode.OpConstant,1),
+			Op.Make(OpCode.OpSetGlobal,1),
+			Op.Make(OpCode.OpGetGlobal,1),
+			Op.Make(OpCode.OpPop)
+		);
+		CompileTest("one = 1\n one",
+			[new Integer(1)],
+			Op.Make(OpCode.OpConstant, 0),
+			Op.Make(OpCode.OpSetGlobal, 0),
+			Op.Make(OpCode.OpGetGlobal, 0),
+			Op.Make(OpCode.OpPop),
+			Op.Make(OpCode.OpGetGlobal, 0),
+			Op.Make(OpCode.OpPop)
+		);
+		CompileTest("one = 1\n two = one\ntwo",
+			[new Integer(1)],
+			Op.Make(OpCode.OpConstant, 0),
+			Op.Make(OpCode.OpSetGlobal, 0),
+			Op.Make(OpCode.OpGetGlobal, 0),
+			Op.Make(OpCode.OpPop),
+			Op.Make(OpCode.OpGetGlobal, 0),
+			Op.Make(OpCode.OpSetGlobal, 1),
+			Op.Make(OpCode.OpGetGlobal, 1),
+			Op.Make(OpCode.OpPop),
+			Op.Make(OpCode.OpGetGlobal, 1),
+			Op.Make(OpCode.OpPop)
+		);
 			
 		if (_failed != 0) Console.WriteLine("----");
 		Console.WriteLine("Passed: " + _passed);

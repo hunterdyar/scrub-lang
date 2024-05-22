@@ -5,5 +5,6 @@ namespace scrub_lang.Parser;
 public interface IExpression
 {
 	void Print(StringBuilder sb);
-	
+
+	bool ReturnsValue => true;
 }

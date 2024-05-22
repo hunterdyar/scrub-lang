@@ -22,6 +22,11 @@ public static class VMTests
 		}
 	}
 
+	public static void RunAllVMTests()
+	{
+		TestIntegerArithmetic();
+		TestGlobalAssignStatements();
+	}
 	public static void TestIntegerArithmetic()
 	{
 		Console.WriteLine("Running VM Arthithmetic Tests...");
@@ -31,6 +36,21 @@ public static class VMTests
 			new VMTestCase("1", new Integer(1)),
 			new VMTestCase("2", new Integer(2)),
 			new VMTestCase("1+2", new Integer(3))
+		};
+		RunTests();
+		Console.WriteLine($"Failures: {Failures}");
+
+	}
+
+	public static void TestGlobalAssignStatements()
+	{
+		Console.WriteLine("Running VM Global Assignment Tests...");
+		Failures = 0;
+		Tests = new List<VMTestCase>()
+		{
+			new VMTestCase("one = 1\n one", new Integer(1)),
+			new VMTestCase("one = 1\n two = 2\n one + two", new Integer(3)),
+			new VMTestCase("one = 1\ntwo = one+one\n one+two", new Integer(3))
 		};
 		RunTests();
 		Console.WriteLine($"Failures: {Failures}");

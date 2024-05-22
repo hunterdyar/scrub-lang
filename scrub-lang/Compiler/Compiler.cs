@@ -4,20 +4,46 @@ using scrub_lang.Evaluator;
 using scrub_lang.Parser;
 using scrub_lang.Tokenizer.Tokens;
 using ConditionalExpression = scrub_lang.Parser.ConditionalExpression;
+using Environment = scrub_lang.Evaluator.Environment;
 using Object = scrub_lang.Objects.Object;
 
 namespace scrub_lang.Compiler;
 
 public class Compiler
 {
+	private SymbolTable symbolTable = new SymbolTable();
 	private List<byte> instructions = new List<byte>();
 	private List<Object> constants = new List<Object>();//ScrubObject?
 	//todo; replace this with a ring buffer. AMong other reasons the naming is more clear.
 	private EmittedInstruction _lastInstruction;//the very last instruction
 	private EmittedInstruction _previousinstruction;//the one before last.
+
 	public Compiler()
 	{
 		
+	}
+
+	public Compiler(Environment env)
+	{
+		if (env.SymbolTable != null)
+		{
+			symbolTable = env.SymbolTable;
+		}
+
+		if (env.Constants != null)
+		{
+			constants = env.Constants;
+		}
+	}
+
+	public Environment Environment()
+	{
+		var e = new Environment()
+		{
+			SymbolTable = symbolTable,
+			Constants = constants
+		};
+		return e;
 	}
 	public ScrubCompilerError? Compile(IExpression expression)
 	{
@@ -31,9 +57,17 @@ public class Compiler
 					return new ScrubCompilerError(error.Message);
 				}
 
-				Emit(OpCode.OpPop);//these values are unused. All exresssions are unused unless they go into some operator or such.
+				//clean up the stack.
+				if (e.ReturnsValue)
+				{
+					//if expression is "expression" and not "statement", then pop or not?
+					Emit(OpCode.OpPop);
+				}
+				//these values are unused. All exresssions are unused unless they go into some operator or such.
 				//it's a little weird because everything is an expression, but... after what would be a statement, we clean up the leftover value that the expressions created.
 			}
+
+			//Emit(OpCode.OpPop);
 			return null;
 		}else if (expression is ExpressionGroupExpression block)
 		{
@@ -52,6 +86,48 @@ public class Compiler
 					//we also could always emit, and then (if needed?) removeLastPop, like with conditionals? 
 					Emit(OpCode.OpPop);
 				}
+			}
+
+			return null;
+		}else if (expression is AssignExpression assignExpression)
+		{
+			//compile error.
+			var err = Compile(assignExpression.Value);
+			if (err != null)
+			{
+				return err;
+			}
+
+			if (LastInstructionisPop())
+			{
+				RemoveLastInstruction();
+			}
+
+			if (symbolTable.TryResolve(assignExpression.Identifier.Identifier, out var symbol))
+			{
+				//assign
+				Emit(OpCode.OpSetGlobal, symbol.Index);//assign
+				Emit(OpCode.OpGetGlobal, symbol.Index);//return the value we assigned as the result of the expression.
+				return null;
+			}
+			else
+			{
+				//This symbol does not exist yet. Creating it.
+				symbol = symbolTable.Define(assignExpression.Identifier.Identifier);
+				Emit(OpCode.OpSetGlobal, symbol.Index);
+				Emit(OpCode.OpGetGlobal, symbol.Index);
+				return null;
+			}
+			//return null			
+		}else if (expression is IdentifierExpression identExpr)
+		{
+			if (symbolTable.TryResolve(identExpr.Identifier, out var symbol))
+			{
+				Emit(OpCode.OpGetGlobal, symbol.Index);
+			}
+			else
+			{
+				return new ScrubCompilerError($"Undefined Variable {identExpr.Identifier}");
 			}
 
 			return null;
