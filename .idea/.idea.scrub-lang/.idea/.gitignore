@@ -6,3 +6,5 @@
 /.idea.scrub-lang.iml
 /projectSettingsUpdater.xml
 /modules.xml
+# GitHub Copilot persisted chat sessions
+/copilot/chatSessions

@@ -36,7 +36,7 @@ public class IncrementTState(Tokenizer context) : TokenizerStateBase(context)
 
 		if (firstChar == '+' && secondChar == '+')
 		{
-			context.AddToken(new Token(TokenType.Increment, firstChar.ToString() + secondChar.ToString(), line, firstCol));
+			context.AddToken(new Token(TokenType.IncrementConcatenate, firstChar.ToString() + secondChar.ToString(), line, firstCol));
 			context.ExitState(this);
 			return;
 		}

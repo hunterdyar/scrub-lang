@@ -13,7 +13,7 @@ public class PostfixOperatorParselet : IInfixParselet
 
 	public IExpression Parse(Parser parser, IExpression left, Token token)
 	{
-		if (token.TokenType == TokenType.Increment)
+		if (token.TokenType == TokenType.IncrementConcatenate)
 		{
 			return new IncrementExpression(left, token.TokenType);
 		}else if (token.TokenType == TokenType.Decrement)

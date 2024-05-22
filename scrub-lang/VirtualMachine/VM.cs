@@ -8,6 +8,7 @@ using scrub_lang.Objects;
 using scrub_lang.Parser;
 using Environment = scrub_lang.Evaluator.Environment;
 using Object = scrub_lang.Objects.Object;
+using String = scrub_lang.Objects.String;
 
 namespace scrub_lang.VirtualMachine;
 
@@ -87,12 +88,16 @@ public class VM
 				case OpCode.OpSubtract:
 				case OpCode.OpMult:
 				case OpCode.OpDivide:
+				
 					error = RunBinaryOperation(op);
 					if (error != null)
 					{
 						return error;
 					}
 					break;
+				case OpCode.OpConcat:
+					return new ScrubVMError("Concatenation Operator Not Yet Implemented");
+					//runBinaryOperation, do same call as the add/sub/mult/div
 				case OpCode.OpPop:
 					Pop();
 					break;
@@ -230,21 +235,31 @@ public class VM
 		var l = PopScrubObject();
 		
 		//Do we cast to Object here, to get the type?
-		//var leftType = left.Type();
-		//var rightTYpe = right.Type();
+		var leftType = l.GetType();
+		var rightType = r.GetType();
 		
 		//hmmm. Feeels like we are casting twice. But, hey, at least we are sure it will work.
 		//I low-key want to use a single type for all of the underlying objects, and just switch case? is that stupid? It feels stupid, but casting everywhere does too. 
 		//I thought aobut it and yeah its stupid. Just weird to write a dynamic-ish language in a staticly typed one no matter which way you slice it.
-		if(l.GetType() == ScrubType.Int && r.GetType() == ScrubType.Int)
+		if(leftType == ScrubType.Int && rightType == ScrubType.Int)
 		{
-			return RunBinaryintegerOperation(op,  (Integer)l, (Integer)r);
+			return RunBinaryIntegerOperation(op,  (Integer)l, (Integer)r);
+		}else if (leftType == ScrubType.String && rightType == ScrubType.String)
+		{
+			return RunBinaryStringOperation(op, (String)l, (String)r);
 		}
 
+		//we do this after the direct checks, because I think it will be faster this way.
+		//It handles all of the other objects/pairings, using strings made from nativeToString.
+		if (op == OpCode.OpConcat)
+		{
+			return RunConcatOperation(op, l, r);
+		}
+		
 		return new ScrubVMError($"Unsupported types for operation {op}");
 	}
 
-	private ScrubVMError? RunBinaryintegerOperation(OpCode op, Integer left, Integer right)
+	private ScrubVMError? RunBinaryIntegerOperation(OpCode op, Integer left, Integer right)
 	{
 		Integer result = new Integer(0);
 		switch (op)
@@ -261,12 +276,58 @@ public class VM
 			case OpCode.OpDivide:
 				result = left / right;
 				break;
+			case OpCode.OpConcat:
+				//todo: optimize these to use internal casts, instead of round-trip through native casts.
+				//todo: should 1++2 return 12 or "12". right now it's "12", which i think is right.
+				return RunBinaryStringOperation(op, new String(left.ToString()), new String(right.ToString()));
 			default:
 				return new ScrubVMError($"Unkown Integer Operation {op}");
 		}
 		return Push(result);
 	}
 
+	private ScrubVMError? RunBinaryStringOperation(OpCode op, String left, String right)
+	{
+		String result = new String("");
+		switch (op)
+		{
+			case OpCode.OpAdd:
+				result = new String(left.Bytes,right.Bytes);
+				break;
+			case OpCode.OpConcat:
+				result = new String(left.Bytes, right.Bytes);
+				break;
+			default:
+				return new ScrubVMError($"Unkown Integer Operation {op}");
+		}
+
+		return Push(result);
+	}
+
+	private ScrubVMError? RunConcatOperation(OpCode op, Object left, Object right)
+	{
+		String ls;
+		if (left.GetType() != ScrubType.String)
+		{
+			ls = left.ToScrubString();
+		}
+		else
+		{
+			ls = (String)(left);
+		}
+
+		String rs;
+		if (right.GetType() != ScrubType.String)
+		{
+			rs = right.ToScrubString();
+		}
+		else
+		{
+			rs = (String)right;
+		}
+
+		return RunBinaryStringOperation(op,ls, rs);
+	}
 	private ScrubVMError Push(object o)
 	{
 		if (sp >= StackSize)

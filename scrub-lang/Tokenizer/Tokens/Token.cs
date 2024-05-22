@@ -59,7 +59,7 @@ public class Token
 				return "/";
 			case TokenType.BitwiseNot:
 				return "~";
-			case TokenType.Increment:
+			case TokenType.IncrementConcatenate:
 				return "++";
 			case TokenType.Decrement:
 				return "--";

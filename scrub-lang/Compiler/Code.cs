@@ -26,6 +26,8 @@ public enum OpCode: byte
 	OpJumpNotTruthy,
 	OpSetGlobal,
 	OpGetGlobal,
+	OpConcat,
+	OpArray,
 }
 
 public struct Definition
@@ -96,6 +98,8 @@ public static class Op
 		{ OpCode.OpNull, new Definition("OpNull", new int[] { }) },
 		{ OpCode.OpSetGlobal, new Definition("OpSetGlobal", new int[] { 2 }) },
 		{ OpCode.OpGetGlobal, new Definition("OpGetGlobal", new int[] { 2 }) },
+		{ OpCode.OpConcat, new Definition("OpNull", new int[] { }) },
+
 	};
 
 	public static byte[] Make(OpCode op, params int[] operands)

@@ -7,7 +7,7 @@ public enum TokenType
 	NumberLiteral,
 	Assignment,
 	Plus,
-	Increment,
+	IncrementConcatenate,
 	Decrement,
 	Minus,
 	Multiply,

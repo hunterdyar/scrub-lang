@@ -6,6 +6,7 @@ using scrub_lang.Tokenizer.Tokens;
 using ConditionalExpression = scrub_lang.Parser.ConditionalExpression;
 using Environment = scrub_lang.Evaluator.Environment;
 using Object = scrub_lang.Objects.Object;
+using String = scrub_lang.Objects.String;
 
 namespace scrub_lang.Compiler;
 
@@ -307,6 +308,11 @@ public class Compiler
 			Emit(OpCode.OpNull);
 			//chill.
 			return null;
+		}else if (expression is StringLiteralExpression stringlitExpr)
+		{
+			var str = stringlitExpr.GetScrubObject();
+			Emit(OpCode.OpConstant, AddConstant(str));
+			return null;
 		}
 
 		if (expression == null)
@@ -315,6 +321,8 @@ public class Compiler
 			return new ScrubCompilerError("Expression is null. The actual native null, I mean.");
 			//todo: Warnings and such here?
 		}
+		
+		//Unhandled Expression Type
 		StringBuilder sb = new StringBuilder();
 		expression.Print(sb);
 		return new ScrubCompilerError($"Unable to compile expression {sb}. Probably not implemented the type yet.");

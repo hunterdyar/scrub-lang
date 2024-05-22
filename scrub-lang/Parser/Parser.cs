@@ -38,7 +38,7 @@ public class Parser
 		Prefix(TokenType.Bang, BindingPower.Not);
 		
 		//postfix's
-		Postfix(TokenType.Increment, BindingPower.Increment);
+		Postfix(TokenType.IncrementConcatenate, BindingPower.Increment);
 		Postfix(TokenType.Decrement, BindingPower.Increment);
 		
 		//infix operators... most of them (a op b)
@@ -66,6 +66,10 @@ public class Parser
 		InfixLeft(TokenType.BitwiseAnd, BindingPower.BitwiseAnd);
 		InfixLeft(TokenType.BitwiseOr, BindingPower.BitwiseOr);
 		InfixLeft(TokenType.BitwiseXOR, BindingPower.BitwiseXor);
+		
+		//todo: 
+		//string
+		//infix(IncrementConcatenate). gotta disambiguate between left++ and left++right. that's done with binding power, usually, right? so ... how do i differentiate... im skipping for now.
 		
 		InfixRight(TokenType.PowerOf, BindingPower.Exponent);
 	}
