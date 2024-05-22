@@ -18,6 +18,7 @@ public class Parser
 		Register(TokenType.Identifier,new IdentifierParselet());
 		Register(TokenType.TrueKeyword, new IdentifierParselet());
 		Register(TokenType.FalseKeyword, new IdentifierParselet());
+		Register(TokenType.NullKeyword, new IdentifierParselet());
 		Register(TokenType.Assignment, new AssignParselet());
 		Register(TokenType.Question, new TernaryParselet());
 		Register(TokenType.OpenParen, new InlineGroupParselet());//prefix

@@ -17,6 +17,8 @@ public class VM
 	//some consts because why have many number when two number do.
 	public static readonly Bool True = new Bool(true);
 	public static readonly Bool False = new Bool(false);
+	public static readonly Null Null = new Null();
+		
 	public ByteCode ByteCode { get; }
 
 	private List<byte> instructions;
@@ -111,17 +113,20 @@ public class VM
 					}
 					break;
 				case OpCode.OpJump:
-					int pos = BitConverter.ToInt16([instructions[ip+1],instructions[ip+2]]);
+					int pos = Op.ReadUInt16([instructions[ip+1],instructions[ip+2]]);
 					ip = pos - 1;//+1 when the loop ends :p
 					break;
 				case OpCode.OpJumpNotTruthy:
 					pos = Op.ReadUInt16( [instructions[ip+1], instructions[ip+2]]);
 					ip += 2;//skipPastTheJump if we are truthy
 					var condition = PopScrubObject();
-					if (IsTruthy(condition))
+					if (!IsTruthy(condition))
 					{
 						ip = pos - 1;
 					}
+					break;
+				case OpCode.OpNull:
+					Push(Null);
 					break;
 			}
 		}
@@ -147,6 +152,9 @@ public class VM
 		{
 			return Push(False);
 		}else if (operand == False)
+		{
+			return Push(True);
+		}else if (operand == Null)
 		{
 			return Push(True);
 		}
@@ -297,6 +305,8 @@ public class VM
 				return ((obj as Bool)!).NativeBool;
 			case ScrubType.Int:
 				//todo: is 0 falsy? this isn't the only place in code we assert truthyness. At least also the ! op.
+			case ScrubType.Null:
+				return false;
 			default:
 				return true;
 		}

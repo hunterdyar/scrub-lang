@@ -1,4 +1,5 @@
 ﻿using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using scrub_lang.Evaluator;
 using scrub_lang.Parser;
 using scrub_lang.Tokenizer.Tokens;
@@ -181,21 +182,21 @@ public class Compiler
 				RemoveLastInstruction();
 			}
 
-			//Update the jump-if-conditional-is-not-true destination to be the destination after we compiled the consequence.
+			var jumpPos = Emit(OpCode.OpJump, 99999);
 			var afterConsequencePos = instructions.Count;
+			ChangeOperand(jumpNqePos, afterConsequencePos);
+
+			//Update the jump-if-conditional-is-not-true destination to be the destination after we compiled the consequence.
+			//if there is an alternative, then the true path needs to hit a jump to skip it.
+			//and the false path needs to jump to after that jump. lest we skip the whole thing.
 			if (condExpr.Alternative is NullExpression)//==nulls
 			{
-				//var afterConsequencePos = instructions.Count;
-				ChangeOperand(jumpNqePos, afterConsequencePos);
+				//THis... could be just the compile of the alternative.... right? null just emits a null always? todo
+				//we are't compiling the alternative here, so if nothing else, it's a minor optimization.
+				Emit(OpCode.OpNull);
 			}
 			else
 			{
-				//if there is an alternative, then the true path needs to hit a jump to skip it.
-				//and the false path needs to jump to after that jump. lest we skip the whole thing.
-				var jumpPos = Emit(OpCode.OpJump, 99999);
-				afterConsequencePos = instructions.Count;
-				ChangeOperand(jumpNqePos,afterConsequencePos);
-
 				err = Compile(condExpr.Alternative);
 				if (err != null)
 				{
@@ -206,11 +207,10 @@ public class Compiler
 				{
 					RemoveLastInstruction();
 				}
-
-				var afterAlternativePos = instructions.Count;
-				ChangeOperand(jumpPos,afterAlternativePos);//backpatch to fix the bogus value.
 			}
-			
+
+			var afterAlternativePos = instructions.Count;
+			ChangeOperand(jumpPos, afterAlternativePos); //backpatch to fix the bogus value.
 			
 			return null;
 		}
@@ -228,11 +228,20 @@ public class Compiler
 			return null;
 		}else if(expression is NullExpression)
 		{
+			Emit(OpCode.OpNull);
 			//chill.
 			return null;
 		}
 
-		return new ScrubCompilerError($"Unable to compile expression {expression}. Probably not implemented the type yet.");
+		if (expression == null)
+		{
+			return Compile(new NullExpression());
+			return new ScrubCompilerError("Expression is null. The actual native null, I mean.");
+			//todo: Warnings and such here?
+		}
+		StringBuilder sb = new StringBuilder();
+		expression.Print(sb);
+		return new ScrubCompilerError($"Unable to compile expression {sb}. Probably not implemented the type yet.");
 	}
 
 	public int Emit(OpCode op, params int[] operands)

@@ -16,6 +16,7 @@ public enum OpCode: byte
 	OpDivide,
 	OpTrue,
 	OpFalse,
+	OpNull,
 	OpEqual,
 	OpNotEqual,
 	OpGreaterThan,
@@ -90,6 +91,7 @@ public static class Op
 		{ OpCode.OpBang, new Definition("OpBang", new int[] { }) },
 		{ OpCode.OpJump, new Definition("OpJump", new int[] { 2 }) },
 		{ OpCode.OpJumpNotTruthy, new Definition("OpJumpNotTruthy", new int[] { 2 }) },
+		{ OpCode.OpNull, new Definition("OpNull", new int[] { }) },
 
 	};
 

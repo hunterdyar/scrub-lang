@@ -12,6 +12,8 @@ public class IdentifierParselet : IPrefixParselet
 				return new BoolLiteralExpression(token.TokenType);
 			case TokenType.FalseKeyword:
 				return new BoolLiteralExpression(token.TokenType);
+			case TokenType.NullKeyword:
+				return new NullExpression();
 			//null
 		}
 		return new IdentifierExpression(token.Literal);

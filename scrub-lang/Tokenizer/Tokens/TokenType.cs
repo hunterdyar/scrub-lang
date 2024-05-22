@@ -42,6 +42,7 @@ public enum TokenType
 	TrueKeyword,
 	FalseKeyword,
 	ReturnKeyword,
+	NullKeyword,
 	EndExpression,//semicolon... or line break?
 	StartExpressionBlock,
 	EndExpressionBlock,

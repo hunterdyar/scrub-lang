@@ -1,4 +1,5 @@
-﻿using scrub_lang.Compiler;
+﻿using Microsoft.VisualBasic;
+using scrub_lang.Compiler;
 using scrub_lang.Objects;
 
 namespace scrub_lang.VirtualMachine;
@@ -71,6 +72,15 @@ public static class VMTests
 		{
 			throw new VMException($"Test Failure. Expected {expected}, got null");
 			//todo: this won't catch if we want null... low priority.
+		}
+
+		if (expected is Null n)
+		{
+			if (!(actual is Null))
+			{
+				throw new VMException($"test failure. Object not null: {actual}");
+			}//else
+			return true;
 		}
 		if (expected is Integer i)
 		{

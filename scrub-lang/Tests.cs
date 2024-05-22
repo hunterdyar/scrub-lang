@@ -95,15 +95,15 @@ public class Tests
 		
 		//0 and 1 are the locations in the constants pool.
 		CompileTest("1 + 2", [new Integer(1),new Integer(2)], Op.Make(OpCode.OpConstant, 0), Op.Make(OpCode.OpConstant, 1), Op.Make(OpCode.OpAdd), Op.Make(OpCode.OpPop));		CompileTest("1 + 2", [new Integer(1),new Integer(2)], Op.Make(OpCode.OpConstant, 0), Op.Make(OpCode.OpConstant, 1), Op.Make(OpCode.OpAdd), Op.Make(OpCode.OpPop));
-		CompileTest("if (true) { 10 } else { 20 }\n 3333\n",
+		CompileTest("if (true) { 10 } \n 3333\n",
 			[new Integer(10), new Integer(20), new Integer(3333)],
 			Op.Make(OpCode.OpTrue),
 			Op.Make(OpCode.OpJumpNotTruthy, 10),
 			Op.Make(OpCode.OpConstant, 0),
-			Op.Make(OpCode.OpJump, 13),
-			Op.Make(OpCode.OpConstant,1),
+			Op.Make(OpCode.OpJump, 11),
+			Op.Make(OpCode.OpNull),
 			Op.Make(OpCode.OpPop),
-			Op.Make(OpCode.OpConstant, 2),
+			Op.Make(OpCode.OpConstant, 1),
 			Op.Make(OpCode.OpPop)
 			);
 			

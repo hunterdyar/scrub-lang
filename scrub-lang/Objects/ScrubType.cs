@@ -7,5 +7,6 @@ public enum ScrubType
 	Double,
 	String,
 	Byte,
+	Null,
 	//Function
 }
