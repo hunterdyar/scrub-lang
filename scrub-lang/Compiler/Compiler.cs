@@ -1,10 +1,12 @@
-﻿using System.Net.Security;
+﻿using System.Linq.Expressions;
+using System.Net.Security;
 using Microsoft.VisualBasic.CompilerServices;
 using scrub_lang.Evaluator;
 using scrub_lang.Memory;
 using scrub_lang.Objects;
 using scrub_lang.Parser;
 using scrub_lang.Tokenizer.Tokens;
+using ConditionalExpression = scrub_lang.Parser.ConditionalExpression;
 using Object = scrub_lang.Objects.Object;
 
 namespace scrub_lang.Compiler;
@@ -29,10 +31,30 @@ public class Compiler
 					return new ScrubCompilerError(error.Message);
 				}
 
-				Emit(OpCode.OpPop);
+				Emit(OpCode.OpPop);//these values are unused. All exresssions are unused unless they go into some operator or such.
+				//it's a little weird because everything is an expression, but... after what would be a statement, we clean up the leftover value that the expressions created.
 			}
 			return null;
-		}else if (expression is BinaryOperatorExpressionBase bin)
+		}else if (expression is ExpressionGroupExpression block)
+		{
+			for (int i = 0; i < block.Expressions.Count; i++)
+			{
+				var err = Compile(block.Expressions[i]);
+				if (err != null)
+				{
+					return err;
+				}
+
+				if (i < block.Expressions.Count - 1)
+				{
+					//remove the value from the expression we just called.... which might not have a value? hmmm. shite.
+					//our expression leaves us with one nice value at the end, which is what expression blocks become: their last value.
+					Emit(OpCode.OpPop);
+				}
+			}
+		}
+		
+		else if (expression is BinaryOperatorExpressionBase bin)
 		{
 			if (bin.Operator == TokenType.LessThan)
 			{
@@ -125,6 +147,28 @@ public class Compiler
 		}
 		//other base expressions...
 		
+		//code-flow
+		else if (expression is ConditionalExpression condExpr)
+		{
+			var err = Compile(condExpr.Conditional);
+			if (err != null)
+			{
+				return err;
+			}
+
+			Emit(OpCode.OpJumpNotTruthy, 9999);//bogus value, let's fix it later.
+
+			err = Compile(condExpr.Consequence);
+			if (err != null)
+			{
+				return err;
+			}
+
+			//not using this as a return value, so pop it.
+			Emit(OpCode.OpPop);
+			//todo
+			throw new NotImplementedException("This is where I stopped working for a bit");
+		}
 		//should we have a literalExpressionBase?
 		else if (expression is NumberLiteralExpression numLitExp)
 		{

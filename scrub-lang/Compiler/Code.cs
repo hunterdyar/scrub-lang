@@ -20,6 +20,8 @@ public enum OpCode: byte
 	OpGreaterThan,
 	OpBang,
 	OpNegate,
+	OpJump,
+	OpJumpNotTruthy,
 }
 
 public struct Definition
@@ -82,6 +84,9 @@ public static class Op
 		{ OpCode.OpGreaterThan, new Definition("OpAdd", new int[] { }) },
 		{ OpCode.OpNegate, new Definition("OpAdd", new int[] { }) },
 		{ OpCode.OpBang, new Definition("OpAdd", new int[] { }) },
+		{ OpCode.OpJump, new Definition("OpConstant", new int[] { 2 }) },
+		{ OpCode.OpJumpNotTruthy, new Definition("OpConstant", new int[] { 2 }) },
+
 	};
 
 	public static byte[] Make(OpCode op, params int[] operands)

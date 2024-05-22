@@ -198,7 +198,7 @@ public class VM
 			return RunBinaryintegerOperation(op,  (Integer)l, (Integer)r);
 		}
 
-		return new ScrubVMError("Unsupported types for binary operation {op}");
+		return new ScrubVMError($"Unsupported types for operation {op}");
 	}
 
 	private ScrubVMError? RunBinaryintegerOperation(OpCode op, Integer left, Integer right)

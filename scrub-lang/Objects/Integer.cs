@@ -49,7 +49,7 @@ public class Integer : Object
 	{
 		if (b.NativeInt == 0)
 		{
-			throw new VMException("Can't Divide By Zero!");
+			throw new VMException("Can't Divide By Zero! This is how you break computers. You want to break computer? This is how! Stop!");
 		}
 		return new Integer(a.NativeInt / b.NativeInt);
 	}

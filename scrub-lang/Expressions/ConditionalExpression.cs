@@ -8,15 +8,18 @@ namespace scrub_lang.Parser;
 /// </summary>
 public class ConditionalExpression : IExpression
 {
-	private IExpression _conditionExpr;
-	private IExpression _thenExpr;
-	private IExpression _elseExpr;
+	public IExpression Conditional => _conditionExpr;
+	private readonly IExpression _conditionExpr;
+	public IExpression Consequence => _conditionExpr;
+	private readonly IExpression _consequenceExpr;
+	public IExpression Alternative =>_alterativeExpr;
+	private readonly IExpression _alterativeExpr;
 
-	public ConditionalExpression(IExpression conditionExpr, IExpression thenExpr, IExpression elseExpr)
+	public ConditionalExpression(IExpression conditionExpr, IExpression consequenceExpr, IExpression aterativeExpr)
 	{
 		_conditionExpr = conditionExpr;
-		_thenExpr = thenExpr;
-		_elseExpr = elseExpr;
+		_consequenceExpr = consequenceExpr;
+		_alterativeExpr = aterativeExpr;
 	}
 
 	public void Print(StringBuilder sb)
@@ -24,9 +27,9 @@ public class ConditionalExpression : IExpression
 		sb.Append('(');
 		_conditionExpr.Print(sb);
 		sb.Append(" ? ");
-		_thenExpr.Print(sb);
+		_consequenceExpr.Print(sb);
 		sb.Append(" : ");
-		_elseExpr.Print(sb);
+		_alterativeExpr.Print(sb);
 		sb.Append(')');
 	}
 }
