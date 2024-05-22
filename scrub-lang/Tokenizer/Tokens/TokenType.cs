@@ -30,6 +30,8 @@ public enum TokenType
 	Comma,
 	OpenParen,
 	CloseParen,
+	OpenBracket,
+	CloseBracket,
 	GreaterThan,
 	GreaterThanOrEqualTo,
 	LessThan,

@@ -29,7 +29,8 @@ public class Parser
 		Register(TokenType.IfKeyword,new IfParselet());
 		Register(TokenType.String, new LiteralParselet());
 		Register(TokenType.ReturnKeyword,new ReturnParselet());
-		
+		Register(TokenType.OpenBracket,new ArrayLiteralParselet());//prefix
+		Register(TokenType.OpenBracket,new ArrayLookupParselet());//infix
 		//+1, -1, ~1, !true
 		Prefix(TokenType.Plus, BindingPower.UnarySum);
 		Prefix(TokenType.Minus, BindingPower.UnarySum);

@@ -75,6 +75,10 @@ public class Token
 				return "<=";
 			case TokenType.BitwiseOr:
 				return "|";
+			case TokenType.OpenBracket:
+				return "[";
+			case TokenType.CloseBracket:
+				return "]";
 		}
 
 		return tokenType.ToString();

@@ -8,5 +8,6 @@ public enum ScrubType
 	String,
 	Byte,
 	Null,
+	Array,
 	//Function
 }

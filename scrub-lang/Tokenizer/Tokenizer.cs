@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices.JavaScript;
+using scrub_lang.Parser;
 using scrub_lang.Tokenizer.Tokens;
 
 namespace scrub_lang.Tokenizer;
@@ -163,6 +164,12 @@ public class Tokenizer
 				return;
 			case ')':
 				AddToken(new Token(TokenType.CloseParen,c,l,col));
+				return;
+			case '[':
+				AddToken(new Token(TokenType.OpenBracket,c,l,col));
+				return;
+			case ']':
+				AddToken(new Token(TokenType.CloseBracket,c,l,col));
 				return;
 		}
 
