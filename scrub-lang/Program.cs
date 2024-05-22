@@ -10,6 +10,7 @@ static class Scrub
 
 	public static async Task<int> Main()
 	{
+		Tests.TestCompile();
 		//Repl
 		await Repl(Console.In, Console.Out);
 		return 0;

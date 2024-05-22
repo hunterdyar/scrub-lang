@@ -7,6 +7,7 @@ public class ExpressionGroupParselet : IPrefixParselet
 	private List<IExpression> _expressions = new List<IExpression>();
 	public IExpression Parse(Parser parser, Token token)
 	{
+		_expressions.Clear();
 		while (!parser.Peek(TokenType.EndExpressionBlock) && !parser.Peek(TokenType.EOF))
 		{
 			var e = parser.ParseExpression(0);

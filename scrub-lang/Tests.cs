@@ -94,9 +94,19 @@ public class Tests
 		_passed = 0;
 		
 		//0 and 1 are the locations in the constants pool.
-		CompileTest("1 + 2", [new Integer(1),new Integer(2)], Op.Make(OpCode.OpConstant, 0), Op.Make(OpCode.OpConstant, 1), Op.Make(OpCode.OpAdd), Op.Make(OpCode.OpPop));
-
-
+		CompileTest("1 + 2", [new Integer(1),new Integer(2)], Op.Make(OpCode.OpConstant, 0), Op.Make(OpCode.OpConstant, 1), Op.Make(OpCode.OpAdd), Op.Make(OpCode.OpPop));		CompileTest("1 + 2", [new Integer(1),new Integer(2)], Op.Make(OpCode.OpConstant, 0), Op.Make(OpCode.OpConstant, 1), Op.Make(OpCode.OpAdd), Op.Make(OpCode.OpPop));
+		CompileTest("if (true) { 10 } else { 20 }\n 3333\n",
+			[new Integer(10), new Integer(20), new Integer(3333)],
+			Op.Make(OpCode.OpTrue),
+			Op.Make(OpCode.OpJumpNotTruthy, 10),
+			Op.Make(OpCode.OpConstant, 0),
+			Op.Make(OpCode.OpJump, 13),
+			Op.Make(OpCode.OpConstant,1),
+			Op.Make(OpCode.OpPop),
+			Op.Make(OpCode.OpConstant, 2),
+			Op.Make(OpCode.OpPop)
+			);
+			
 		if (_failed != 0) Console.WriteLine("----");
 		Console.WriteLine("Passed: " + _passed);
 		Console.WriteLine("Failed: " + _failed);

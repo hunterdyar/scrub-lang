@@ -52,6 +52,8 @@ public class Compiler
 					Emit(OpCode.OpPop);
 				}
 			}
+
+			return null;
 		}
 		
 		else if (expression is BinaryOperatorExpressionBase bin)
@@ -230,7 +232,7 @@ public class Compiler
 			return null;
 		}
 
-		return new ScrubCompilerError($"Unable to parse expression {expression}. Probably not implemented the type yet.");
+		return new ScrubCompilerError($"Unable to compile expression {expression}. Probably not implemented the type yet.");
 	}
 
 	public int Emit(OpCode op, params int[] operands)

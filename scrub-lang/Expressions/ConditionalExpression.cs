@@ -10,7 +10,7 @@ public class ConditionalExpression : IExpression
 {
 	public IExpression Conditional => _conditionExpr;
 	private readonly IExpression _conditionExpr;
-	public IExpression Consequence => _conditionExpr;
+	public IExpression Consequence => _consequenceExpr;
 	private readonly IExpression _consequenceExpr;
 	public IExpression? Alternative =>_alterativeExpr;
 	private readonly IExpression? _alterativeExpr;

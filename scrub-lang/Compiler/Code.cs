@@ -36,21 +36,23 @@ public struct Definition
 		OperandWidths = widths;
 	}
 
+	//Todo: I am working on fixing this broken function.
 	//this is the opposite of Make()
 	public (UInt16[], int) ReadOperands(byte[] instructions, int start)
 	{
 		var operands = new UInt16[this.OperandWidths.Length];
-		int offset = start;
+		int offset = start;//start of operands, not of operation.
+		//x operands, each y units widw. For each operand...
 		for (int i = 0; i < OperandWidths.Length; i++)
 		{
-			switch (OperandWidths[i])
+			switch (OperandWidths[i])// this operand is this many bytes.
 			{
 				case 0: break;
 				case 1:
 					operands[i] = instructions[offset];
 					break;
 				case 2:
-					operands[i] = Op.ReadUInt16([instructions[offset+1], instructions[offset +0]]);
+					operands[i] = Op.ReadUInt16([instructions[offset+0], instructions[offset +1]]);
 					// if (BitConverter.IsLittleEndian)
 					// {
 					// 	operands[i] = BitConverter.ToInt16([instructions[offset + 1], instructions[offset]]);
@@ -65,7 +67,7 @@ public struct Definition
 			offset += (UInt16)OperandWidths[i];
 		}
 
-		return (operands, offset);
+		return (operands, offset-start);
 	}
 }
 
