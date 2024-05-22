@@ -4,14 +4,15 @@ namespace scrub_lang.Parser;
 
 /// <summary>
 /// a ? b : c
+/// or if(a){b}else{c}
 /// </summary>
-public class TerneryExpression : IExpression
+public class ConditionalExpression : IExpression
 {
 	private IExpression _conditionExpr;
 	private IExpression _thenExpr;
 	private IExpression _elseExpr;
 
-	public TerneryExpression(IExpression conditionExpr, IExpression thenExpr, IExpression elseExpr)
+	public ConditionalExpression(IExpression conditionExpr, IExpression thenExpr, IExpression elseExpr)
 	{
 		_conditionExpr = conditionExpr;
 		_thenExpr = thenExpr;

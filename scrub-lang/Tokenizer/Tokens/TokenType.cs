@@ -36,6 +36,7 @@ public enum TokenType
 	LessThanOrEqualTo,
 	String,
 	IfKeyword,
+	ElseKeyword,
 	WhileKeyword,
 	FunctionKeyword,
 	TrueKeyword,

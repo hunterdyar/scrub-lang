@@ -16,7 +16,8 @@ public class IdentifierTState(Tokenizer context) : TokenizerStateBase(context)
 		{"func",TokenType.FunctionKeyword},
 		{"true",TokenType.TrueKeyword},
 		{"false",TokenType.FalseKeyword},
-		{"return", TokenType.ReturnKeyword}
+		{"return", TokenType.ReturnKeyword},
+		{"else",TokenType.ElseKeyword},
 	};
 	public override void Consume(char c, int line, int col)
 	{

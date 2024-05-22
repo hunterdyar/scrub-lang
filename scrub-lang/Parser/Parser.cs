@@ -25,7 +25,7 @@ public class Parser
 		Register(TokenType.FunctionKeyword, new FunctionDeclarationParselet());
 		Register(TokenType.StartExpressionBlock, new ExpressionGroupParselet());
 		Register(TokenType.NumberLiteral, new LiteralParselet());
-
+		Register(TokenType.IfKeyword,new IfParselet());
 		Register(TokenType.String, new LiteralParselet());
 		Register(TokenType.ReturnKeyword,new ReturnParselet());
 		

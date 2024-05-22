@@ -12,7 +12,7 @@ public class TernaryParselet : IInfixParselet
 		parser.Consume(TokenType.Colon);
 		var elseBranch = parser.ParseExpression(BindingPower.Ternery - 1);
 
-		return new  TerneryExpression(left, thenBranch, elseBranch);
+		return new  ConditionalExpression(left, thenBranch, elseBranch);
 	}
 
 	public int GetBindingPower()
