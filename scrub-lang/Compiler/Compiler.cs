@@ -102,13 +102,8 @@ public class Compiler
 		}else if (expression is FunctionDeclarationExpression funcDef)
 		{
 			//create the symbol before compiling the function, so that it can recursively find its own name.
-			Symbol functionNameSymbol;
-			bool isNewSymbol = symbolTable.TryResolve(funcDef.Identity.Identifier, out functionNameSymbol, true); //only check the current scope on assignment. we need some override for global access.
-			if (!isNewSymbol)
-			{
-				functionNameSymbol = symbolTable.Define(funcDef.Identity.Identifier);
-			}
 			
+			//todo local functions and recursive functions are still kind of borked.
 			var err = Compile(funcDef.Function);
 			if (err != null)
 			{
@@ -120,10 +115,17 @@ public class Compiler
 				RemoveLastInstruction();
 			}
 
-			//the only difference between this and AssignExpression is that functions defined as func NAME(){} are always global scoped. thats... weird?s
-			if (isNewSymbol) //only check the current scope on assignment. we need some override for global access.
+			Symbol functionNameSymbol;
+			bool isNotNewSymbol = symbolTable.TryResolve(funcDef.Identity.Identifier, out functionNameSymbol, false);
+			if (isNotNewSymbol)
 			{
-				//assign (overwrite) function name
+				return new ScrubCompilerError($"A function named {functionNameSymbol.Name} has already been defined.");
+				functionNameSymbol = symbolTable.Define(funcDef.Identity.Identifier);
+			}
+
+			//the only difference between this and AssignExpression is that functions defined as func NAME(){} are always global scoped. thats... weird?s
+			if (isNotNewSymbol)
+			{
 				if (functionNameSymbol.Scope == SymbolTable.GlobalScope)
 				{
 					Emit(OpCode.OpSetGlobal, functionNameSymbol.Index); //assign
@@ -141,6 +143,7 @@ public class Compiler
 			else
 			{
 				//This function name does not exist yet. Creating it.
+				functionNameSymbol = symbolTable.Define(funcDef.Identity.Identifier);
 				if (functionNameSymbol.Scope == SymbolTable.GlobalScope)
 				{
 					Emit(OpCode.OpSetGlobal, functionNameSymbol.Index);
@@ -438,17 +441,17 @@ public class Compiler
 
 			Emit(OpCode.OpIndex);
 			return null;
-		}else if (expression is FunctionLiteralExpression fde)
+		}else if (expression is FunctionLiteralExpression funcLiteralExpr)
 		{
 			EnterScope();
 
-			var args = fde.Arguments;
+			var args = funcLiteralExpr.Arguments;
 			foreach (var arg in args)
 			{
 				symbolTable.Define(arg.Identifier);
 			}
 			
-			var err = Compile(fde.Expression);
+			var err = Compile(funcLiteralExpr.Expression);
 			if (err != null)
 			{
 				return err;
