@@ -2,7 +2,6 @@
 
 namespace scrub_lang.Parser;
 
-//todo; should probably have function literal and function declaration (assign function literal to some identifier) as separate expressions. 
 public class FunctionDeclarationExpression : IExpression
 {
 	public IdentifierExpression Identity => _identifierExpression;

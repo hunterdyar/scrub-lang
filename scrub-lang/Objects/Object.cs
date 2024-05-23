@@ -1,7 +1,10 @@
-﻿namespace scrub_lang.Objects;
+﻿using System.Collections;
+
+namespace scrub_lang.Objects;
 
 public abstract class Object
 {
+	public BitArray Bits { get; protected set; }
 	public byte[] Bytes { get; protected set; }
 	public abstract ScrubType GetType();
 	
@@ -19,6 +22,7 @@ public abstract class Object
 		return Bytes;
 	}
 
+
 	public Object(byte[] data)
 	{
 		Bytes = data;
@@ -28,9 +32,17 @@ public abstract class Object
 	{
 	}
 
-	public String ToScrubString()
+	public virtual String ToScrubString()
 	{
-		//todo calling this on String clones it. Which is? fine?
 		return new String(this.ToString());
 	}
+
+	#region BitwiseOps
+
+	// public static Object operator &(Object a, Object b)
+	// {
+	// 	return new Object(a.Bytes & b.Bytes);
+	// }
+
+	#endregion
 }

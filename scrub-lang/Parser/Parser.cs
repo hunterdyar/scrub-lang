@@ -69,7 +69,7 @@ public class Parser
 		InfixLeft(TokenType.BitwiseOr, BindingPower.BitwiseOr);
 		InfixLeft(TokenType.BitwiseXOR, BindingPower.BitwiseXor);
 		
-		//todo: 
+		//todo concat parsing.
 		//string
 		//infix(IncrementConcatenate). gotta disambiguate between left++ and left++right. that's done with binding power, usually, right? so ... how do i differentiate... im skipping for now.
 		

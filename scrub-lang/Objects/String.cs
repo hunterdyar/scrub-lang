@@ -39,4 +39,9 @@ public class String : Objects.Object
 	{
 		return ToNativeString();
 	}
+
+	public override String ToScrubString()
+	{
+		return this;
+	}
 }

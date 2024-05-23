@@ -4,11 +4,10 @@ namespace scrub_lang.Parser;
 
 public class ExpressionGroupExpression : IExpression
 {
-	//todo: turn into an array.
-	public List<IExpression> Expressions => _expressions;
-	private List<IExpression> _expressions;
+	public  IExpression[] Expressions => _expressions;
+	private IExpression[] _expressions;
 
-	public ExpressionGroupExpression(List<IExpression> expressions)
+	public ExpressionGroupExpression(IExpression[] expressions)
 	{
 		_expressions = expressions;
 	}

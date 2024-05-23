@@ -15,17 +15,15 @@ public class Compiler
 {
 	private SymbolTable symbolTable = new SymbolTable();
 	private List<Object> constants = new List<Object>();//ScrubObject?
-	//todo; replace this with a ring buffer. AMong other reasons the naming is more clear.
-
-	public List<CompilationScope> Scopes = new List<CompilationScope>();//todo: Replace with Stack<compscope>
-	private int _scopeIndex = 0;
-	public CompilationScope CurrentScope => Scopes[_scopeIndex];
+	public Stack<CompilationScope> Scopes = new Stack<CompilationScope>();
+	private int _scopeIndex = 0;//we don't need scope index now that scopes is a stack; but it's useful to glance at when debugging.
+	public CompilationScope CurrentScope => Scopes.Peek();
 	
 	public Compiler()
 	{
 		CompilationScope cs = new CompilationScope();
 		cs.Instuctions = new List<byte>();
-		Scopes.Add(cs);
+		Scopes.Push(cs);
 		_scopeIndex = 0;
 		DefineBuiltins();
 	}
@@ -43,7 +41,7 @@ public class Compiler
 
 		CompilationScope cs = new CompilationScope();
 		cs.Instuctions = new List<byte>();
-		Scopes.Add(cs);
+		Scopes.Push(cs);
 		_scopeIndex = 0;
 		DefineBuiltins();
 	}
@@ -84,7 +82,7 @@ public class Compiler
 			return null;
 		}else if (expression is ExpressionGroupExpression block)
 		{
-			for (int i = 0; i < block.Expressions.Count; i++)
+			for (int i = 0; i < block.Expressions.Length; i++)
 			{
 				var err = Compile(block.Expressions[i]);
 				if (err != null)
@@ -92,7 +90,7 @@ public class Compiler
 					return err;
 				}
 
-				if (i < block.Expressions.Count - 1)
+				if (i < block.Expressions.Length - 1)
 				{
 					//remove the value from the expression we just called.... which might not have a value? hmmm. shite.
 					//our expression leaves us with one nice value at the end, which is what expression blocks become: their last value.
@@ -104,11 +102,11 @@ public class Compiler
 			return null;
 		}else if (expression is FunctionDeclarationExpression funcDef)
 		{
+			//todo: consider re-combining functiondecs and assign, since the code is duplicated.
 			//create the symbol before compiling the function, so that it can recursively find its own name.
 			Symbol functionNameSymbol;
-			bool isNotNewSymbol = symbolTable.TryResolve(funcDef.Identity.Identifier, out functionNameSymbol, false);
+			bool isNotNewSymbol = symbolTable.TryResolve(funcDef.Identity.Identifier, out functionNameSymbol);//todo: false vs true recusion behaviour test
 
-			//todo local functions and recursive functions are still kind of borked.
 			var err = Compile(funcDef.Function);
 			if (err != null)
 			{
@@ -369,8 +367,8 @@ public class Compiler
 			//and the false path needs to jump to after that jump. lest we skip the whole thing.
 			if (condExpr.Alternative is NullExpression)//==nulls
 			{
-				//THis... could be just the compile of the alternative.... right? null just emits a null always? todo
-				//we are't compiling the alternative here, so if nothing else, it's a minor optimization.
+				//THis could be just the compile of the alternative. null emits a null.
+				//if nothing else, it's a minor optimization.
 				Emit(OpCode.OpNull);
 			}
 			else
@@ -395,7 +393,6 @@ public class Compiler
 		//should we have a literalExpressionBase?
 		else if (expression is NumberLiteralExpression numLitExp)
 		{
-			//todo: we are only supporting int's to start.
 			var number = numLitExp.GetScrubObject();
 			//create a new instruction. The operatand is the index of number in our constants pool, basically.
 			Emit(OpCode.OpConstant, AddConstant(number));
@@ -531,9 +528,8 @@ public class Compiler
 
 		if (expression == null)
 		{
-			return Compile(new NullExpression());
-			return new ScrubCompilerError("Expression is null. The actual native null, I mean.");
-			//todo: Warnings and such here?
+			//return Compile(new NullExpression());
+			return new ScrubCompilerError("Expression is null. The actual native null, I mean. We don't want that.");
 		}
 		
 		//Unhandled Expression Type
@@ -572,7 +568,7 @@ public class Compiler
 	private void EnterScope()
 	{
 		var s = new CompilationScope();
-		Scopes.Add(s);
+		Scopes.Push(s);
 		_scopeIndex++;
 		symbolTable = symbolTable.NewEnclosedSymbolTable();
 	}
@@ -580,7 +576,7 @@ public class Compiler
 	private byte[] LeaveScope()
 	{
 		var instructions = CurrentScope.Instuctions.ToArray();
-		Scopes.RemoveAt(_scopeIndex);
+		Scopes.Pop();
 		_scopeIndex--;
 		symbolTable = symbolTable.Outer;
 		return instructions;

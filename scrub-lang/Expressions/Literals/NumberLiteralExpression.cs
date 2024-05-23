@@ -6,7 +6,7 @@ using Object = System.Object;
 namespace scrub_lang.Parser;
 
 //so you typed some number into the program, huh?
-
+//todo: return ints or doubles as appropriate.
 public class NumberLiteralExpression : IExpression
 {
 	public string Literal => _literal;
@@ -23,16 +23,10 @@ public class NumberLiteralExpression : IExpression
 	private double _litDouble;
 	
 	//problem: - is an operator, so it will never be negative. unsigned will have to be a special case (like Ob)
-	private bool _isUint;
-	public uint AsUint => _litUint;
-	private uint _litUint;
 	
-	//todo: allow hex, octal, and binary literal values.
-
 	public NumberLiteralExpression(string literal)
 	{
 		_isInt = int.TryParse(literal, out _litInt);
-		_isUint = uint.TryParse(literal, out _litUint);
 		_isDouble = double.TryParse(literal, out _litDouble);
 		this._literal = literal;
 	}
@@ -52,12 +46,6 @@ public class NumberLiteralExpression : IExpression
 		if (_isInt)
 		{
 			return new Integer(AsInt);
-		}
-
-		if (_isUint)
-		{
-			//eh uints are a later todo.
-			return new Integer((int)AsUint);
 		}
 
 		throw new CompileException($"Unable to Convert '{_literal}' into Object");
