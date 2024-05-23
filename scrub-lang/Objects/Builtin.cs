@@ -1,8 +1,10 @@
-﻿namespace scrub_lang.Objects;
+﻿using scrub_lang.VirtualMachine;
+
+namespace scrub_lang.Objects;
 
 public class Builtin : Object
 {
-	public delegate Object? BuiltInFunction(params Object[] args);
+	public delegate Object? BuiltInFunction(VM context, params Object[] args);
 
 	public BuiltInFunction Function;
 

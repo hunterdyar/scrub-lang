@@ -1,9 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Security.AccessControl;
-using System.Text;
-using System.Xml.Xsl;
-using scrub_lang.Compiler;
+﻿using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
 using scrub_lang.Objects;
 using scrub_lang.Parser;
@@ -43,14 +38,15 @@ public class VM
 	//we put something in SP, then increment it.
 	private int sp;//stack pointer
 	private int usp; //unstack pointer.
-	
+	public TextWriter outputStream;
 	//tdoo: refactor constructors
-	public VM(ByteCode byteCode, TextWriter writer = null)
+	public VM(ByteCode byteCode, TextWriter? writer = null)
 	{
 		//optional non-default output.
-		if (writer == null)
+		outputStream = writer;
+		if (outputStream == null)
 		{
-			writer = Console.Out;
+			outputStream = Console.Out;
 		}
 		
 		ByteCode = byteCode;//keep a copy.
@@ -71,10 +67,10 @@ public class VM
 
 	public VM(ByteCode byteCode, Object[] globalsStore, TextWriter writer = null)
 	{
-		//optional non-default output.
-		if (writer == null)
+		outputStream = writer;
+		if (outputStream == null)
 		{
-			writer = Console.Out;
+			outputStream = Console.Out;
 		}
 		
 		ByteCode = byteCode; //keep a copy.
@@ -344,7 +340,7 @@ public class VM
 			args[i] = (Object)stack[sp - numArgs + i];
 		}
 		//the actual funtion call
-		var result = fn.Function(args);
+		var result = fn.Function(this,args);
 		//it is the VM's duty to pop the function calls off.
 		sp = sp - numArgs - 1;
 		if (result != null)

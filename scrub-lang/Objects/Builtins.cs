@@ -35,7 +35,7 @@ public static class Builtins
 		return null;
 	}
 
-	static Object? Len(Object[] args)
+	static Object? Len(VM context, Object[] args)
 	{
 		if (args.Length != 1)
 		{
@@ -55,19 +55,18 @@ public static class Builtins
 		}
 	}
 
-	static Object? Print(Object[] args)
+	static Object? Print(VM context, Object[] args)
 	{
 		foreach (var arg in args)
 		{
-			//todo: get the appropriate textwriter.
-			Console.WriteLine(arg);
+			context.outputStream.WriteLine(arg);
 		}
 
 		//return new Null();//this might break things, because we are comparing by reference to the VM null.
 		return null;
 	}
 
-	static Object? Push(Object[] args)
+	static Object? Push(VM context, Object[] args)
 	{
 		if (args.Length != 2)
 		{
