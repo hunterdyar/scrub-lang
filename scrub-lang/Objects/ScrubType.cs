@@ -9,5 +9,6 @@ public enum ScrubType
 	Byte,
 	Null,
 	Array,
-	Function
+	Function,
+	Builtin,
 }

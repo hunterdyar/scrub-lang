@@ -45,8 +45,14 @@ public class VM
 	private int usp; //unstack pointer.
 	
 	//tdoo: refactor constructors
-	public VM(ByteCode byteCode)
+	public VM(ByteCode byteCode, TextWriter writer = null)
 	{
+		//optional non-default output.
+		if (writer == null)
+		{
+			writer = Console.Out;
+		}
+		
 		ByteCode = byteCode;//keep a copy.
 		//instructions
 		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols);
@@ -62,8 +68,14 @@ public class VM
 		usp = 0;
 	}
 
-	public VM(ByteCode byteCode, Object[] globalsStore)
+	public VM(ByteCode byteCode, Object[] globalsStore, TextWriter writer = null)
 	{
+		//optional non-default output.
+		if (writer == null)
+		{
+			writer = Console.Out;
+		}
+		
 		ByteCode = byteCode; //keep a copy.
 		//instructions
 		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols);//we track numSymbols here just for fun. 
@@ -86,7 +98,7 @@ public class VM
 		byte[] ins;
 		OpCode op;
 		Frame frame;
-		ScrubVMError error = null;
+		ScrubVMError? error = null;
 		//ip is instructionPointer
 		while (CurrentFrame().ip < CurrentFrame().Instructions().Length-1)
 		{
@@ -116,7 +128,7 @@ public class VM
 					var numArgs = Op.ReadUInt8(ins[ip + 1]);
 					CurrentFrame().ip += 1;//move instruction pointer past the operand.
 
-					error = CallFunction(numArgs);
+					error = ExecuteFunction(numArgs);
 					if(error !=null)
 					{
 						return error;
@@ -245,18 +257,66 @@ public class VM
 					}
 
 					break;
+				case OpCode.OpGetBuiltin:
+					var builtInIndex = Op.ReadUInt8(ins[ip + 1]);
+					CurrentFrame().ip += 1;
+					var def = Builtins.AllBuiltins[builtInIndex];
+					error = Push(def.Builtin);
+					if (error != null)
+					{
+						return error;
+					}
+
+					break;
 			}
 		}
 		return null;
 	}
 
-	private ScrubVMError? CallFunction(int numArgs)
+	private ScrubVMError? ExecuteFunction(int numArgs)
 	{
 		//reach further down the stack to get the function, past the locals (arguments)
-		var fnobj = stack[sp-1-numArgs];
-		if (fnobj is not Function fun)
+		var callee = stack[sp - 1 - numArgs];
+		switch (((Object)callee).GetType())
 		{
-			return new ScrubVMError("function calling a not-a-function");
+			case ScrubType.Function:
+				return CallFunction((Function)callee, numArgs);
+			case ScrubType.Builtin:
+				return CallBuiltin((Builtin)callee, numArgs);
+		}
+
+		return new ScrubVMError($"Unable to Executse Function. {callee} is not a function.");
+	}
+
+	private ScrubVMError? CallBuiltin(Builtin fn, int numArgs)
+	{
+		var args = new Object[numArgs];
+		//a lazy slice copy. fast tho.
+		for (int i = 0; i < numArgs; i++)
+		{
+			args[i] = (Object)stack[sp - numArgs + i];
+		}
+		//the actual funtion call
+		var result = fn.Function(args);
+		//it is the VM's duty to pop the function calls off.
+		sp = sp - numArgs - 1;
+		if (result != null)
+		{
+			Push(result);
+		}
+		else
+		{
+			Push(Null);
+		}
+
+		return null;
+	}
+
+	private ScrubVMError? CallFunction(Function fun, int numArgs)
+	{
+		if (numArgs != fun.NumLocals)
+		{
+			return new ScrubVMError("Wrong number of arguments!");
 		}
 		var frame = new Frame(fun,sp-numArgs);
 		PushFrame(frame);

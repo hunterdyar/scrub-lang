@@ -27,6 +27,7 @@ public class Compiler
 		cs.Instuctions = new List<byte>();
 		Scopes.Add(cs);
 		_scopeIndex = 0;
+		DefineBuiltins();
 	}
 	public Compiler(Environment env)
 	{
@@ -44,8 +45,10 @@ public class Compiler
 		cs.Instuctions = new List<byte>();
 		Scopes.Add(cs);
 		_scopeIndex = 0;
+		DefineBuiltins();
 	}
 
+	
 	public Environment Environment()
 	{
 		var e = new Environment()
@@ -214,14 +217,15 @@ public class Compiler
 		{
 			if (symbolTable.TryResolve(identExpr.Identifier, out var symbol))
 			{
-				if (symbol.Scope == SymbolTable.GlobalScope)
-				{
-					Emit(OpCode.OpGetGlobal, symbol.Index);
-				}
-				else //scope is Local.
-				{
-					Emit(OpCode.OpGetLocal, symbol.Index);
-				}
+				EmitLoadSymbol(symbol);
+				// if (symbol.Scope == SymbolTable.GlobalScope)
+				// {
+				// 	Emit(OpCode.OpGetGlobal, symbol.Index);
+				// }
+				// else //scope is Local.
+				// {
+				// 	Emit(OpCode.OpGetLocal, symbol.Index);
+				// }
 			}
 			else
 			{
@@ -567,6 +571,25 @@ public class Compiler
 		symbolTable = symbolTable.Outer;
 		return instructions;
 	}
+
+	void EmitLoadSymbol(Symbol s)
+	{
+		switch (s.Scope)
+		{
+			case SymbolTable.GlobalScope:
+				Emit(OpCode.OpGetGlobal, s.Index);
+				break;
+			case SymbolTable.LocalScope:
+				Emit(OpCode.OpGetLocal, s.Index);
+				break;
+			case SymbolTable.BuiltInScope:
+				Emit(OpCode.OpGetBuiltin, s.Index);
+				break;
+			default:
+				throw new CompileException($"what scope is {s.Scope}? that's not right.");
+		}
+	}
+	
 	/// <returns>Returns this constants insdex in the constants pool.</returns>
 	public int AddConstant(Object obj)
 	{
@@ -609,6 +632,14 @@ public class Compiler
 	public ByteCode ByteCode()
 	{
 		return new ByteCode(CurrentScope.Instuctions.ToArray(),constants.ToArray(), symbolTable.NumDefinitions);
+	}
+
+	private void DefineBuiltins()
+	{
+		for (int i = 0; i < Builtins.AllBuiltins.Length; i++)
+		{
+			symbolTable.DefineBuiltin(i, Builtins.AllBuiltins[i].Name);
+		}
 	}
 	
 }

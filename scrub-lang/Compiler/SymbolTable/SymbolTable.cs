@@ -7,6 +7,8 @@ public class SymbolTable
 	public SymbolTable? Outer;
 	public const string GlobalScope = "GLOBAL";
 	public const string LocalScope = "LOCAL";
+	public const string BuiltInScope = "BUILTIN";
+	
 	public Dictionary<string, Symbol> Table = new Dictionary<string, Symbol>();//todo: enums for scope?
 	public int NumDefinitions => _numDefinitions;
 	private int _numDefinitions = 0;
@@ -19,6 +21,13 @@ public class SymbolTable
 		return s;
 	}
 
+	public Symbol DefineBuiltin(int index, string name)
+	{
+		var s = new Symbol(name, index, BuiltInScope);
+		this.Table[name] = s;
+		return s;
+	}
+	
 	public bool TryResolve(string name, out Symbol s, bool recurse = true)
 	{
 		//error handling

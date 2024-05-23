@@ -33,6 +33,7 @@ public enum OpCode: byte
 	OpReturnValue,
 	OpGetLocal,
 	OpSetLocal,
+	OpGetBuiltin,
 }
 
 public struct Definition
@@ -111,8 +112,7 @@ public static class Op
 		{ OpCode.OpReturnValue, new Definition("OpReturn", new int[] { }) },//no arguments. The value to be returned will be on the stack.
 		{ OpCode.OpGetLocal, new Definition("OpGetLocal", new int[] { 1 }) },//todo: make these 2bytes? 256 local variables vs ... more than that.
 		{ OpCode.OpSetLocal, new Definition("OpSetLocal", new int[] { 1 }) },
-		
-
+		{ OpCode.OpGetBuiltin, new Definition("OpGetBuiltin", new int[] { 1 }) },//if we ever have >256 builtins, then we can just make it two bytes wide.
 	};
 
 	public static byte[] Make(OpCode op, params int[] operands)
