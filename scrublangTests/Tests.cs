@@ -11,26 +11,6 @@ public class Tests
 {
 	private static int _passed = 0;
 	private static int _failed = 0;
-	
-	public static void Test()
-	{
-		//todo: REPL instead of testsuite.
-		
-		
-		Stopwatch sw = new Stopwatch();
-		sw.Start();
-		Console.WriteLine("Parsing Tests...");
-		TestParse();
-		Console.WriteLine("Compiler Tests...");
-		TestCompile();
-		//VM tests...
-		VMTests.RunTests();
-		
-		
-		TimeSpan ts = sw.Elapsed;
-		var elapsedTime = $"{ts.Seconds}s; {ts.Microseconds} Microseconds. {ts.Ticks} ticks.";
-		Console.WriteLine($"---\nCompleted in {elapsedTime}");
-	}
 	public static void TestParse()
 	{
 		_failed = 0;
