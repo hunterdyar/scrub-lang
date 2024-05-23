@@ -7,6 +7,7 @@ using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
 using scrub_lang.Objects;
 using scrub_lang.Parser;
+using scrub_lang.Tokenizer.Tokens;
 using Array = scrub_lang.Objects.Array;
 using Environment = scrub_lang.Evaluator.Environment;
 using Object = scrub_lang.Objects.Object;
@@ -16,6 +17,11 @@ namespace scrub_lang.VirtualMachine;
 
 public class VM
 {
+	//references for passing around everything with just the vm object.
+	//end keeping the last-used parser from getting gc'd.
+	public static Parser.Parser Parser { get; private set; }
+	public static Tokenizer.Tokenizer Tokenizer { get; private set; }
+	//
 	public const int StackSize = 2048;
 	public const int GlobalsSize = UInt16.MaxValue;
 	//some consts because why have many number when two number do.
@@ -570,8 +576,8 @@ public class VM
 	}
 	public static IExpression Parse(string input)
 	{
-		var t = new Tokenizer.Tokenizer(input);
-		var p = new Parser.Parser(t);
-		return p.ParseProgram();
+		Tokenizer = new Tokenizer.Tokenizer(input);
+		Parser = new Parser.Parser(Tokenizer);
+		return Parser.ParseProgram();
 	}
 }

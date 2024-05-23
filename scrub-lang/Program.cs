@@ -79,8 +79,6 @@ static class Scrub
 			return pe.Message;
 		}
 
-
-
 		var comp = environment == null ? new Compiler() : new Compiler(environment);
 		
 		try

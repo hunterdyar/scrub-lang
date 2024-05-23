@@ -111,15 +111,17 @@ public class Parser
 		//Skip over ;'s
 		//We can't actually do this, will need to handle Break as a unary that has very low precedence.
 		//Or maybe as a postFix that just returns the left side of the expression?
-
+		//this is an edge-case, won't handle multiple ;;;;'s
+		
 		if (token.TokenType == TokenType.EOF)
 		{
 			return null;
 		}
 
-		if (Peek(TokenType.Break))
+		//parse extra or beginning ;'s
+		while (token.TokenType == TokenType.Break)
 		{
-			Consume(TokenType.Break);
+			token = Consume();
 		}
 		
 		if (!_prefixParselets.TryGetValue(token.TokenType, out var prefix))
@@ -132,15 +134,16 @@ public class Parser
 		while (precedence < GetBindingPower())
 		{
 			token = Consume();
-
+			
 			if (!_infixParselets.TryGetValue(token.TokenType, out var infix))
 			{
 				throw new ParseException("Could not parse (infix) \"" + token.Literal + $"\"");
 			}
-
+			
 			left = infix.Parse(this, left, token);
 		}
 
+		
 		return left;
 	}
 
