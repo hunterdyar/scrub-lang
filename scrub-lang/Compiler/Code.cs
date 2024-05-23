@@ -50,7 +50,6 @@ public struct Definition
 		OperandWidths = widths;
 	}
 
-	//Todo: I am working on fixing this broken function.
 	//this is the opposite of Make()
 	public (UInt16[], int) ReadOperands(byte[] instructions, int start)
 	{
@@ -89,36 +88,35 @@ public static class Op
 {
 	public static Dictionary<OpCode, Definition> Definitions = new Dictionary<OpCode, Definition>()
 	{
-		//todo: remobe 'op' prefix from the name strings.
-		{ OpCode.OpConstant, new Definition("OpConstant", new int[] { 2 }) },//index of const
-		{ OpCode.OpPop, new Definition("OpPop", new int[] { })},
-		{ OpCode.OpAdd, new Definition("OpAdd", new int[] { })},
-		{ OpCode.OpMult, new Definition("OpMult", new int[] { })},
-		{ OpCode.OpSubtract, new Definition("OpSubtract", new int[] { })},
-		{ OpCode.OpDivide, new Definition("OpDivide", new int[] { }) },
-		{ OpCode.OpTrue, new Definition("OpTrue", new int[] { })},
-		{ OpCode.OpFalse, new Definition("OpFalse", new int[] { })},
-		{ OpCode.OpEqual, new Definition("OpEqual", new int[] { }) },
-		{ OpCode.OpNotEqual, new Definition("OpNotEqual", new int[] { }) },
-		{ OpCode.OpGreaterThan, new Definition("OpGreaterThan", new int[] { }) },
-		{ OpCode.OpNegate, new Definition("OpNegate", new int[] { }) },
-		{ OpCode.OpBang, new Definition("OpBang", new int[] { }) },
-		{ OpCode.OpJump, new Definition("OpJump", new int[] { 2 }) },//jump location
-		{ OpCode.OpJumpNotTruthy, new Definition("OpJumpNotTruthy", new int[] { 2 }) },//jump location
-		{ OpCode.OpNull, new Definition("OpNull", new int[] { }) },
-		{ OpCode.OpSetGlobal, new Definition("OpSetGlobal", new int[] { 2 }) },//index of constant
-		{ OpCode.OpGetGlobal, new Definition("OpGetGlobal", new int[] { 2 }) },//index of constant
-		{ OpCode.OpConcat, new Definition("OpConcat", new int[] { }) },
-		{ OpCode.OpArray, new Definition("OpArray", new int[] { 2 }) },//length of array
-		{ OpCode.OpIndex, new Definition("OpIndex", new int[] { }) },//no operands, it expects two values on the stack. an object and an index.
-		{ OpCode.OpCall, new Definition("OpCall", new int[] { 1 }) },//number of arguments
-		{ OpCode.OpReturnValue, new Definition("OpReturn", new int[] { }) },//no arguments. The value to be returned will be on the stack.
-		{ OpCode.OpGetLocal, new Definition("OpGetLocal", new int[] { 1 }) },//todo: make these 2bytes? 256 local variables vs ... more than that.
-		{ OpCode.OpSetLocal, new Definition("OpSetLocal", new int[] { 1 }) },
-		{ OpCode.OpGetBuiltin, new Definition("OpGetBuiltin", new int[] { 1 }) },//if we ever have >256 builtins, then we can just make it two bytes wide.
-		{ OpCode.OpClosure, new Definition("OpClosure",new int[]{2,1})},//constant index (2 bytes, matches OpConstant), 2nd is free variables count. 
-		{ OpCode.OpGetFree, new Definition("OpGetFree", new int[] { 1 }) },//one operand of number variables
-		{ OpCode.OpCurrentClosure, new Definition("OpCurrentClosure", new int[] { }) }, //OpClosure but for current scope. lets recursion happen.
+		{ OpCode.OpConstant, new Definition("Constant", new int[] { 2 }) },//index of const
+		{ OpCode.OpPop, new Definition("Pop", new int[] { })},
+		{ OpCode.OpAdd, new Definition("Add", new int[] { })},
+		{ OpCode.OpMult, new Definition("Mult", new int[] { })},
+		{ OpCode.OpSubtract, new Definition("Subtract", new int[] { })},
+		{ OpCode.OpDivide, new Definition("Divide", new int[] { }) },
+		{ OpCode.OpTrue, new Definition("True", new int[] { })},
+		{ OpCode.OpFalse, new Definition("False", new int[] { })},
+		{ OpCode.OpEqual, new Definition("equal", new int[] { }) },
+		{ OpCode.OpNotEqual, new Definition("NotEqual", new int[] { }) },
+		{ OpCode.OpGreaterThan, new Definition("GreaterThan", new int[] { }) },
+		{ OpCode.OpNegate, new Definition("Negate", new int[] { }) },
+		{ OpCode.OpBang, new Definition("Bang", new int[] { }) },
+		{ OpCode.OpJump, new Definition("Jump", new int[] { 2 }) },//jump location
+		{ OpCode.OpJumpNotTruthy, new Definition("JumpNotTruthy", new int[] { 2 }) },//jump location
+		{ OpCode.OpNull, new Definition("NullPush", new int[] { }) },
+		{ OpCode.OpSetGlobal, new Definition("SetGlobal", new int[] { 2 }) },//index of constant
+		{ OpCode.OpGetGlobal, new Definition("GetGlobal", new int[] { 2 }) },//index of constant
+		{ OpCode.OpConcat, new Definition("Concat", new int[] { }) },
+		{ OpCode.OpArray, new Definition("Array", new int[] { 2 }) },//length of array
+		{ OpCode.OpIndex, new Definition("Index", new int[] { }) },//no operands, it expects two values on the stack. an object and an index.
+		{ OpCode.OpCall, new Definition("Call", new int[] { 1 }) },//number of arguments
+		{ OpCode.OpReturnValue, new Definition("Return", new int[] { }) },//no arguments. The value to be returned will be on the stack.
+		{ OpCode.OpGetLocal, new Definition("GetLocal", new int[] { 1 }) },//make these 2bytes? 256 local variables vs ... more than that.
+		{ OpCode.OpSetLocal, new Definition("SetLocal", new int[] { 1 }) },
+		{ OpCode.OpGetBuiltin, new Definition("GetBuiltin", new int[] { 1 }) },//if we ever have >256 builtins, then we can just make it two bytes wide.
+		{ OpCode.OpClosure, new Definition("Closure",new int[]{2,1})},//constant index (2 bytes, matches OpConstant), 2nd is free variables count. 
+		{ OpCode.OpGetFree, new Definition("GetFree", new int[] { 1 }) },//one operand of number variables
+		{ OpCode.OpCurrentClosure, new Definition("CurrentClosure", new int[] { }) }, //OpClosure but for current scope. lets recursion happen.
 
 	};
 
