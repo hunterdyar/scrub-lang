@@ -33,7 +33,7 @@ In Scrub, every operation can be un-done. That's the key to all of the special s
   - *Observation 1: This would be easier to implement if you were working with a fully custom simple language instead of a fork of a complex one.*
   - *Observation 2: Code running to a failure, then a student going 'huh', and simply backing up and observing, would be an excellent learning moment.*
 - The Lexer is a simple FSM with 0 lookahead.
-- The Parser is based on Bob Nystrom's Blog Post '[Pratt Parsers: Expression Parsing Made Easy](https://journal.stuffwithstuff.com/2011/03/19/pratt-parsers-expression-parsing-made-easy/)', with heavy reference to the alread-existing C# port by [jfcardinal](https://github.com/jfcardinal/BantamCs)
+- The Parser is based on Bob Nystrom's Blog Post '[Pratt Parsers: Expression Parsing Made Easy](https://journal.stuffwithstuff.com/2011/03/19/pratt-parsers-expression-parsing-made-easy/)'. [jfcardinal](https://github.com/jfcardinal/BantamCs) already wrote a C# port of [bantam](https://github.com/munificent/bantam), and it's fair to say that I copied their homework.
 - The Compiler and Virtual Machine are based on the 'Monkey' language from [Thorsten Ball](thorstenball.com)'s boo, "*Writing A Compiler in Go*".
   - *Much of the tasks left to do are to refactor the code to be more C# idiomatic, but following closely while starting was helpful to not get lost in translation.*
   - I chose to implement a VM instead of a tree-walker, because bugs and gotchas often come from the differences between a mental model, the AST, and the linear reality of the execution.
