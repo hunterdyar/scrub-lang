@@ -1,2 +1,15 @@
-﻿5;
--20;
+﻿func count(source,char,i,n){
+
+    c = source[i];
+    
+    if(c == null){return n};
+    
+    if(c == char){n = n + c};
+    
+    return count(source,i+1,n)
+}
+
+x = count("hello","l",0,0)
+
+
+print("Hello has "+x+" l's")
