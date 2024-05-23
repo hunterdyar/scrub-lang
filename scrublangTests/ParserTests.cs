@@ -39,6 +39,7 @@ public class Tests
 	[Test]
 	public void FunctionDeclareParse()
 	{
+		Assert.IsTrue(ParseTest("func (){}", "func (){\n}"));
 		Assert.IsTrue(ParseTest("func a(){}", "func a(){\n}"));
 		Assert.IsTrue(ParseTest("func a(b){a*a}", "func a(b){\n(a * a)\n}"));
 		Assert.IsTrue(ParseTest("func a(){a()}", "func a(){\na()\n}"));
@@ -102,7 +103,15 @@ public class Tests
 			var builder = new StringBuilder();
 			result.Print(builder);
 			var actual = builder.ToString();
-			return actual == expected;
+			if (actual != expected)
+			{
+				Assert.Fail($"actual: {actual} not equal to expected: {expected}");
+				return false;
+			}
+			else
+			{
+				return true;
+			}
 		}
 		catch (scrub_lang.Parser.ParseException ex)
 		{

@@ -18,6 +18,8 @@ public class FunctionDeclarationExpression : IExpression
 	public void Print(StringBuilder sb)
 	{
 		sb.Append("func ");
+		
+		_identifierExpression.Print(sb);
 		sb.Append("(");
 		for (int i = 0; i < _functionLiteral.Arguments.Count; i++)
 		{
