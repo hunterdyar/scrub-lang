@@ -4,10 +4,11 @@
 public class Function : Object
 {
 	public string Name = "";
+	public byte[] CompiledFunction;//too slow to use our bitarray for functions, which are internal only. should we have internal objects not be Scrubobjects?
 	public int NumLocals;//
 	public Function(byte[] instructions, int numLocals)
 	{
-		Bytes = instructions;
+		CompiledFunction = instructions;
 		NumLocals = numLocals;
 	}
 
@@ -15,6 +16,6 @@ public class Function : Object
 
 	public override string ToString()
 	{
-		return $"Compiled Function: [{Bytes.ToDelimitedString(",")}]" + (string.IsNullOrEmpty(Name) ? "" : $"({Name})"); 
+		return $"Compiled Function: [{CompiledFunction.ToDelimitedString(",")}]" + (string.IsNullOrEmpty(Name) ? "" : $"({Name})"); 
 	}
 }

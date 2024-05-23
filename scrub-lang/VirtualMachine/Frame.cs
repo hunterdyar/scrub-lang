@@ -21,6 +21,6 @@ public class Frame
 
 	public byte[] Instructions()
 	{
-		return closure.CompiledFunction.Bytes;
+		return closure.CompiledFunction.CompiledFunction;
 	}
 }

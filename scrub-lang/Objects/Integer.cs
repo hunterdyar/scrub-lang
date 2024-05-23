@@ -1,4 +1,5 @@
-﻿using scrub_lang.VirtualMachine;
+﻿using System.Collections;
+using scrub_lang.VirtualMachine;
 
 namespace scrub_lang.Objects;
 
@@ -9,12 +10,14 @@ public class Integer : Object
 	public Integer(int nativeInt)
 	{
 		NativeInt = nativeInt;//that's right for every integer we store two integers. Don't think about it too much the memory overhead is worth saving casting, but I insist on having accessible and properly formatted byte[] data. 
-		Bytes = BitConverter.GetBytes(nativeInt);
+		var bytes = BitConverter.GetBytes(nativeInt);
 		if (BitConverter.IsLittleEndian)
 		{
 			//hmmmm. This right?
-			Bytes = Bytes.Reverse().ToArray();
+			bytes = bytes.Reverse().ToArray();
 		}
+		Bits = new BitArray(bytes); //todo: this will make integers always 32 bits, which i think is desired.
+
 	}
 	public override string ToString()
 	{

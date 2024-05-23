@@ -47,11 +47,11 @@ public static class Builtins
 			case ScrubType.Array:
 				return ((Array)args[0]).Length;
 			case ScrubType.String:
-				return new Integer(args[0].Bytes.Length);
+				return new Integer(args[0].Bits.Length/8);
 			default:
 				return NewError($"Cannot get Len of {args[0].GetType()}.");
 				//or: yes, we can get the number of bytes of ANY data type! but that doesn't make sense for ints, it would always be 4
-				return new Integer(args[0].Bytes.Length);
+				return new Integer(args[0].Bits.Length/8);
 		}
 	}
 

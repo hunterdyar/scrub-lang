@@ -385,19 +385,8 @@ public class VM
 			if (i < 0)
 			{
 				return null;
-			}else if (i < 8)
-			{
-				return Push(new Bool(((left.Bytes[BitConverter.IsLittleEndian ? 3 : 0] >> i) & 1) != 0));
-			}else if (i < 16)
-			{
-				return Push(new Bool(((left.Bytes[BitConverter.IsLittleEndian ? 2 : 1] >> (i-8)) & 1) != 0));
-			}else if (i < 24)
-			{
-				return Push(new Bool(((left.Bytes[BitConverter.IsLittleEndian ? 1 : 2] >> (i - 16)) & 1) != 0));
-			}
-			else if (i < 32)
-			{
-				return Push(new Bool(((left.Bytes[BitConverter.IsLittleEndian ? 0 : 3] >> (i - 24)) & 1) != 0));
+			}else if(i<left.Bits.Count){
+				return Push(left.Bits.Get(i));
 			}
 			else
 			{
@@ -407,13 +396,14 @@ public class VM
 			//get the byte data. booleans return 1/0, strings return uni8 characters, and functions return their bytecode.
 			//it's read-only right now, however.
 			var i = ((Integer)index).NativeInt;
-			var max = left.Bytes.Length - 1;
+			var bytes = left.AsByteArray();
+			var max = bytes.Length - 1;
 			if (i < 0 || i > max)
 			{
 				return Push(Null);
 			}
-			//todo: we don't have a byte type... or a char type. Keep your UTF8 lookup tables handly!
-			return Push(new Integer(left.Bytes[i]));
+			//todo: we don't have a byte type (yet, it's there but untested/unexpected)... or a char type. Keep your UTF8 lookup tables handly!
+			return Push(new Integer(bytes[i]));
 		}else{
 			
 			return new ScrubVMError($"Unable to index {lt} with {it}");
@@ -575,10 +565,10 @@ public class VM
 		switch (op)
 		{
 			case OpCode.OpAdd:
-				result = new String(left.Bytes,right.Bytes);
+				result = new String(left,right);
 				break;
 			case OpCode.OpConcat:
-				result = new String(left.Bytes, right.Bytes);
+				result = new String(left, right);
 				break;
 			default:
 				return new ScrubVMError($"Unkown Integer Operation {op}");

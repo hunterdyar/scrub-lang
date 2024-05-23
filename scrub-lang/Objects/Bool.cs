@@ -1,4 +1,6 @@
-﻿namespace scrub_lang.Objects;
+﻿using System.Collections;
+
+namespace scrub_lang.Objects;
 
 public class Bool : Objects.Object
 {
@@ -7,7 +9,8 @@ public class Bool : Objects.Object
 	public Bool(bool b)
 	{
 		NativeBool = b;
-		Bytes = BitConverter.GetBytes(b);
+		Bits = new BitArray(1);
+		Bits.Set(0,b);
 	}
 
 	public override string ToString()
