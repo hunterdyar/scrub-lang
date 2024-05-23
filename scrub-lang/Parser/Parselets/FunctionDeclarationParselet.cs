@@ -30,11 +30,11 @@ public class FunctionDeclarationParselet : IPrefixParselet
 
 		if (id == null)
 		{
-			return new FunctionLiteralExpression(args, exp);
+			return new FunctionLiteralExpression(args, exp);//func(){}
 		}
 		else
 		{
-			return new FunctionDeclarationExpression(id, new FunctionLiteralExpression(args, exp));
+			return new FunctionDeclarationExpression(id, new FunctionLiteralExpression(args, exp,id.Identifier));// func identity(){}
 		}
 
 		//consume function signature

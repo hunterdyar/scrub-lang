@@ -56,7 +56,8 @@ public class VM
 		ByteCode = byteCode;//keep a copy.
 		//instructions
 		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols);
-		var mainFrame = new Frame(mainFunction,0);
+		var mainClosure = new Closure(mainFunction);//all functions are closures. The program is a function. the program is a closure. it's closures all the way down.
+		var mainFrame = new Frame(mainClosure,0);
 		Frames = new Stack<Frame>();
 		Frames.Push(mainFrame);
 		
@@ -79,7 +80,8 @@ public class VM
 		ByteCode = byteCode; //keep a copy.
 		//instructions
 		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols);//we track numSymbols here just for fun. 
-		var mainFrame = new Frame(mainFunction,0);
+		var mainClosure = new Closure(mainFunction);
+		var mainFrame = new Frame(mainClosure,0);
 		Frames = new Stack<Frame>();
 		Frames.Push(mainFrame);
 
@@ -114,30 +116,45 @@ public class VM
 			{
 				case OpCode.OpConstant:
 					//todo: big/little endian
-					var constIndex = BitConverter.ToInt16([ins[ip + 2], ins[ip+1]]);//todo: write fast ReadUInt16 function and handle big/little endian
-					CurrentFrame().ip += 2;//increase the number of bytes re read to decode the operands. THis leaves the next instruction pointing at an OpCode.
-					
+					var constIndex = BitConverter.ToInt16([ins[ip + 2], ins[ip + 1]]); //todo: use  ReadUInt16 function 
+					CurrentFrame().ip +=
+						2; //increase the number of bytes re read to decode the operands. THis leaves the next instruction pointing at an OpCode.
+
 					//execute
 					error = Push(constants[constIndex]);
 					if (error != null)
 					{
 						return error;
 					}
+
 					break;
 				case OpCode.OpCall:
 					var numArgs = Op.ReadUInt8(ins[ip + 1]);
-					CurrentFrame().ip += 1;//move instruction pointer past the operand.
+					CurrentFrame().ip += 1; //move instruction pointer past the operand.
 
 					error = ExecuteFunction(numArgs);
-					if(error !=null)
+					if (error != null)
 					{
 						return error;
 					}
+
+					break;
+				case OpCode.OpClosure:
+					var cIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+					var numFreeVars = Op.ReadUInt8(ins[ip + 3]);
+					CurrentFrame().ip += 3;
+
+					error = PushClosure((int)cIndex, (int)numFreeVars);
+					if (error != null)
+					{
+						return error;
+					}
+
 					break;
 				case OpCode.OpReturnValue:
-					var returnValue = Pop(); 
+					var returnValue = Pop();
 					frame = PopFrame();
-					
+
 					//pop. THe -1 gets rid of the function call too.
 					sp = frame.basePointer - 1;
 
@@ -146,6 +163,7 @@ public class VM
 					{
 						return error;
 					}
+
 					break;
 				case OpCode.OpAdd:
 				case OpCode.OpSubtract:
@@ -156,10 +174,11 @@ public class VM
 					{
 						return error;
 					}
+
 					break;
 				case OpCode.OpConcat:
 					return new ScrubVMError("Concatenation Operator Not Yet Implemented");
-					//runBinaryOperation, do same call as the add/sub/mult/div
+				//runBinaryOperation, do same call as the add/sub/mult/div
 				case OpCode.OpPop:
 					Pop();
 					break;
@@ -177,6 +196,7 @@ public class VM
 					{
 						return error;
 					}
+
 					break;
 				case OpCode.OpBang:
 					error = RunBangOperator(op);
@@ -184,6 +204,7 @@ public class VM
 					{
 						return error;
 					}
+
 					break;
 				case OpCode.OpNegate:
 					error = RunNegateOperator(op);
@@ -191,19 +212,21 @@ public class VM
 					{
 						return error;
 					}
+
 					break;
 				case OpCode.OpJump:
-					int pos = Op.ReadUInt16([ins[ip+1],ins[ip+2]]);
-					CurrentFrame().ip = pos - 1;//+1 when the loop ends :p
+					int pos = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+					CurrentFrame().ip = pos - 1; //+1 when the loop ends :p
 					break;
 				case OpCode.OpJumpNotTruthy:
-					pos = Op.ReadUInt16( [ins[ip+1], ins[ip+2]]);
-					CurrentFrame().ip += 2;//skipPastTheJump if we are truthy
+					pos = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+					CurrentFrame().ip += 2; //skipPastTheJump if we are truthy
 					var condition = PopScrubObject();
 					if (!IsTruthy(condition))
 					{
 						CurrentFrame().ip = pos - 1;
 					}
+
 					break;
 				case OpCode.OpNull:
 					Push(Null);
@@ -218,7 +241,8 @@ public class VM
 					CurrentFrame().ip += 1;
 					frame = CurrentFrame();
 					//set the stack in our buffer area to our object.
-					stack[frame.basePointer + (int)localIndex] = PopScrubObject();//popscrubObject is to force errors if we pop an instruction.
+					stack[frame.basePointer + (int)localIndex] =
+						PopScrubObject(); //popscrubObject is to force errors if we pop an instruction.
 					break;
 				case OpCode.OpGetGlobal:
 					globalIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
@@ -229,28 +253,7 @@ public class VM
 					localIndex = Op.ReadUInt8(ins[ip + 1]);
 					CurrentFrame().ip += 1;
 					frame = CurrentFrame();
-					var err = Push(stack[frame.basePointer+(int)localIndex]);
-					if (err != null)
-					{
-						return err;
-					}
-					break;
-				case OpCode.OpArray:
-					int numElements = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
-					CurrentFrame().ip += 2;
-
-					var array = BuildArray(sp - numElements, sp);
-					sp = sp - numElements;
-					err = Push(array);
-					if (err != null)
-					{
-						return err;
-					}
-					break;
-				case OpCode.OpIndex:
-					var index = PopScrubObject();
-					var left = PopScrubObject();
-					err = RunIndexExpression(left, index);
+					var err = Push(stack[frame.basePointer + (int)localIndex]);
 					if (err != null)
 					{
 						return err;
@@ -268,6 +271,48 @@ public class VM
 					}
 
 					break;
+				case OpCode.OpGetFree:
+					var freeIndex = Op.ReadUInt8(ins[ip + 1]);
+					CurrentFrame().ip += 1;
+					var currentClosure = CurrentFrame().closure;
+					error = Push(currentClosure.FreeVariables[freeIndex]);
+					if (error != null)
+					{
+						return error;
+					}
+					break;
+				case OpCode.OpCurrentClosure:
+					currentClosure = CurrentFrame().closure;
+					error = Push(currentClosure);
+					if (error != null)
+					{
+						return error;
+					}
+
+					break;
+				case OpCode.OpArray:
+					int numElements = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+					CurrentFrame().ip += 2;
+
+					var array = BuildArray(sp - numElements, sp);
+					sp = sp - numElements;
+					err = Push(array);
+					if (err != null)
+					{
+						return err;
+					}
+
+					break;
+				case OpCode.OpIndex:
+					var index = PopScrubObject();
+					var left = PopScrubObject();
+					err = RunIndexExpression(left, index);
+					if (err != null)
+					{
+						return err;
+					}
+
+					break;
 			}
 		}
 		return null;
@@ -279,10 +324,12 @@ public class VM
 		var callee = stack[sp - 1 - numArgs];
 		switch (((Object)callee).GetType())
 		{
-			case ScrubType.Function:
-				return CallFunction((Function)callee, numArgs);
+			case ScrubType.Closure:
+				return CallClosure((Closure)callee, numArgs);
 			case ScrubType.Builtin:
 				return CallBuiltin((Builtin)callee, numArgs);
+			case ScrubType.Function:
+				return new ScrubVMError("Trying to Execute Function that isn't wrapped as a closure!");
 		}
 
 		return new ScrubVMError($"Unable to Executse Function. {callee} is not a function.");
@@ -312,15 +359,15 @@ public class VM
 		return null;
 	}
 
-	private ScrubVMError? CallFunction(Function fun, int numArgs)
+	private ScrubVMError? CallClosure(Closure cl, int numArgs)
 	{
-		if (numArgs != fun.NumLocals)
+		if (numArgs != cl.CompiledFunction.NumLocals)
 		{
 			return new ScrubVMError("Wrong number of arguments!");
 		}
-		var frame = new Frame(fun,sp-numArgs);
+		var frame = new Frame(cl,sp-numArgs);
 		PushFrame(frame);
-		sp = frame.basePointer + fun.NumLocals;//give us a buffer of the number of local variables we will store in this area on the stack.
+		sp = frame.basePointer + cl.CompiledFunction.NumLocals;//give us a buffer of the number of local variables we will store in this area on the stack.
 		return null;
 	}
 
@@ -578,6 +625,26 @@ public class VM
 		stack[sp] = o;
 		sp++;
 		usp = usp > 0 ? usp-1: usp;//decrease but floor at 0.
+		return null;
+	}
+
+	private ScrubVMError? PushClosure(int closureConstIndex, int numFree)
+	{
+		var constant = constants[closureConstIndex];//todo: type check throw error.
+		var fn = (Function)constant;
+
+		//pull the free objects off of the stack and shove them into the closure object at runtime.
+		//the order is important.
+		var free = new Object[numFree];
+		for (var i = 0; i < free.Length; i++)
+		{
+			free[i] = (Object)stack[sp - numFree + i];
+		}
+
+		sp = sp - numFree;
+
+		var closure = new Closure(fn,free);//runtime closure from function! That's the whole point of closures!
+		Push(closure);
 		return null;
 	}
 

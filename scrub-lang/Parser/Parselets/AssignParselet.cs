@@ -10,11 +10,18 @@ public class AssignParselet : IInfixParselet
 		var right = parser.ParseExpression(BindingPower.Assignment - 1);
 		if (left is IdentifierExpression name)
 		{
+			if (right is FunctionLiteralExpression rf)
+			{
+				//a = func(){] should work like func a(){}
+				rf.Name = name.Identifier;
+			}
 			return new AssignExpression(name, right);
 		}else if (left is IndexExpression index)
 		{
 			//todo: assign index expressions. A built-in called set that it replaces itself with?
 		}
+
+		
 		throw new ParseException("The left-hand side of an assignment must be an identifier.");
 	}
 

@@ -3,6 +3,7 @@ using Object = scrub_lang.Objects.Object;
 
 namespace scrub_lang.Compiler;
 using Instructions = byte[];
+//wrapper for grabbing the things the compiler generates. Except not all of it because I need to refactor.
 public class ByteCode
 {
 	public Instructions Instructions;

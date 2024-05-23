@@ -8,9 +8,10 @@ public class FunctionLiteralExpression : IExpression
 	private readonly List<IdentifierExpression> _args;
 	public IExpression Expression => _block;
 	private readonly IExpression _block;
-	
-	public FunctionLiteralExpression(List<IdentifierExpression> args, IExpression block)
+	public string Name;
+	public FunctionLiteralExpression(List<IdentifierExpression> args, IExpression block, string funcName = "")
 	{
+		Name = funcName;
 		this._args = args;
 		this._block = block;
 	}

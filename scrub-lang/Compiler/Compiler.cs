@@ -105,7 +105,9 @@ public class Compiler
 		}else if (expression is FunctionDeclarationExpression funcDef)
 		{
 			//create the symbol before compiling the function, so that it can recursively find its own name.
-			
+			Symbol functionNameSymbol;
+			bool isNotNewSymbol = symbolTable.TryResolve(funcDef.Identity.Identifier, out functionNameSymbol, false);
+
 			//todo local functions and recursive functions are still kind of borked.
 			var err = Compile(funcDef.Function);
 			if (err != null)
@@ -118,8 +120,6 @@ public class Compiler
 				RemoveLastInstruction();
 			}
 
-			Symbol functionNameSymbol;
-			bool isNotNewSymbol = symbolTable.TryResolve(funcDef.Identity.Identifier, out functionNameSymbol, false);
 			if (isNotNewSymbol)
 			{
 				return new ScrubCompilerError($"A function named {functionNameSymbol.Name} has already been defined.");
@@ -164,8 +164,8 @@ public class Compiler
 		}
 		else if (expression is AssignExpression assignExpression)
 		{
+			bool resolved = symbolTable.TryResolve(assignExpression.Identifier.Identifier, out var symbol);
 			//compile error.
-			bool recursive = false;
 			var err = Compile(assignExpression.Value);
 			if (err != null)
 			{
@@ -177,8 +177,8 @@ public class Compiler
 				RemoveLastInstruction();
 			}
 
-			if (symbolTable.TryResolve(assignExpression.Identifier.Identifier, out var symbol, recursive))//only check the current scope on assignment. we need some override for global access.
-			{
+			//only check the current scope on assignment. we need some override for global access.
+			if(resolved){
 				//assign (overwrite)
 				if (symbol.Scope == SymbolTable.GlobalScope)
 				{
@@ -449,6 +449,11 @@ public class Compiler
 		{
 			EnterScope();
 
+			if (!string.IsNullOrEmpty(funcLiteralExpr.Name))
+			{
+				symbolTable.DefineFunctionName(funcLiteralExpr.Name);
+			}
+			
 			var args = funcLiteralExpr.Arguments;
 			foreach (var arg in args)
 			{
@@ -476,12 +481,21 @@ public class Compiler
 				//Emit(OpCode.OpNull);
 				Emit(OpCode.OpReturnValue);
 			}
-			//Add a function literal direclty onto the stack.
+			var freeSymbols = symbolTable.FreeTable;//we grab a reference to this before we leave the scope, and iterate over/load them them after. That's basically the point.
 			var numLocals = symbolTable.NumDefinitions;
+			//Add a function literal direclty onto the stack.
 			var instructions = LeaveScope();
+
+			//put all free variables on the stack.
+			foreach (var freeSymbol in freeSymbols)
+			{
+				EmitLoadSymbol(freeSymbol);
+			}
 			
 			var compiledFunction = new Function(instructions,numLocals);
-			Emit(OpCode.OpConstant, AddConstant(compiledFunction));
+			
+			var funcIndex = AddConstant(compiledFunction);
+			Emit(OpCode.OpClosure,funcIndex,freeSymbols.Count);//closures wrap functions. all functions are closures, even when there aren't any free variables.
 			return null;
 		}else if (expression is ReturnExpression rete)
 		{
@@ -584,6 +598,12 @@ public class Compiler
 				break;
 			case SymbolTable.BuiltInScope:
 				Emit(OpCode.OpGetBuiltin, s.Index);
+				break;
+			case SymbolTable.FreeScope:
+				Emit(OpCode.OpGetFree, s.Index);
+				break;
+			case SymbolTable.FunctionScope:
+				Emit(OpCode.OpCurrentClosure);//get constant... of a closure, but whatever the current one is in the vm at runtime.
 				break;
 			default:
 				throw new CompileException($"what scope is {s.Scope}? that's not right.");

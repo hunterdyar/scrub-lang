@@ -11,4 +11,5 @@ public enum ScrubType
 	Array,
 	Function,
 	Builtin,
+	Closure,
 }

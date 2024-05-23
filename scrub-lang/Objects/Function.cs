@@ -3,6 +3,7 @@
 //A function Object is a -compiled- function.
 public class Function : Object
 {
+	public string Name = "";
 	public int NumLocals;//
 	public Function(byte[] instructions, int numLocals)
 	{
@@ -14,6 +15,6 @@ public class Function : Object
 
 	public override string ToString()
 	{
-		return $"Compiled Function: [{Bytes.ToDelimitedString(",")}]";
+		return $"Compiled Function: [{Bytes.ToDelimitedString(",")}]" + (string.IsNullOrEmpty(Name) ? "" : $"({Name})"); 
 	}
 }
