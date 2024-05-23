@@ -112,6 +112,10 @@ public class Parser
 		//We can't actually do this, will need to handle Break as a unary that has very low precedence.
 		//Or maybe as a postFix that just returns the left side of the expression?
 		//this is an edge-case, won't handle multiple ;;;;'s
+		while (token.TokenType == TokenType.Break)
+		{
+			token = Consume();
+		}
 		
 		if (token.TokenType == TokenType.EOF)
 		{
@@ -119,10 +123,7 @@ public class Parser
 		}
 
 		//parse extra or beginning ;'s
-		while (token.TokenType == TokenType.Break)
-		{
-			token = Consume();
-		}
+		 
 		
 		if (!_prefixParselets.TryGetValue(token.TokenType, out var prefix))
 		{

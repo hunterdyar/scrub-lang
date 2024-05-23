@@ -37,5 +37,5 @@ public static class BindingPower
 	public static readonly int Call = 20;// f()
 	public static readonly int Increment = 20; //++
 
-	public static readonly int Break = 100; // ;
+	public static readonly int Break = 0; // ;
 }
