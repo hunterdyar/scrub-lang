@@ -1,7 +1,14 @@
 ﻿//here's a question.
 //if you do this:
-3+3
--3
+//3+3
+//-3
 //what does that evaluate to?
 //answer: it should be -3, a program block with the last statement of "-3"
 //but: it's 3+3-3, since the newline break is ignored AND we have no semicolons.
+
+func fib(n){
+    if(n == 0) return 0
+    if(n == 1) return 1
+    return fib(n-1)+fib(n-2)
+}
+fib(20)

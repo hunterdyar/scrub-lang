@@ -79,6 +79,8 @@ public class VM
 		int ip = 0;
 		byte[] ins;
 		OpCode op;
+		Frame frame;
+		ScrubVMError error = null;
 		//ip is instructionPointer
 		while (CurrentFrame().ip < CurrentFrame().Instructions().Length-1)
 		{
@@ -89,7 +91,6 @@ public class VM
 			ins = CurrentFrame().Instructions();
 			//fetch
 			op = (OpCode)ins[ip];
-			
 			//decode
 			switch (op)
 			{
@@ -99,7 +100,7 @@ public class VM
 					CurrentFrame().ip += 2;//increase the number of bytes re read to decode the operands. THis leaves the next instruction pointing at an OpCode.
 					
 					//execute
-					var error = Push(constants[constIndex]);
+					error = Push(constants[constIndex]);
 					if (error != null)
 					{
 						return error;
@@ -109,9 +110,8 @@ public class VM
 					var numArgs = Op.ReadUInt8(ins[ip + 1]);
 					CurrentFrame().ip += 1;//move instruction pointer past the operand.
 
-					Frame frame;
 					error = CallFunction(numArgs);
-					if(error!=null)
+					if(error !=null)
 					{
 						return error;
 					}
@@ -122,7 +122,7 @@ public class VM
 					
 					//pop. THe -1 gets rid of the function call too.
 					sp = frame.basePointer - 1;
-					
+
 					error = Push(returnValue);
 					if (error != null)
 					{
@@ -133,7 +133,6 @@ public class VM
 				case OpCode.OpSubtract:
 				case OpCode.OpMult:
 				case OpCode.OpDivide:
-				
 					error = RunBinaryOperation(op);
 					if (error != null)
 					{

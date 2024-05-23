@@ -1,4 +1,5 @@
-﻿using scrub_lang;
+﻿using System.Diagnostics;
+using scrub_lang;
 using scrub_lang.Compiler;
 using scrub_lang.Parser;
 using scrub_lang.VirtualMachine;
@@ -7,14 +8,26 @@ using Object = scrub_lang.Objects.Object;
 
 static class Scrub
 {
-	
-
-	public static async Task<int> Main()
+	public static async Task<int> Main(string[] args)
 	{
-		Tests.TestCompile();
-		VMTests.RunAllVMTests();
-		//Repl
-		await Repl(Console.In, Console.Out);
+		if (args.Length == 0)
+		{
+			//Repl
+			await Repl(Console.In, Console.Out);
+			return 0;
+		}
+		else
+		{
+			Stopwatch sw = new Stopwatch();
+			string program = await File.ReadAllTextAsync(args[0]);
+			sw.Start();
+			var result = Execute(program);
+			Console.WriteLine(result);
+			sw.Stop();
+			var ts = new TimeSpan(sw.ElapsedTicks);
+			Console.WriteLine($"execution completed in {ts.TotalMilliseconds}ms");
+		}
+
 		return 0;
 	}
 
@@ -43,6 +56,12 @@ static class Scrub
 		}
 	}
 
+	public static string Execute(string input)
+	{
+		var env = new Environment();
+		Object[]? globals = null;
+		return Execute(input, ref env, ref globals);
+	}
 	public static string Execute(string input, ref Environment? environment, ref Object[]? globals)
 	{
 		if (environment == null)

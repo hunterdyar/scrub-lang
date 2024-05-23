@@ -30,13 +30,12 @@ public class FunctionDeclarationParselet : IPrefixParselet
 
 		if (id == null)
 		{
-			return new FunctionDeclarationExpression(args, exp);
+			return new FunctionLiteralExpression(args, exp);
 		}
 		else
 		{
-			return new AssignExpression(id, new FunctionDeclarationExpression(args, exp));
+			return new FunctionDeclarationExpression(id, new FunctionLiteralExpression(args, exp));
 		}
-
 
 		//consume function signature
 		//consume expression block

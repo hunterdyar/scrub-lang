@@ -99,9 +99,67 @@ public class Compiler
 			}
 
 			return null;
-		}else if (expression is AssignExpression assignExpression)
+		}else if (expression is FunctionDeclarationExpression funcDef)
+		{
+			//create the symbol before compiling the function, so that it can recursively find its own name.
+			Symbol functionNameSymbol;
+			bool isNewSymbol = symbolTable.TryResolve(funcDef.Identity.Identifier, out functionNameSymbol, true); //only check the current scope on assignment. we need some override for global access.
+			if (!isNewSymbol)
+			{
+				functionNameSymbol = symbolTable.Define(funcDef.Identity.Identifier);
+			}
+			
+			var err = Compile(funcDef.Function);
+			if (err != null)
+			{
+				return err;
+			}
+
+			if (LastInstructionIs(OpCode.OpPop))
+			{
+				RemoveLastInstruction();
+			}
+
+			//the only difference between this and AssignExpression is that functions defined as func NAME(){} are always global scoped. thats... weird?s
+			if (isNewSymbol) //only check the current scope on assignment. we need some override for global access.
+			{
+				//assign (overwrite) function name
+				if (functionNameSymbol.Scope == SymbolTable.GlobalScope)
+				{
+					Emit(OpCode.OpSetGlobal, functionNameSymbol.Index); //assign
+					Emit(OpCode.OpGetGlobal, functionNameSymbol.Index);
+				}
+				else
+				{
+					//else local scope
+					Emit(OpCode.OpSetLocal, functionNameSymbol.Index);
+					Emit(OpCode.OpGetLocal, functionNameSymbol.Index);
+				}
+
+				return null;
+			}
+			else
+			{
+				//This function name does not exist yet. Creating it.
+				if (functionNameSymbol.Scope == SymbolTable.GlobalScope)
+				{
+					Emit(OpCode.OpSetGlobal, functionNameSymbol.Index);
+					Emit(OpCode.OpGetGlobal, functionNameSymbol.Index);
+				}
+				else
+				{
+					//else local scope.
+					Emit(OpCode.OpSetLocal, functionNameSymbol.Index);
+					Emit(OpCode.OpGetLocal, functionNameSymbol.Index);
+				}
+
+				return null;
+			}
+		}
+		else if (expression is AssignExpression assignExpression)
 		{
 			//compile error.
+			bool recursive = false;
 			var err = Compile(assignExpression.Value);
 			if (err != null)
 			{
@@ -113,7 +171,7 @@ public class Compiler
 				RemoveLastInstruction();
 			}
 
-			if (symbolTable.TryResolve(assignExpression.Identifier.Identifier, out var symbol, false))//only check the current scope on assignment. we need some override for global access.
+			if (symbolTable.TryResolve(assignExpression.Identifier.Identifier, out var symbol, recursive))//only check the current scope on assignment. we need some override for global access.
 			{
 				//assign (overwrite)
 				if (symbol.Scope == SymbolTable.GlobalScope)
@@ -380,7 +438,7 @@ public class Compiler
 
 			Emit(OpCode.OpIndex);
 			return null;
-		}else if (expression is FunctionDeclarationExpression fde)
+		}else if (expression is FunctionLiteralExpression fde)
 		{
 			EnterScope();
 
@@ -395,9 +453,7 @@ public class Compiler
 			{
 				return err;
 			}
-
-
-
+			
 			//again I think I bypass this case that Monkey has, because everything is an expression.
 			if (LastInstructionIs(OpCode.OpPop))
 			{
