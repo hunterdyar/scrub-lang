@@ -13,7 +13,7 @@ public class ReturnParselet : IPrefixParselet
 		//I also want the rust syntax of whatever the last value in an expression being what that block evaluates to.
 		//If this is the case, then return is always a single keyword.
 		
-		if (parser.Peek(TokenType.EndExpression))
+		if (parser.Peek(TokenType.Break))
 		{
 			return new ReturnExpression(new NullExpression());
 		}

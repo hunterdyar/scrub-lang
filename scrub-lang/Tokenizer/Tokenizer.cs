@@ -95,7 +95,7 @@ public class Tokenizer
 			//math symbols that, on their own, are just tokens. (...unary)
 			case ';':
 				//we have to parse comments....
-				AddToken(new Token(TokenType.EndExpression, c, l, col));
+				AddIfNotRepeating(TokenType.Break, c, l ,col);
 				return;
 			case '+':
 			case '-':
@@ -151,6 +151,7 @@ public class Tokenizer
 			case '\n':
 				//we don't have a concept as a whitespace token.
 				//ignore whitespace unless we are inside one of our special cases, where it will end input.
+				//AddIfNotRepeating(TokenType.Break,c,l,col);
 				return;
 			case '='://one or two or three equals (assignment, equals, and unexpected === aint a thing)
 			case '>':
@@ -205,7 +206,14 @@ public class Tokenizer
 			isSyntaxError = true;//kills our consumption.
 		}
 	}
-	
+
+	private void AddIfNotRepeating(TokenType tokenType, char c, int l, int col)
+	{
+		if (_tokens.Count == 0 || _tokens[^1].TokenType != tokenType)
+		{
+			AddToken(new Token(TokenType.Break, c, l, col));
+		}
+	}
 	public void SwitchState(TokenizerStateBase? newStateBase)
 	{
 		_state = newStateBase;

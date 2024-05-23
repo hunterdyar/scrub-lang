@@ -31,6 +31,8 @@ public class Parser
 		Register(TokenType.ReturnKeyword,new ReturnParselet());
 		Register(TokenType.OpenBracket,new ArrayLiteralParselet());//prefix
 		Register(TokenType.OpenBracket,new ArrayLookupParselet());//infix
+		Register(TokenType.Break, new BreakInfixParselet());//break just returns left, but has a low binding power.
+		//Register(TokenType.Break, new BreakPrefixParselet());//as a prefix, it just returns parse().
 		//+1, -1, ~1, !true
 		Prefix(TokenType.Plus, BindingPower.UnarySum);
 		Prefix(TokenType.Minus, BindingPower.UnarySum);
@@ -113,6 +115,11 @@ public class Parser
 		if (token.TokenType == TokenType.EOF)
 		{
 			return null;
+		}
+
+		if (Peek(TokenType.Break))
+		{
+			Consume(TokenType.Break);
 		}
 		
 		if (!_prefixParselets.TryGetValue(token.TokenType, out var prefix))

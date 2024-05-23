@@ -4,6 +4,7 @@ public static class BindingPower
 {
 	//this but flipped around...
 	//https://en.cppreference.com/w/c/language/operator_precedence
+	public static readonly int Break = 0;// ;
 	public static readonly int Comma = 1; // ,
 
 	public static readonly int AssignmentBySum = 4;//+=, -=

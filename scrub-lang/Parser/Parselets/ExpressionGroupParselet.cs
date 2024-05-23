@@ -12,10 +12,6 @@ public class ExpressionGroupParselet : IPrefixParselet
 		{
 			var e = parser.ParseExpression(0);
 			_expressions.Add(e);
-			if (parser.Peek(TokenType.EndExpression))
-			{
-				parser.Consume(TokenType.EndExpression);
-			}
 		}
 
 		parser.Consume(TokenType.EndExpressionBlock);
