@@ -102,7 +102,14 @@ static class Scrub
 		//Console.WriteLine("---");
 		try
 		{
-			ScrubVMError? vmerror = vm.Run();
+			ScrubVMError? vmerror = null;
+			vmerror = vm.RunOne();
+			vmerror = vm.RunOne();
+			vmerror = vm.RunOne();
+			vmerror = vm.PreviousOne();
+			vmerror = vm.PreviousOne();
+			vmerror = vm.PreviousOne();
+			vmerror = vm.Run();
 			if (vmerror != null)
 			{
 				return vmerror.ToString();

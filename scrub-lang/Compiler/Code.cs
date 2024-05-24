@@ -8,42 +8,45 @@ namespace scrub_lang.Compiler;
 //this is the first time i've used this enum: type casting syntax and it's also probably the list time I ever will.
 public enum OpCode: byte
 {
-	OpConstant,
-	OpAdd,
-	OpPop,
-	OpSubtract,
-	OpMult,
-	OpDivide,
-	OpBitAnd,
-	OpBitOr,
-	OpBitXor,
-	OpBitNot,
-	OpBitShiftLeft,
-	OpBitShiftRight,
-	OpTrue,
-	OpFalse,
-	OpNull,
-	OpEqual,
-	OpNotEqual,
-	OpGreaterThan,
-	OpBang,
-	OpNegate,
-	OpJump,
-	OpJumpNotTruthy,
-	OpSetGlobal,
-	OpGetGlobal,
-	OpConcat,//could we cast to string at compile time instead of runtime?
-	OpArray,
-	OpIndex,
-	OpCall,
-	OpReturnValue,
-	OpGetLocal,
-	OpSetLocal,
-	OpGetBuiltin,
-	OpClosure,
-	OpCurrentClosure,
-	OpGetFree,//get free! be free! Go forth! fly!
-}
+	OpAdd = 0,
+	OpPop = 1,
+	OpSubtract = 2,
+	OpMult = 3,
+	OpDivide = 4,
+	OpBitAnd = 5,
+	OpBitOr = 6,
+	OpBitXor = 7,
+	OpBitNot = 8,
+	OpBitShiftLeft = 9,
+	OpBitShiftRight = 10,
+	OpTrue = 11,
+	OpFalse = 12,
+	OpNull = 13,
+	OpEqual = 14,
+	OpNotEqual = 15,
+	OpGreaterThan = 16,
+	OpBang = 17,
+	OpNegate = 18,
+	OpJump = 19,
+	OpJumpNotTruthy = 20,
+	OpIndex = 22,
+	OpCall = 23,
+	OpReturnValue = 24,
+	OpCurrentClosure = 25,
+	OpConcat = 27, //could we cast to string at compile time instead of runtime?
+	
+	//sandwichies
+	OpConstant = 50,
+	OpGetLocal = 52,
+	OpSetLocal = 53,
+	OpGetBuiltin = 54,
+	OpClosure = 55,
+	OpSetGlobal = 56,
+	OpGetGlobal = 57,
+	OpGetFree = 51, //get free! be free! Go forth! fly!
+	OpArray = 58,
+
+	}
 
 public struct Definition
 {
@@ -64,14 +67,14 @@ public struct Definition
 		//x operands, each y units widw. For each operand...
 		for (int i = 0; i < OperandWidths.Length; i++)
 		{
-			switch (OperandWidths[i])// this operand is this many bytes.
+			switch (OperandWidths[i]) // this operand is this many bytes.
 			{
 				case 0: break;
 				case 1:
 					operands[i] = (ushort)Op.ReadUInt8(instructions[offset]);
 					break;
 				case 2:
-					operands[i] = Op.ReadUInt16([instructions[offset+0], instructions[offset +1]]);
+					operands[i] = Op.ReadUInt16([instructions[offset + 0], instructions[offset + 1]]);
 					// if (BitConverter.IsLittleEndian)
 					// {
 					// 	operands[i] = BitConverter.ToInt16([instructions[offset + 1], instructions[offset]]);
@@ -85,13 +88,14 @@ public struct Definition
 
 			offset += (UInt16)OperandWidths[i];
 		}
-
+		
 		return (operands, offset-start);
 	}
 }
 
 public static class Op
 {
+	private const int BidirectionalOpThreshold = 50;//if we end up with more than 50 "normal" op-codes, then we just increase it.
 	public static Dictionary<OpCode, Definition> Definitions = new Dictionary<OpCode, Definition>()
 	{
 		{ OpCode.OpConstant, new Definition("Constant", new int[] { 2 }) },//index of const
@@ -131,6 +135,10 @@ public static class Op
 		{ OpCode.OpBitShiftRight, new Definition("BitShiftRight", new int[] { }) },
 	};
 
+	public static bool IsOpCodeBidirectional(OpCode code)
+	{
+		return (int)code >= BidirectionalOpThreshold;
+	}
 	public static byte[] Make(OpCode op, params int[] operands)
 	{
 		if (!Definitions.TryGetValue(op, out var def))
@@ -138,7 +146,8 @@ public static class Op
 			return new byte[]{};
 		}
 
-		int instructionLength = 1;
+		bool isOpCodeSandwich = IsOpCodeBidirectional(op);
+		int instructionLength = isOpCodeSandwich ? 2 : 1;
 		foreach (int width in def.OperandWidths)
 		{
 			instructionLength += width;
@@ -167,6 +176,12 @@ public static class Op
 			}
 
 			offset += width;
+		}
+
+		//OpCode Sandwich! Yee-haw!
+		if (isOpCodeSandwich)
+		{
+			instruction[^1] = (byte)op;
 		}
 
 		return instruction;

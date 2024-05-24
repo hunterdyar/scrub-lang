@@ -63,9 +63,12 @@ public class VM
 		var mainFrame = new Frame(mainClosure,0);
 		Frames = new Stack<Frame>();
 		Frames.Push(mainFrame);
-		
 		constants = byteCode.Constants.ToList();
 		stack = new object[StackSize];//todo: will this become a different base type? 
+		//todo: list for the unstack. or some kind of growable collection. 
+		//it's going to need to be at least..... 2 times larger than this. (actually infinity overhead).
+		//now, some things we pop off of the stack are knowable from state, because the function is deterministic.
+		//most aren't cus that's why have a stack and not instructions.
 		unstack = new object[StackSize];
 		globals = new Object[GlobalsSize];
 		sp = 0;
@@ -146,7 +149,7 @@ public class VM
 		{
 			case OpCode.OpConstant:
 				var constIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]); 
-				CurrentFrame().ip += 2; //increase the number of bytes re read to decode the operands. THis leaves the next instruction pointing at an OpCode.
+				CurrentFrame().ip += 3; //increase the number of bytes re read to decode the operands. THis leaves the next instruction pointing at an OpCode.
 				return Push(constants[constIndex]);
 				break;
 			case OpCode.OpCall:
@@ -157,7 +160,7 @@ public class VM
 			case OpCode.OpClosure:
 				var cIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
 				var numFreeVars = Op.ReadUInt8(ins[ip + 3]);
-				CurrentFrame().ip += 3;
+				CurrentFrame().ip += 4;
 				return PushClosure((int)cIndex, (int)numFreeVars);
 			case OpCode.OpReturnValue:
 				var returnValue = Pop();
@@ -210,34 +213,34 @@ public class VM
 				return Push(Null);
 			case OpCode.OpSetGlobal:
 				var globalIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
-				CurrentFrame().ip += 2;
+				CurrentFrame().ip += 3;//plus sandwich
 				globals[globalIndex] = PopScrubObject();
 				return null;
 			case OpCode.OpSetLocal:
 				var localIndex = Op.ReadUInt8(ins[ip + 1]);
-				CurrentFrame().ip += 1;
+				CurrentFrame().ip += 2;
 				_frame = CurrentFrame();
-				//set the stack in our buffer area to our object.
+				//set the stack in our buffer area to our object. THis is going to be a tricky one to UNDO
 				stack[_frame.basePointer + (int)localIndex] = PopScrubObject(); //popscrubObject is to force errors if we pop an instruction.
 				return null;
 			case OpCode.OpGetGlobal:
 				globalIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
-				CurrentFrame().ip += 2;
+				CurrentFrame().ip += 3;
 				Push(globals[globalIndex]);
 				return null;
 			case OpCode.OpGetLocal:
 				localIndex = Op.ReadUInt8(ins[ip + 1]);
-				CurrentFrame().ip += 1;
+				CurrentFrame().ip += 3;
 				_frame = CurrentFrame();
 				return Push(stack[_frame.basePointer + (int)localIndex]);
 			case OpCode.OpGetBuiltin:
 				var builtInIndex = Op.ReadUInt8(ins[ip + 1]);
-				CurrentFrame().ip += 1;
+				CurrentFrame().ip += 2;
 				var def = Builtins.AllBuiltins[builtInIndex];
 				return Push(def.Builtin);
 			case OpCode.OpGetFree:
 				var freeIndex = Op.ReadUInt8(ins[ip + 1]);
-				CurrentFrame().ip += 1;
+				CurrentFrame().ip += 2;
 				var currentClosure = CurrentFrame().closure;
 				return Push(currentClosure.FreeVariables[freeIndex]);
 			case OpCode.OpCurrentClosure:
@@ -245,8 +248,7 @@ public class VM
 				return Push(currentClosure);
 			case OpCode.OpArray:
 				int numElements = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
-				CurrentFrame().ip += 2;
-
+				CurrentFrame().ip += 3;
 				var array = BuildArray(sp - numElements, sp);
 				sp = sp - numElements;
 				return Push(array);
@@ -257,6 +259,202 @@ public class VM
 		}
 		return null;
 	}
+	public ScrubVMError? PreviousOne()
+	{
+		if (CurrentFrame().ip <= 0)
+		{
+			return new ScrubVMError("At beginning, can't undo!");
+			return null;
+		}
+
+		//this is the hot path. We actually care about performance.
+		byte[] ins;
+		ScrubVMError? error = null;
+		//ip is instructionPointer
+	
+		// CurrentFrame().ip;
+		ip = CurrentFrame().ip;
+		ins = CurrentFrame().Instructions();
+		//fetch
+		OpCode op = (OpCode)ins[ip];
+		//decode
+		switch (op)
+		{
+			case OpCode.OpConstant:
+				Pop();
+				var constIndex = Op.ReadUInt16([ins[ip -2], ins[ip -1]]); 
+				CurrentFrame().ip -= 4; //increase the number of bytes re read to decode the operands. THis leaves the next instruction pointing at an OpCode.
+				return null;
+			case OpCode.OpCall:
+				throw new NotImplementedException("Reverse OpCall not implemented");
+				var numArgs = Op.ReadUInt8(ins[ip + 1]);
+				CurrentFrame().ip += 1; //move instruction pointer past the operand.
+				return ExecuteFunction(numArgs);
+				break;
+			case OpCode.OpClosure:
+				var cIndex = Op.ReadUInt16([ins[ip - 3], ins[ip - 2]]);
+				var numFreeVars = Op.ReadUInt8(ins[ip - 1]);
+				CurrentFrame().ip -= 5;//op, index, index, vars, op
+				Pop();
+				return null;
+				//return PushClosure((int)cIndex, (int)numFreeVars);
+			case OpCode.OpReturnValue:
+				throw new NotImplementedException("Reverse Return not implemented");
+				var returnValue = Pop();
+				_frame = PopFrame();
+				//pop. The -1 gets rid of the function call too.
+				sp = _frame.basePointer - 1;
+				return Push(returnValue);
+			case OpCode.OpAdd:
+			case OpCode.OpSubtract:
+			case OpCode.OpMult:
+			case OpCode.OpDivide:
+			case OpCode.OpBitAnd:
+			case OpCode.OpBitOr:
+			case OpCode.OpBitXor:
+			case OpCode.OpBitShiftLeft:
+			case OpCode.OpBitShiftRight:
+				//binary ops are all the same. pop pop push. we reverse it with poppushpush.
+				Pop();//remove the result of the op
+				PushBack();//restore the previous values. I think this will do it in the right order?
+				PushBack();
+				CurrentFrame().ip--;
+				return null;
+			case OpCode.OpConcat:
+				return new ScrubVMError("Concatenation Operator Not Yet Implemented");
+			case OpCode.OpPop:
+				PushBack();
+				CurrentFrame().ip--;
+				return null;
+			case OpCode.OpTrue:
+				var o = Pop();
+				if ((Bool)o != True)
+				{
+					throw new VMException($"Reverse error (expected True, got {o}");
+				}
+
+				CurrentFrame().ip--;
+				return null;
+			case OpCode.OpFalse:
+				Pop();
+				CurrentFrame().ip--;
+				return null;
+			case OpCode.OpEqual:
+			case OpCode.OpNotEqual:
+			case OpCode.OpGreaterThan:
+				Pop(); //remove the result of the op
+				PushBack(); //restore the previous values
+				PushBack();
+				CurrentFrame().ip--;
+				return null;
+			case OpCode.OpBang:
+			case OpCode.OpNegate:
+				//todo: can't we just run the negate operator again?
+				Pop();
+				PushBack();
+				CurrentFrame().ip--;
+				return null;
+			case OpCode.OpJump:
+				return new ScrubVMError("reverse jump Not Yet Implemented");
+
+				int pos = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+				CurrentFrame().ip = pos - 1; //+1 when the loop ends :p
+				return null;
+			case OpCode.OpJumpNotTruthy:
+				return new ScrubVMError("reverse jump Not Yet Implemented");
+
+				pos = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+				CurrentFrame().ip += 2; //skipPastTheJump if we are truthy
+				var condition = PopScrubObject();
+				if (!IsTruthy(condition))
+				{
+					CurrentFrame().ip = pos - 1;
+				}
+				return null;
+			case OpCode.OpNull:
+				o = Pop();
+				if ((Null)o != Null)
+				{
+					throw new VMException($"Reverse error (expected True, got {o}");
+				}
+
+				CurrentFrame().ip--;
+				return null;
+			case OpCode.OpSetGlobal:
+				o = PushBack();
+				var globalIndex = Op.ReadUInt16([ins[ip - 2], ins[ip -1]]);
+				CurrentFrame().ip -= 4;//plus sandwich
+				globals[globalIndex] = (Object)o;
+				return null;
+			case OpCode.OpSetLocal:
+				o = PushBack();//todo: this won't work, the previous value MIGHT be garbage!
+				var localIndex = Op.ReadUInt8(ins[ip - 1]);
+				CurrentFrame().ip -= 3;
+				_frame = CurrentFrame();
+				//set the stack in our buffer area to our object. THis is going to be a tricky one to UNDO
+				if (o == null)
+				{
+					//when we set it the first time, it was WHO KNOWs. now? who knows.
+					stack[_frame.basePointer + (int)localIndex] = Null; //popscrubObject is to force errors if we pop an instruction.
+				}
+				else
+				{
+					stack[_frame.basePointer + (int)localIndex] = o; //popscrubObject is to force errors if we pop an instruction.
+				}
+				return null;
+			case OpCode.OpGetGlobal:
+				globalIndex = Op.ReadUInt16([ins[ip -2], ins[ip + 1]]);
+				CurrentFrame().ip -= 4;
+				// Push(globals[globalIndex]);
+				Pop();
+				return null;
+			case OpCode.OpGetLocal:
+				localIndex = Op.ReadUInt8(ins[ip - 1]);
+				CurrentFrame().ip -= 3;
+				_frame = CurrentFrame();
+				Pop();
+				// return Push(stack[_frame.basePointer + (int)localIndex]);
+				return null;
+			case OpCode.OpGetBuiltin:
+				var builtInIndex = Op.ReadUInt8(ins[ip - 1]);
+				CurrentFrame().ip -= 3;
+				var def = Builtins.AllBuiltins[builtInIndex];
+				Pop();
+				return null;
+				//return Push(def.Builtin);
+			case OpCode.OpGetFree:
+				var freeIndex = Op.ReadUInt8(ins[ip - 1]);
+				CurrentFrame().ip -= 3;
+				var currentClosure = CurrentFrame().closure;
+				//return Push(currentClosure.FreeVariables[freeIndex]);
+				Pop();
+				return null;
+			case OpCode.OpCurrentClosure:
+				currentClosure = CurrentFrame().closure;
+				// return Push(currentClosure);
+				Pop();
+				CurrentFrame().ip--;
+				return null;
+			case OpCode.OpArray:
+				int numElements = Op.ReadUInt16([ins[ip - 2], ins[ip -1]]);
+				var array = BuildArray(sp - numElements, sp);
+				sp = sp - numElements;
+				Pop();
+				CurrentFrame().ip -= 4;
+				return null;
+				// return Push(array);
+			case OpCode.OpIndex:
+				var left = PushBack();
+				var index = PushBack();
+				// return RunIndexExpression(left, index);
+				Pop();
+				CurrentFrame().ip --;
+				return null;
+		}
+		return null;
+	}
+
+	
 
 	private ScrubVMError? ExecuteFunction(int numArgs)
 	{
@@ -624,7 +822,20 @@ public class VM
 		
 		stack[sp] = o;
 		sp++;
-		usp = usp > 0 ? usp-1: usp;//decrease but floor at 0.
+		return null;
+	}
+
+	private ScrubVMError? PushBack()
+	{
+		if (sp >= StackSize)
+		{
+			return new ScrubVMError("Stack Overflow!");
+		}
+
+		var o = unstack[usp];
+		usp--;
+		stack[sp] = o;
+		sp++;
 		return null;
 	}
 
@@ -659,7 +870,7 @@ public class VM
 
 	public Object PopScrubObject()
 	{
-		//basically calling pop, but faster to just paste. (i know!? wild).
+		//basically calling pop, but faster to just copy/paste. (i know!? wild).
 		var o = stack[sp - 1];
 		sp--;
 		unstack[usp] = o;
@@ -680,8 +891,6 @@ public class VM
 	public void PushFrame(Frame f) { Frames.Push(f);}
 	public Frame PopFrame() => Frames.Pop();
 	
-	
-
 	public static bool IsTruthy(Object obj)
 	{
 		switch (obj.GetType())

@@ -1,5 +1,6 @@
 ﻿using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using System.Transactions;
 using scrub_lang.Evaluator;
 using scrub_lang.Objects;
 using scrub_lang.Parser;
@@ -471,15 +472,20 @@ public class Compiler
 		}else if (expression is FunctionLiteralExpression funcLiteralExpr)
 		{
 			EnterScope();
-
+			string n = "";
 			if (!string.IsNullOrEmpty(funcLiteralExpr.Name))
 			{
 				symbolTable.DefineFunctionName(funcLiteralExpr.Name);
+				n = funcLiteralExpr.Name;
 			}
 			
 			var args = funcLiteralExpr.Arguments;
 			foreach (var arg in args)
 			{
+				if (arg.Identifier == n)
+				{
+					return new ScrubCompilerError("A function cannot have the same name as one of it's arguments!");
+				}
 				symbolTable.Define(arg.Identifier);
 			}
 			
