@@ -8,8 +8,9 @@ namespace scrub_lang.Compiler;
 //this is the first time i've used this enum: type casting syntax and it's also probably the list time I ever will.
 public enum OpCode: byte
 {
-	OpAdd = 0,
-	OpPop = 1,
+	//regular operations (in terms of rewinding)
+	OpPop = 0,
+	OpAdd = 1,
 	OpSubtract = 2,
 	OpMult = 3,
 	OpDivide = 4,
@@ -27,15 +28,20 @@ public enum OpCode: byte
 	OpGreaterThan = 16,
 	OpBang = 17,
 	OpNegate = 18,
-	OpJump = 19,
-	OpJumpNotTruthy = 20,
-	OpIndex = 22,
-	OpCall = 23,
-	OpReturnValue = 24,
-	OpCurrentClosure = 25,
-	OpConcat = 27, //could we cast to string at compile time instead of runtime?
+	OpIndex = 19,
+	OpConcat = 21, 
+
+	//special ops.
+	OpCall = 30,
+	OpReturnValue = 31,
+	OpCurrentClosure = 32,
 	
-	//sandwichies
+	//jumps. while they are sandwichies, aren't sandwichies. They just work both ways. we handle them manually in the compiler.
+	//[jmp][endpos][][][][][startpos][jmp]
+	OpJump = 33,
+	OpJumpNotTruthy = 34,
+	
+	//sandwichies. [code][operands][operands][code]
 	OpConstant = 50,
 	OpGetLocal = 52,
 	OpSetLocal = 53,
@@ -45,7 +51,6 @@ public enum OpCode: byte
 	OpGetGlobal = 57,
 	OpGetFree = 51, //get free! be free! Go forth! fly!
 	OpArray = 58,
-
 	}
 
 public struct Definition
