@@ -19,7 +19,6 @@ public class Tokenizer
 
 	public List<Token> Tokens => _tokens;
 	private List<Token> _tokens = new List<Token>();
-	private bool isSyntaxError = false;//todo: status enum?
 	private int _lastTokenProvided = -1;
 	private int _prevCount;
 	private string _returned = "";
@@ -203,7 +202,6 @@ public class Tokenizer
 		{
 			var last = _tokens[^1];
 			Console.WriteLine($"Uh oh, unexpected token \"{last.Literal}\" on line {last.Line}, column {last.Column}.");
-			isSyntaxError = true;//kills our consumption.
 		}
 	}
 
