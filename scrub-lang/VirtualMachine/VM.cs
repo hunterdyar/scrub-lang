@@ -21,7 +21,7 @@ public class VM
 	public static readonly Bool True = new Bool(true);
 	public static readonly Bool False = new Bool(false);
 	public static readonly Null Null = new Null();
-		
+	private Dictionary<OpCode, Stack<bool>> _conditionalHistory = new Dictionary<OpCode, Stack<bool>>(); 
 	public ByteCode ByteCode { get; }
 
 	public Stack<Frame> Frames = new Stack<Frame>();//todo: replace this with pre-allocated array (for SPEeeEEed)
@@ -57,6 +57,8 @@ public class VM
 
 		_state = VMState.Initialized;
 		ByteCode = byteCode;//keep a copy.
+		_conditionalHistory.Add(OpCode.OpJumpNotTruthy, new Stack<bool>());
+
 		//instructions
 		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols);
 		var mainClosure = new Closure(mainFunction);//all functions are closures. The program is a function. the program is a closure. it's closures all the way down.
@@ -85,6 +87,7 @@ public class VM
 
 		_state = VMState.Initialized;
 		ByteCode = byteCode; //keep a copy.
+		_conditionalHistory.Add(OpCode.OpJumpNotTruthy,new Stack<bool>());
 		//instructions
 		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols);//we track numSymbols here just for fun. 
 		var mainClosure = new Closure(mainFunction);
@@ -216,7 +219,9 @@ public class VM
 				pos = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
 				CurrentFrame().ip += 2; //skipPastTheJump if we are truthy
 				var condition = PopScrubObject();
-				if (!IsTruthy(condition))
+				bool jmp = !IsTruthy(condition);
+				_conditionalHistory[OpCode.OpJumpNotTruthy].Push(jmp);
+				if (jmp)
 				{
 					CurrentFrame().ip = pos - 1;
 				}
@@ -367,20 +372,19 @@ public class VM
 				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpJump:
-				return new ScrubVMError("reverse jump Not Yet Implemented");
-
-				int pos = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+				int pos = Op.ReadUInt16([ins[ip - 2], ins[ip - 1]]);
 				CurrentFrame().ip = pos - 1; //+1 when the loop ends :p
 				return null;
 			case OpCode.OpJumpNotTruthy:
-				return new ScrubVMError("reverse jump Not Yet Implemented");
-
-				pos = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
-				CurrentFrame().ip += 2; //skipPastTheJump if we are truthy
-				var condition = PopScrubObject();
-				if (!IsTruthy(condition))
+				//push truthy value w checked before back onto the stack.
+				pos = Op.ReadUInt16([ins[ip - 2], ins[ip - 1]]);
+				CurrentFrame().ip -= 2;
+				var condition = PushBack();
+				bool jmp = !IsTruthy((Object)condition);
+				_conditionalHistory[OpCode.OpJumpNotTruthy].Push(jmp);
+				if (jmp)
 				{
-					CurrentFrame().ip = pos - 1;
+					CurrentFrame().ip = pos - 1;//pos-1 or pos+1?
 				}
 				return null;
 			case OpCode.OpNull:
@@ -837,7 +841,7 @@ public class VM
 		return null;
 	}
 
-	private ScrubVMError? PushBack()
+	private object PushBack()
 	{
 		if (sp >= StackSize)
 		{
@@ -848,7 +852,7 @@ public class VM
 		usp--;
 		stack[sp] = o;
 		sp++;
-		return null;
+		return o;
 	}
 
 	private ScrubVMError? PushClosure(int closureConstIndex, int numFree)

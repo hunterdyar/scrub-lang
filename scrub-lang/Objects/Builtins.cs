@@ -11,6 +11,7 @@ public static class Builtins
 
 	static Builtins()
 	{
+		//todo: inline array literal
 		_builtins = new (string, Builtin)[4];
 		_builtins[0] = ("print", new Builtin(Print));
 		_builtins[1] = ("len", new Builtin(Len));

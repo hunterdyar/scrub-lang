@@ -363,7 +363,7 @@ public class Compiler
 			//:after-consequence
 			//alternative
 			//:skip-alternative
-			
+			var firstPos = CurrentScope.Instuctions.Count;
 			var err = Compile(condExpr.Conditional);
 			if (err != null)
 			{
@@ -371,7 +371,7 @@ public class Compiler
 			}
 
 			var jumpNqePos = Emit(OpCode.OpJumpNotTruthy, 9999);//bogus value, let's fix it later.
-
+			
 			err = Compile(condExpr.Consequence);
 			if (err != null)
 			{
