@@ -82,20 +82,27 @@ public class Compiler
 			return null;
 		}else if (expression is ExpressionGroupExpression block)
 		{
-			for (int i = 0; i < block.Expressions.Length; i++)
+			if (block.Expressions.Length == 0)
 			{
-				var err = Compile(block.Expressions[i]);
-				if (err != null)
+				Emit(OpCode.OpNull);
+			}
+			else
+			{
+				for (int i = 0; i < block.Expressions.Length; i++)
 				{
-					return err;
-				}
+					var err = Compile(block.Expressions[i]);
+					if (err != null)
+					{
+						return err;
+					}
 
-				if (i < block.Expressions.Length - 1)
-				{
-					//remove the value from the expression we just called.... which might not have a value? hmmm. shite.
-					//our expression leaves us with one nice value at the end, which is what expression blocks become: their last value.
-					//we also could always emit, and then (if needed?) removeLastPop, like with conditionals? 
-					Emit(OpCode.OpPop);
+					if (i < block.Expressions.Length - 1)
+					{
+						//remove the value from the expression we just called.... which might not have a value? hmmm. shite.
+						//our expression leaves us with one nice value at the end, which is what expression blocks become: their last value.
+						//we also could always emit, and then (if needed?) removeLastPop, like with conditionals? 
+						Emit(OpCode.OpPop);
+					}
 				}
 			}
 
@@ -339,7 +346,7 @@ public class Compiler
 			{
 				return new ScrubCompilerError(leftError.Message);
 			}
-			//todo: compile-time rewrite of a++ to a = a+1. no need for increment opcode.... unless we want more speed.
+			
 			//if increment, increment, etc.
 			return null;
 		}

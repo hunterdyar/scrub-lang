@@ -35,7 +35,9 @@ public static class VMTests
 		{
 			new VMTestCase("1", new Integer(1)),
 			new VMTestCase("2", new Integer(2)),
-			new VMTestCase("1+2", new Integer(3))
+			new VMTestCase("1+2", new Integer(3)),
+			new VMTestCase("a = func(a){a+2}", VM.Null),// just writing this failing case down for now.
+			new VMTestCase("func a(){};a()", VM.Null)
 		};
 		RunTests();
 		Console.WriteLine($"Failures: {Failures}");

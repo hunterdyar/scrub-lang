@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using scrub_lang;
 using scrub_lang.Compiler;
+using scrub_lang.Evaluator;
 using scrub_lang.Parser;
 using scrub_lang.VirtualMachine;
 using Environment = scrub_lang.Evaluator.Environment;
@@ -50,12 +51,11 @@ static class Scrub
 			{
 				break;
 			}
-
+			
 			var output = Execute(line, ref env, ref globals);
 			writer.WriteLineAsync(output);
 		}
 	}
-
 	public static string Execute(string input)
 	{
 		var env = new Environment();
@@ -102,7 +102,7 @@ static class Scrub
 		//Console.WriteLine("---");
 		try
 		{
-			var vmerror = vm.Run();
+			ScrubVMError? vmerror = vm.Run();
 			if (vmerror != null)
 			{
 				return vmerror.ToString();

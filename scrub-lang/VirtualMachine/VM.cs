@@ -1,4 +1,5 @@
-﻿using scrub_lang.Compiler;
+﻿using System.Collections;
+using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
 using scrub_lang.Objects;
 using scrub_lang.Parser;
@@ -39,6 +40,14 @@ public class VM
 	private int sp;//stack pointer
 	private int usp; //unstack pointer.
 	public TextWriter outputStream;
+	
+	//the ENGINE
+	public VMState State => _state;
+	private VMState _state;
+
+	//just caches
+	private int ip;
+	private Frame _frame;
 	//tdoo: refactor constructors
 	public VM(ByteCode byteCode, TextWriter? writer = null)
 	{
@@ -48,7 +57,8 @@ public class VM
 		{
 			outputStream = Console.Out;
 		}
-		
+
+		_state = VMState.Initialized;
 		ByteCode = byteCode;//keep a copy.
 		//instructions
 		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols);
@@ -72,7 +82,8 @@ public class VM
 		{
 			outputStream = Console.Out;
 		}
-		
+
+		_state = VMState.Initialized;
 		ByteCode = byteCode; //keep a copy.
 		//instructions
 		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols);//we track numSymbols here just for fun. 
@@ -89,238 +100,166 @@ public class VM
 		usp = 0;
 	}
 
+	
 	public ScrubVMError? Run()
 	{
+		ScrubVMError? res = null;
+		if (_state == VMState.Initialized)
+		{
+			_state = VMState.Running;
+		}
+		else
+		{
+			Console.WriteLine("Can't run, already running!");
+		}
+		while (_state == VMState.Running)
+		{
+			res = RunOne();
+			if (res != null)
+			{
+				_state = VMState.Error;
+			}
+		}
+
+		return res;
+	}
+
+	
+	public ScrubVMError? RunOne()
+	{
+		if (CurrentFrame().ip >= CurrentFrame().Instructions().Length - 1)
+		{
+			_state = VMState.Complete;
+			return null;
+		}
+
 		//this is the hot path. We actually care about performance.
-		int ip = 0;
 		byte[] ins;
-		OpCode op;
-		Frame frame;
 		ScrubVMError? error = null;
 		//ip is instructionPointer
-		while (CurrentFrame().ip < CurrentFrame().Instructions().Length-1)
+	
+		CurrentFrame().ip++;//increment at start instead of at end because of all the returns. THis is why we init the frame with an ip of -1.
+		//fetch -> decode -> execute
+		ip = CurrentFrame().ip;
+		ins = CurrentFrame().Instructions();
+		//fetch
+		OpCode op = (OpCode)ins[ip];
+		//decode
+		switch (op)
 		{
-			CurrentFrame().ip++;//increment at start instead of at end because of all the returns. THis is why we init the frame with an ip of -1.
-			//fetch -> decode -> execute
-			ip = CurrentFrame().ip;
-			ins = CurrentFrame().Instructions();
-			//fetch
-			op = (OpCode)ins[ip];
-			//decode
-			switch (op)
-			{
-				case OpCode.OpConstant:
-					//todo: big/little endian
-					var constIndex = BitConverter.ToInt16([ins[ip + 2], ins[ip + 1]]); //todo: use  ReadUInt16 function 
-					CurrentFrame().ip +=
-						2; //increase the number of bytes re read to decode the operands. THis leaves the next instruction pointing at an OpCode.
+			case OpCode.OpConstant:
+				//todo: big/little endian
+				var constIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]); 
+				CurrentFrame().ip += 2; //increase the number of bytes re read to decode the operands. THis leaves the next instruction pointing at an OpCode.
+				return Push(constants[constIndex]);
+				break;
+			case OpCode.OpCall:
+				var numArgs = Op.ReadUInt8(ins[ip + 1]);
+				CurrentFrame().ip += 1; //move instruction pointer past the operand.
+				return ExecuteFunction(numArgs);
+				break;
+			case OpCode.OpClosure:
+				var cIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+				var numFreeVars = Op.ReadUInt8(ins[ip + 3]);
+				CurrentFrame().ip += 3;
+				return PushClosure((int)cIndex, (int)numFreeVars);
+			case OpCode.OpReturnValue:
+				var returnValue = Pop();
+				_frame = PopFrame();
 
-					//execute
-					error = Push(constants[constIndex]);
-					if (error != null)
-					{
-						return error;
-					}
+				//pop. THe -1 gets rid of the function call too.
+				sp = _frame.basePointer - 1;
 
-					break;
-				case OpCode.OpCall:
-					var numArgs = Op.ReadUInt8(ins[ip + 1]);
-					CurrentFrame().ip += 1; //move instruction pointer past the operand.
+				return Push(returnValue);
+			case OpCode.OpAdd:
+			case OpCode.OpSubtract:
+			case OpCode.OpMult:
+			case OpCode.OpDivide:
+			case OpCode.OpBitAnd:
+			case OpCode.OpBitOr:
+			case OpCode.OpBitXor:
+				return RunBinaryOperation(op);
+			case OpCode.OpBitShiftLeft:
+			case OpCode.OpBitShiftRight:
+				return RunBitShiftOperation(op);
+			case OpCode.OpConcat:
+				return new ScrubVMError("Concatenation Operator Not Yet Implemented");
+			case OpCode.OpPop:
+				Pop();
+				return null;
+			case OpCode.OpTrue:
+				return Push(True);
+			case OpCode.OpFalse:
+				return Push(False);
+			case OpCode.OpEqual:
+			case OpCode.OpNotEqual:
+			case OpCode.OpGreaterThan:
+				return RunComparisonOperation(op);
+			case OpCode.OpBang:
+				return RunBangOperator(op);
+			case OpCode.OpNegate:
+				return RunNegateOperator(op);
+			case OpCode.OpJump:
+				int pos = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+				CurrentFrame().ip = pos - 1; //+1 when the loop ends :p
+				return null;
+			case OpCode.OpJumpNotTruthy:
+				pos = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+				CurrentFrame().ip += 2; //skipPastTheJump if we are truthy
+				var condition = PopScrubObject();
+				if (!IsTruthy(condition))
+				{
+					CurrentFrame().ip = pos - 1;
+				}
+				return null;
+			case OpCode.OpNull:
+				return Push(Null);
+			case OpCode.OpSetGlobal:
+				var globalIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+				CurrentFrame().ip += 2;
+				globals[globalIndex] = PopScrubObject();
+				return null;
+			case OpCode.OpSetLocal:
+				var localIndex = Op.ReadUInt8(ins[ip + 1]);
+				CurrentFrame().ip += 1;
+				_frame = CurrentFrame();
+				//set the stack in our buffer area to our object.
+				stack[_frame.basePointer + (int)localIndex] = PopScrubObject(); //popscrubObject is to force errors if we pop an instruction.
+				return null;
+			case OpCode.OpGetGlobal:
+				globalIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+				CurrentFrame().ip += 2;
+				Push(globals[globalIndex]);
+				return null;
+			case OpCode.OpGetLocal:
+				localIndex = Op.ReadUInt8(ins[ip + 1]);
+				CurrentFrame().ip += 1;
+				_frame = CurrentFrame();
+				return Push(stack[_frame.basePointer + (int)localIndex]);
+			case OpCode.OpGetBuiltin:
+				var builtInIndex = Op.ReadUInt8(ins[ip + 1]);
+				CurrentFrame().ip += 1;
+				var def = Builtins.AllBuiltins[builtInIndex];
+				return Push(def.Builtin);
+			case OpCode.OpGetFree:
+				var freeIndex = Op.ReadUInt8(ins[ip + 1]);
+				CurrentFrame().ip += 1;
+				var currentClosure = CurrentFrame().closure;
+				return Push(currentClosure.FreeVariables[freeIndex]);
+			case OpCode.OpCurrentClosure:
+				currentClosure = CurrentFrame().closure;
+				return Push(currentClosure);
+			case OpCode.OpArray:
+				int numElements = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
+				CurrentFrame().ip += 2;
 
-					error = ExecuteFunction(numArgs);
-					if (error != null)
-					{
-						return error;
-					}
-
-					break;
-				case OpCode.OpClosure:
-					var cIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
-					var numFreeVars = Op.ReadUInt8(ins[ip + 3]);
-					CurrentFrame().ip += 3;
-
-					error = PushClosure((int)cIndex, (int)numFreeVars);
-					if (error != null)
-					{
-						return error;
-					}
-
-					break;
-				case OpCode.OpReturnValue:
-					var returnValue = Pop();
-					frame = PopFrame();
-
-					//pop. THe -1 gets rid of the function call too.
-					sp = frame.basePointer - 1;
-
-					error = Push(returnValue);
-					if (error != null)
-					{
-						return error;
-					}
-
-					break;
-				case OpCode.OpAdd:
-				case OpCode.OpSubtract:
-				case OpCode.OpMult:
-				case OpCode.OpDivide:
-				case OpCode.OpBitAnd:
-				case OpCode.OpBitOr:
-				case OpCode.OpBitXor:
-				
-					error = RunBinaryOperation(op);
-					if (error != null)
-					{
-						return error;
-					}
-
-					break;
-				case OpCode.OpBitShiftLeft:
-				case OpCode.OpBitShiftRight:
-					error = RunBitShiftOperation(op);
-					if (error != null)
-					{
-						return error;
-					}
-					break;
-				case OpCode.OpConcat:
-					return new ScrubVMError("Concatenation Operator Not Yet Implemented");
-				//runBinaryOperation, do same call as the add/sub/mult/div
-				case OpCode.OpPop:
-					Pop();
-					break;
-				case OpCode.OpTrue:
-					Push(True);
-					break;
-				case OpCode.OpFalse:
-					Push(False);
-					break;
-				case OpCode.OpEqual:
-				case OpCode.OpNotEqual:
-				case OpCode.OpGreaterThan:
-					error = RunComparisonOperation(op);
-					if (error != null)
-					{
-						return error;
-					}
-
-					break;
-				case OpCode.OpBang:
-					error = RunBangOperator(op);
-					if (error != null)
-					{
-						return error;
-					}
-
-					break;
-				case OpCode.OpNegate:
-					error = RunNegateOperator(op);
-					if (error != null)
-					{
-						return error;
-					}
-
-					break;
-				case OpCode.OpJump:
-					int pos = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
-					CurrentFrame().ip = pos - 1; //+1 when the loop ends :p
-					break;
-				case OpCode.OpJumpNotTruthy:
-					pos = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
-					CurrentFrame().ip += 2; //skipPastTheJump if we are truthy
-					var condition = PopScrubObject();
-					if (!IsTruthy(condition))
-					{
-						CurrentFrame().ip = pos - 1;
-					}
-
-					break;
-				case OpCode.OpNull:
-					Push(Null);
-					break;
-				case OpCode.OpSetGlobal:
-					var globalIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
-					CurrentFrame().ip += 2;
-					globals[globalIndex] = PopScrubObject();
-					break;
-				case OpCode.OpSetLocal:
-					var localIndex = Op.ReadUInt8(ins[ip + 1]);
-					CurrentFrame().ip += 1;
-					frame = CurrentFrame();
-					//set the stack in our buffer area to our object.
-					stack[frame.basePointer + (int)localIndex] =
-						PopScrubObject(); //popscrubObject is to force errors if we pop an instruction.
-					break;
-				case OpCode.OpGetGlobal:
-					globalIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
-					CurrentFrame().ip += 2;
-					Push(globals[globalIndex]);
-					break;
-				case OpCode.OpGetLocal:
-					localIndex = Op.ReadUInt8(ins[ip + 1]);
-					CurrentFrame().ip += 1;
-					frame = CurrentFrame();
-					var err = Push(stack[frame.basePointer + (int)localIndex]);
-					if (err != null)
-					{
-						return err;
-					}
-
-					break;
-				case OpCode.OpGetBuiltin:
-					var builtInIndex = Op.ReadUInt8(ins[ip + 1]);
-					CurrentFrame().ip += 1;
-					var def = Builtins.AllBuiltins[builtInIndex];
-					error = Push(def.Builtin);
-					if (error != null)
-					{
-						return error;
-					}
-
-					break;
-				case OpCode.OpGetFree:
-					var freeIndex = Op.ReadUInt8(ins[ip + 1]);
-					CurrentFrame().ip += 1;
-					var currentClosure = CurrentFrame().closure;
-					error = Push(currentClosure.FreeVariables[freeIndex]);
-					if (error != null)
-					{
-						return error;
-					}
-					break;
-				case OpCode.OpCurrentClosure:
-					currentClosure = CurrentFrame().closure;
-					error = Push(currentClosure);
-					if (error != null)
-					{
-						return error;
-					}
-
-					break;
-				case OpCode.OpArray:
-					int numElements = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]);
-					CurrentFrame().ip += 2;
-
-					var array = BuildArray(sp - numElements, sp);
-					sp = sp - numElements;
-					err = Push(array);
-					if (err != null)
-					{
-						return err;
-					}
-
-					break;
-				case OpCode.OpIndex:
-					var index = PopScrubObject();
-					var left = PopScrubObject();
-					err = RunIndexExpression(left, index);
-					if (err != null)
-					{
-						return err;
-					}
-
-					break;
-			}
+				var array = BuildArray(sp - numElements, sp);
+				sp = sp - numElements;
+				return Push(array);
+			case OpCode.OpIndex:
+				var index = PopScrubObject();
+				var left = PopScrubObject();
+				return RunIndexExpression(left, index);
 		}
 		return null;
 	}
@@ -370,6 +309,7 @@ public class VM
 	{
 		if (numArgs != cl.CompiledFunction.NumLocals)
 		{
+			//todo: write tests for this.
 			return new ScrubVMError("Wrong number of arguments!");
 		}
 		var frame = new Frame(cl,sp-numArgs);
