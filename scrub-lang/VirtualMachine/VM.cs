@@ -1,11 +1,8 @@
-﻿using System.Collections;
-using scrub_lang.Compiler;
+﻿using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
 using scrub_lang.Objects;
 using scrub_lang.Parser;
-using scrub_lang.Tokenizer.Tokens;
 using Array = scrub_lang.Objects.Array;
-using Environment = scrub_lang.Evaluator.Environment;
 using Object = scrub_lang.Objects.Object;
 using String = scrub_lang.Objects.String;
 
@@ -148,7 +145,6 @@ public class VM
 		switch (op)
 		{
 			case OpCode.OpConstant:
-				//todo: big/little endian
 				var constIndex = Op.ReadUInt16([ins[ip + 1], ins[ip + 2]]); 
 				CurrentFrame().ip += 2; //increase the number of bytes re read to decode the operands. THis leaves the next instruction pointing at an OpCode.
 				return Push(constants[constIndex]);
@@ -166,10 +162,8 @@ public class VM
 			case OpCode.OpReturnValue:
 				var returnValue = Pop();
 				_frame = PopFrame();
-
-				//pop. THe -1 gets rid of the function call too.
+				//pop. The -1 gets rid of the function call too.
 				sp = _frame.basePointer - 1;
-
 				return Push(returnValue);
 			case OpCode.OpAdd:
 			case OpCode.OpSubtract:
@@ -455,7 +449,7 @@ public class VM
 
 	private ScrubVMError? RunBitShiftOperation(OpCode op)
 	{
-		//todo: these are broken because, i think,	qsokmetqqqqqq		q	q
+		//todo: these are broken because, i think, bitwise things?
 		var r = PopScrubObject();
 		var l = PopScrubObject();
 		var rightType = r.GetType();
