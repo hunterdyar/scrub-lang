@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Security.Cryptography;
 using scrub_lang;
 using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
@@ -103,13 +104,14 @@ static class Scrub
 		try
 		{
 			ScrubVMError? vmerror = null;
-			vmerror = vm.RunOne();
-			vmerror = vm.RunOne();
-			vmerror = vm.RunOne();
-			vmerror = vm.PreviousOne();
-			vmerror = vm.PreviousOne();
-			vmerror = vm.PreviousOne();
-			vmerror = vm.Run();
+			vmerror = vm.Run();//start. run until paused.
+			while (vm.State == VMState.Paused)
+			{
+				Console.WriteLine("---paused, any key to resume---");
+				var x = Console.ReadKey();
+				vmerror = vm.Run();
+			}
+
 			if (vmerror != null)
 			{
 				return vmerror.ToString();

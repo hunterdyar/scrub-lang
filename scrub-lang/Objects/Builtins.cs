@@ -11,10 +11,11 @@ public static class Builtins
 
 	static Builtins()
 	{
-		_builtins = new (string, Builtin)[3];
+		_builtins = new (string, Builtin)[4];
 		_builtins[0] = ("print", new Builtin(Print));
-		_builtins[1] = ("len",new Builtin(Len));
-		_builtins[2] = ("push",new Builtin(Push));
+		_builtins[1] = ("len", new Builtin(Len));
+		_builtins[2] = ("push", new Builtin(Push));
+		_builtins[3] = ("pause", new Builtin(PauseVM));
 		//todo: first
 		//todo: last
 		//todo: abs
@@ -33,6 +34,12 @@ public static class Builtins
 		}
 
 		return null;
+	}
+
+	static Object? PauseVM(VM cntx, Object[] args)
+	{
+		cntx.Pause();
+		return VM.Null;
 	}
 
 	static Object? Len(VM context, Object[] args)

@@ -108,10 +108,15 @@ public class VM
 		{
 			_state = VMState.Running;
 		}
+		else if(_state == VMState.Paused)
+		{
+			_state = VMState.Running;
+		}
 		else
 		{
 			Console.WriteLine("Can't run, already running!");
 		}
+		//is paused or initiated, jump on in!
 		while (_state == VMState.Running)
 		{
 			res = RunOne();
@@ -124,6 +129,13 @@ public class VM
 		return res;
 	}
 
+	public void Pause()
+	{
+		if (_state != VMState.Paused)
+		{
+			_state = VMState.Paused;
+		}
+	}
 	
 	public ScrubVMError? RunOne()
 	{
