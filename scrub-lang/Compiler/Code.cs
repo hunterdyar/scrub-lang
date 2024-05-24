@@ -51,6 +51,7 @@ public enum OpCode: byte
 	OpGetGlobal = 57,
 	OpGetFree = 51, //get free! be free! Go forth! fly!
 	OpArray = 58,
+
 	}
 
 public struct Definition
