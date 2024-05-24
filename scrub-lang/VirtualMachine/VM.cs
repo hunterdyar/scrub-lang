@@ -101,7 +101,6 @@ public class VM
 		while (CurrentFrame().ip < CurrentFrame().Instructions().Length-1)
 		{
 			CurrentFrame().ip++;//increment at start instead of at end because of all the returns. THis is why we init the frame with an ip of -1.
-
 			//fetch -> decode -> execute
 			ip = CurrentFrame().ip;
 			ins = CurrentFrame().Instructions();
@@ -165,12 +164,24 @@ public class VM
 				case OpCode.OpSubtract:
 				case OpCode.OpMult:
 				case OpCode.OpDivide:
+				case OpCode.OpBitAnd:
+				case OpCode.OpBitOr:
+				case OpCode.OpBitXor:
+				
 					error = RunBinaryOperation(op);
 					if (error != null)
 					{
 						return error;
 					}
 
+					break;
+				case OpCode.OpBitShiftLeft:
+				case OpCode.OpBitShiftRight:
+					error = RunBitShiftOperation(op);
+					if (error != null)
+					{
+						return error;
+					}
 					break;
 				case OpCode.OpConcat:
 					return new ScrubVMError("Concatenation Operator Not Yet Implemented");
@@ -328,7 +339,7 @@ public class VM
 				return new ScrubVMError("Trying to Execute Function that isn't wrapped as a closure!");
 		}
 
-		return new ScrubVMError($"Unable to Executse Function. {callee} is not a function.");
+		return new ScrubVMError($"Unable to Execute Function. Obj \"{callee}\" is not a function literal.");
 	}
 
 	private ScrubVMError? CallBuiltin(Builtin fn, int numArgs)
@@ -386,7 +397,7 @@ public class VM
 			{
 				return null;
 			}else if(i<left.Bits.Count){
-				return Push(left.Bits.Get(i));
+				return Push(left.Bits.Get(i) ? True : False);//not forgetting to go from internal bool to scrub bool.
 			}
 			else
 			{
@@ -502,6 +513,39 @@ public class VM
 		}
 	}
 
+	private ScrubVMError? RunBitShiftOperation(OpCode op)
+	{
+		//todo: these are broken because, i think,	qsokmetqqqqqq		q	q
+		var r = PopScrubObject();
+		var l = PopScrubObject();
+		var rightType = r.GetType();
+		
+		if (op == OpCode.OpBitShiftLeft && rightType == ScrubType.Int)
+		{
+			l.BitShiftLeft(((Integer)r).NativeInt);
+			return Push(l);
+		}
+		else if (op == OpCode.OpBitShiftRight && rightType == ScrubType.Int)
+		{
+			l.BitShiftLeft(((Integer)r).NativeInt);
+			return Push(l);
+		}
+		else
+		{
+			//if opcode is not bitshift, which feel sunlikely enough to ignore it for now.
+			if (op != OpCode.OpBitShiftLeft && op != OpCode.OpBitShiftRight)
+			{
+				return new ScrubVMError("Trying to bit shift, but wrong operator? ");
+			}
+			else if(rightType != ScrubType.Int)
+			{
+				return new ScrubVMError("Cannot Bitshift by non-integer amount");
+			}
+		}
+
+		return null;
+	}
+
 	private ScrubVMError? RunBinaryOperation(OpCode op)
 	{
 		var r = PopScrubObject();
@@ -510,6 +554,7 @@ public class VM
 		//Do we cast to Object here, to get the type?
 		var leftType = l.GetType();
 		var rightType = r.GetType();
+
 		
 		//hmmm. Feeels like we are casting twice. But, hey, at least we are sure it will work.
 		//I low-key want to use a single type for all of the underlying objects, and just switch case? is that stupid? It feels stupid, but casting everywhere does too. 
@@ -520,6 +565,9 @@ public class VM
 		}else if (leftType == ScrubType.String && rightType == ScrubType.String)
 		{
 			return RunBinaryStringOperation(op, (String)l, (String)r);
+		}else if (leftType == ScrubType.Bool && rightType == ScrubType.Bool)
+		{
+			return RunBinaryBooleanOperation(op, (Bool)l, (Bool)r);
 		}
 
 		//we do this after the direct checks, because I think it will be faster this way.
@@ -532,9 +580,32 @@ public class VM
 		return new ScrubVMError($"Unsupported types for operation {op}");
 	}
 
+	private ScrubVMError? RunBinaryBooleanOperation(OpCode op, Bool left, Bool right)
+	{
+		Bool result = new Bool(false);
+		switch (op)
+		{
+			//todo: move these to overrides of the operators declared in the object class (see int).
+			case OpCode.OpBitAnd:
+				result = new Bool(left.NativeBool & right.NativeBool);
+				break;
+			case OpCode.OpBitOr:
+				result = new Bool(left.NativeBool | right.NativeBool);
+				break;
+			case OpCode.OpBitXor:
+				result = new Bool(left.NativeBool ^ right.NativeBool);
+				break;
+			default:
+				return new ScrubVMError($"Unsupported binary operation {op} for 2 booleans.");
+				break;
+		}
+
+		return Push(result);
+	}
+
 	private ScrubVMError? RunBinaryIntegerOperation(OpCode op, Integer left, Integer right)
 	{
-		Integer result = new Integer(0);
+		Integer result;
 		switch (op)
 		{
 			case OpCode.OpAdd: 
@@ -548,6 +619,15 @@ public class VM
 				break;
 			case OpCode.OpDivide:
 				result = left / right;
+				break;
+			case OpCode.OpBitAnd:
+				result = left & right;
+				break;
+			case OpCode.OpBitOr:
+				result = left | right;
+				break;
+			case OpCode.OpBitXor:
+				result = left ^ right;
 				break;
 			case OpCode.OpConcat:
 				//todo: optimize these to use internal casts, instead of round-trip through native casts.
@@ -650,7 +730,6 @@ public class VM
 		sp--;
 		unstack[usp] = o;
 		usp++;
-		
 		if (!(o is Object so))
 		{
 			throw new VMException($"Unable To Pop ScrubObject. Popped {o} instead");

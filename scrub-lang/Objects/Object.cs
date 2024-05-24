@@ -47,13 +47,25 @@ public abstract class Object
 		Bits.CopyTo(bytes,0);
 		return bytes;
 	}
-	
 	#region BitwiseOps
 
-	// public static Object operator &(Object a, Object b)
-	// {
-	// 	return new Object(a.Bytes & b.Bytes);
-	// }
+		public void BitShiftLeft(int shift)
+		{
+			Bits.LeftShift(shift);
+		}
 
-	#endregion
+		public void BitShiftRight(int shift)
+		{
+			Bits.RightShift(shift);
+		}
+
+		//this doesn't work because we have to return the same type as the child objects (if they match). if they don't match, then break.
+		//So it needs to get implemented on each child object if we want to use the overloads.
+		//that's probably actually fine? maybe? 
+		// public static Object operator &(Object a, Object b)
+		// {
+		// 	//return a.Bits.And(b.Bits);
+		// }
+
+		#endregion
 }

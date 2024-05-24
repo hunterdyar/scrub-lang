@@ -288,6 +288,21 @@ public class Compiler
 				case TokenType.GreaterThan:
 					Emit(OpCode.OpGreaterThan);
 					break;
+				case TokenType.BitwiseAnd:
+					Emit(OpCode.OpBitAnd);
+					break;
+				case TokenType.BitwiseOr:
+					Emit(OpCode.OpBitOr);
+					break;
+				case TokenType.BitwiseXOR:
+					Emit(OpCode.OpBitXor);
+					break;
+				case TokenType.BitwiseLeftShift:
+					Emit(OpCode.OpBitShiftLeft);
+					break;
+				case TokenType.BitwiseRightShift:
+					Emit(OpCode.OpBitShiftRight);
+					break;
 				default:
 					return new ScrubCompilerError($"Unable to Compile Operator {Token.OperatorToString(bin.Operator)}");
 			}
@@ -309,6 +324,9 @@ public class Compiler
 				case TokenType.Bang:
 					Emit(OpCode.OpBang);
 					break;
+				case TokenType.BitwiseNot:
+					Emit(OpCode.OpBitNot);
+					break;
 				default:
 					return new ScrubCompilerError($"Unable to Compile Prefix Operator {pre.Op}");
 			}
@@ -321,7 +339,8 @@ public class Compiler
 			{
 				return new ScrubCompilerError(leftError.Message);
 			}
-
+			//todo: compile-time rewrite of a++ to a = a+1. no need for increment opcode.... unless we want more speed.
+			//if increment, increment, etc.
 			return null;
 		}
 		//other base expressions...

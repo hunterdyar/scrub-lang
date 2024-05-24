@@ -6,19 +6,34 @@ namespace scrub_lang.Objects;
 public class Integer : Object
 {
 	public override ScrubType GetType() => ScrubType.Int;
-	public int NativeInt { get; protected set; }
+	public int NativeInt => AsNativeInt();
 	public Integer(int nativeInt)
 	{
-		NativeInt = nativeInt;//that's right for every integer we store two integers. Don't think about it too much the memory overhead is worth saving casting, but I insist on having accessible and properly formatted byte[] data. 
 		var bytes = BitConverter.GetBytes(nativeInt);
 		if (BitConverter.IsLittleEndian)
 		{
-			//hmmmm. This right?
+			//hmmmm. This right? we should reverse byte-wise before storing the bits.
 			bytes = bytes.Reverse().ToArray();
 		}
 		Bits = new BitArray(bytes); //todo: this will make integers always 32 bits, which i think is desired.
-
 	}
+
+	public Integer(BitArray bits)
+	{
+		Bits = bits;
+	}
+
+	public Integer(Integer i)
+	{
+		Bits = i.Bits;
+	}
+	public int AsNativeInt()
+	{
+		var bytes = new byte[(Bits.Length - 1) / 8 + 1];
+		Bits.CopyTo(bytes, 0);
+		return BitConverter.ToInt32([bytes[3],bytes[2],bytes[1],bytes[0]]);//i haven't done performance analyzing but this sure does FEEl faster than a linq query.
+	}
+	
 	public override string ToString()
 	{
 		return NativeInt.ToString();
@@ -60,6 +75,34 @@ public class Integer : Object
 	public static Integer operator %(Integer a, Integer b)
 	{
 		return new Integer(a.NativeInt % b.NativeInt);
+	}
+
+	public static Integer operator &(Integer a, Integer b)
+	{
+		var newInt = new Integer(a.Bits);
+		a.Bits.And(b.Bits); 
+		return newInt;
+	}
+
+	public static Integer operator |(Integer a, Integer b)
+	{
+		var newInt = new Integer(a.Bits);
+		a.Bits.Or(b.Bits);
+		return newInt;
+	}
+
+	public static Integer operator ^(Integer a, Integer b)
+	{
+		var newInt = new Integer(a.Bits);
+		a.Bits.Xor(b.Bits);
+		return newInt;
+	}
+
+	public static Integer operator ~(Integer a)
+	{
+		var newInt = new Integer(a.Bits);
+		a.Bits.Not();
+		return newInt;
 	}
 	
 	#endregion

@@ -14,6 +14,12 @@ public enum OpCode: byte
 	OpSubtract,
 	OpMult,
 	OpDivide,
+	OpBitAnd,
+	OpBitOr,
+	OpBitXor,
+	OpBitNot,
+	OpBitShiftLeft,
+	OpBitShiftRight,
 	OpTrue,
 	OpFalse,
 	OpNull,
@@ -117,7 +123,12 @@ public static class Op
 		{ OpCode.OpClosure, new Definition("Closure",new int[]{2,1})},//constant index (2 bytes, matches OpConstant), 2nd is free variables count. 
 		{ OpCode.OpGetFree, new Definition("GetFree", new int[] { 1 }) },//one operand of number variables
 		{ OpCode.OpCurrentClosure, new Definition("CurrentClosure", new int[] { }) }, //OpClosure but for current scope. lets recursion happen.
-
+		{ OpCode.OpBitAnd, new Definition("BitAnd", new int[] { }) },//binary AND,not conditional AND
+		{ OpCode.OpBitOr, new Definition("BitOr", new int[] { }) },
+		{ OpCode.OpBitXor, new Definition("BitXor", new int[] { }) },
+		{ OpCode.OpBitNot, new Definition("BitNot", new int[] { }) },
+		{ OpCode.OpBitShiftLeft, new Definition("BitShiftLeft", new int[] { }) },
+		{ OpCode.OpBitShiftRight, new Definition("BitShiftRight", new int[] { }) },
 	};
 
 	public static byte[] Make(OpCode op, params int[] operands)
