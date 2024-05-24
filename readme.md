@@ -1,10 +1,16 @@
-# Scrub Lang
+# The Scrub Language
 
-Scrub is a language (and runtime environment) designed for education.
+Scrub is a language and runtime environment designed for education.
 
-The goal of the project is to create a testing ground for students to learn how programming languages work in a hands on way.
+The goal of the language is to create an investigatable playground for students to learn see programming languages work in a hands on way.
 
-As such, the goals of the language itself are minimal.
+The lanuage is simple but competent, with a permissive syntax. It's main special feature is that every operation can be reversed. "Scrub" like scrubbing a timeline.
+
+Instead of throwing errors, the language contains a 'notice+pause' feature, which is similar to an automatic breakpoint. When you hit one, you can start stepping backwards and see how the program got into the unexpected state.
+
+Instead of 'print' statements littering code, debugging with Scrub should leverage the 'Pause()' function instead. 
+
+When paused, the state of the program is completely viewable - the stack, the instruction set, and - of course - memory.
 
 ## The Scrub Language
 Scrub is an dynamically typed scripting language with first-class functions where everything is an expression.
