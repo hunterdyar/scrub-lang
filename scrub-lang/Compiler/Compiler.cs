@@ -363,29 +363,34 @@ public class Compiler
 			//:after-consequence
 			//alternative
 			//:skip-alternative
+			//with portals:
+			//Cond,jumpJNq[],consequence,jumptoend[],[]jumpJNQ_back,alternative,[]jumptoend_back
 			var firstPos = CurrentScope.Instuctions.Count;
 			var err = Compile(condExpr.Conditional);
 			if (err != null)
 			{
 				return err;
 			}
-
-			var jumpNqePos = Emit(OpCode.OpJumpNotTruthy, 9999);//bogus value, let's fix it later.
 			
+			var jumpNqePos = Emit(OpCode.OpJumpNotTruthy, 9999);//bogus value, let's fix it later.
+			//add skipNWQwhenReverse (-3)
+			//add jump
 			err = Compile(condExpr.Consequence);
 			if (err != null)
 			{
 				return err;
 			}
 			
-			// //not using this as a return value, so pop it? or dont?
 			// Emit(OpCode.OpPop);
 			if (LastInstructionIs(OpCode.OpPop))
 			{
 				RemoveLastInstruction();
 			}
 
-			var jumpPos = Emit(OpCode.OpJump, 99999);
+			var jumpPos = Emit(OpCode.OpJump, 99999);//skip alternate
+			//this is the "catch" portal of the jumpnottruth, which jumps to after this. we jump to before it.
+			AddInstruction((byte)(jumpNqePos));
+			AddInstruction((byte)OpCode.OpJumpNotTruthy);
 			var afterConsequencePos = CurrentScope.Instuctions.Count;
 			ChangeOperand(jumpNqePos, afterConsequencePos);
 
@@ -412,6 +417,16 @@ public class Compiler
 				}
 			}
 
+			Emit(OpCode.OpJump, CurrentScope.Instuctions.Count + 6);
+			//curr+jumpx2
+			//skip past the jumps that catch us for going in reverse, when going forward through consequence.
+			//the opposite side of the JUMP command.... minus one. this is for going backwards, it must be skipped when going forwards (see afterAlternate defined after this)
+			//jump takes two bytes. need to do that.
+			// var bytes = jumpPos. todo: this jumpPos is wrong.
+			AddInstruction((byte)(jumpPos));
+			AddInstruction((byte)(jumpPos));
+			AddInstruction((byte)OpCode.OpJump);
+			//
 			var afterAlternativePos = CurrentScope.Instuctions.Count;
 			ChangeOperand(jumpPos, afterAlternativePos); //backpatch to fix the bogus value.
 			
@@ -594,6 +609,13 @@ public class Compiler
 			CurrentScope.Instuctions.Add(b);
 		}
 
+		return posNewInstruction;
+	}
+
+	public int AddInstruction(byte instruction)
+	{
+		var posNewInstruction = CurrentScope.Instuctions.Count;
+		CurrentScope.Instuctions.Add(instruction);
 		return posNewInstruction;
 	}
 

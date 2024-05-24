@@ -275,6 +275,7 @@ public class VM
 				return RunIndexExpression(left, index);
 		}
 		return null;
+		
 	}
 	public ScrubVMError? PreviousOne()
 	{
@@ -298,7 +299,7 @@ public class VM
 		switch (op)
 		{
 			case OpCode.OpConstant:
-				Pop();
+				UnPush();
 				var constIndex = Op.ReadUInt16([ins[ip -2], ins[ip -1]]); 
 				CurrentFrame().ip -= 4; //increase the number of bytes re read to decode the operands. THis leaves the next instruction pointing at an OpCode.
 				return null;
@@ -312,7 +313,7 @@ public class VM
 				var cIndex = Op.ReadUInt16([ins[ip - 3], ins[ip - 2]]);
 				var numFreeVars = Op.ReadUInt8(ins[ip - 1]);
 				CurrentFrame().ip -= 5;//op, index, index, vars, op
-				Pop();
+				UnPush();
 				return null;
 				//return PushClosure((int)cIndex, (int)numFreeVars);
 			case OpCode.OpReturnValue:
@@ -332,19 +333,19 @@ public class VM
 			case OpCode.OpBitShiftLeft:
 			case OpCode.OpBitShiftRight:
 				//binary ops are all the same. pop pop push. we reverse it with poppushpush.
-				Pop();//remove the result of the op
-				PushBack();//restore the previous values. I think this will do it in the right order?
-				PushBack();
+				UnPush();//remove the result of the op
+				UnPop();//restore the previous values. I think this will do it in the right order?
+				UnPop();
 				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpConcat:
 				return new ScrubVMError("Concatenation Operator Not Yet Implemented");
 			case OpCode.OpPop:
-				PushBack();
+				UnPop();
 				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpTrue:
-				var o = Pop();
+				var o = UnPush();
 				if ((Bool)o != True)
 				{
 					throw new VMException($"Reverse error (expected True, got {o}");
@@ -353,22 +354,22 @@ public class VM
 				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpFalse:
-				Pop();
+				UnPush();
 				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpEqual:
 			case OpCode.OpNotEqual:
 			case OpCode.OpGreaterThan:
-				Pop(); //remove the result of the op
-				PushBack(); //restore the previous values
-				PushBack();
+				UnPush(); //remove the result of the op
+				UnPop(); //restore the previous values
+				UnPop();
 				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpBang:
 			case OpCode.OpNegate:
 				//todo: can't we just run the negate operator again?
-				Pop();
-				PushBack();
+				UnPush();
+				UnPop();
 				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpJump:
@@ -379,16 +380,16 @@ public class VM
 				//push truthy value w checked before back onto the stack.
 				pos = Op.ReadUInt16([ins[ip - 2], ins[ip - 1]]);
 				CurrentFrame().ip -= 2;
-				var condition = PushBack();
+				var condition = UnPop();
 				bool jmp = !IsTruthy((Object)condition);
 				_conditionalHistory[OpCode.OpJumpNotTruthy].Push(jmp);
 				if (jmp)
 				{
-					CurrentFrame().ip = pos - 1;//pos-1 or pos+1?
+					CurrentFrame().ip = pos - 1;//pos-1 or pos+1? or pos? can't think, trial-and-error-ing.
 				}
 				return null;
 			case OpCode.OpNull:
-				o = Pop();
+				o = UnPush();
 				if ((Null)o != Null)
 				{
 					throw new VMException($"Reverse error (expected True, got {o}");
@@ -397,13 +398,13 @@ public class VM
 				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpSetGlobal:
-				o = PushBack();
+				o = UnPop();
 				var globalIndex = Op.ReadUInt16([ins[ip - 2], ins[ip -1]]);
 				CurrentFrame().ip -= 4;//plus sandwich
 				globals[globalIndex] = (Object)o;
 				return null;
 			case OpCode.OpSetLocal:
-				o = PushBack();//todo: this won't work, the previous value MIGHT be garbage!
+				o = UnPop();//todo: this won't work, the previous value MIGHT be garbage!
 				var localIndex = Op.ReadUInt8(ins[ip - 1]);
 				CurrentFrame().ip -= 3;
 				_frame = CurrentFrame();
@@ -422,20 +423,20 @@ public class VM
 				globalIndex = Op.ReadUInt16([ins[ip -2], ins[ip + 1]]);
 				CurrentFrame().ip -= 4;
 				// Push(globals[globalIndex]);
-				Pop();
+				UnPush();
 				return null;
 			case OpCode.OpGetLocal:
 				localIndex = Op.ReadUInt8(ins[ip - 1]);
 				CurrentFrame().ip -= 3;
 				_frame = CurrentFrame();
-				Pop();
+				UnPush();
 				// return Push(stack[_frame.basePointer + (int)localIndex]);
 				return null;
 			case OpCode.OpGetBuiltin:
 				var builtInIndex = Op.ReadUInt8(ins[ip - 1]);
 				CurrentFrame().ip -= 3;
 				var def = Builtins.AllBuiltins[builtInIndex];
-				Pop();
+				UnPush();
 				return null;
 				//return Push(def.Builtin);
 			case OpCode.OpGetFree:
@@ -443,35 +444,33 @@ public class VM
 				CurrentFrame().ip -= 3;
 				var currentClosure = CurrentFrame().closure;
 				//return Push(currentClosure.FreeVariables[freeIndex]);
-				Pop();
+				UnPush();
 				return null;
 			case OpCode.OpCurrentClosure:
 				currentClosure = CurrentFrame().closure;
 				// return Push(currentClosure);
-				Pop();
+				UnPush();
 				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpArray:
 				int numElements = Op.ReadUInt16([ins[ip - 2], ins[ip -1]]);
 				var array = BuildArray(sp - numElements, sp);
 				sp = sp - numElements;
-				Pop();
+				UnPush();
 				CurrentFrame().ip -= 4;
 				return null;
 				// return Push(array);
 			case OpCode.OpIndex:
-				var left = PushBack();
-				var index = PushBack();
+				UnPush();
+				var left = UnPop();
+				var index = UnPop();
 				// return RunIndexExpression(left, index);
-				Pop();
 				CurrentFrame().ip --;
 				return null;
 		}
 		return null;
 	}
-
 	
-
 	private ScrubVMError? ExecuteFunction(int numArgs)
 	{
 		//reach further down the stack to get the function, past the locals (arguments)
@@ -841,14 +840,14 @@ public class VM
 		return null;
 	}
 
-	private object PushBack()
+	private object UnPop()
 	{
 		if (sp >= StackSize)
 		{
 			return new ScrubVMError("Stack Overflow!");
 		}
 
-		var o = unstack[usp];
+		var o = unstack[usp-1];
 		usp--;
 		stack[sp] = o;
 		sp++;
@@ -881,6 +880,15 @@ public class VM
 		sp--;
 		unstack[usp] = o;
 		usp++;
+		return o;
+	}
+
+	private object UnPush()
+	{
+		var o = stack[sp - 1];
+		sp--;
+		// unstack[usp] = o;
+		// usp++;
 		return o;
 	}
 
