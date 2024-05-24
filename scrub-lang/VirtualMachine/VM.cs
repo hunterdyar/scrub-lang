@@ -247,7 +247,7 @@ public class VM
 				return null;
 			case OpCode.OpGetLocal:
 				localIndex = Op.ReadUInt8(ins[ip + 1]);
-				CurrentFrame().ip += 3;
+				CurrentFrame().ip += 2;
 				_frame = CurrentFrame();
 				return Push(stack[_frame.basePointer + (int)localIndex]);
 			case OpCode.OpGetBuiltin:
