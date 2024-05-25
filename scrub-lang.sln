@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scrub-lang", "scrub-lang\sc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scrublangTests", "scrublangTests\scrublangTests.csproj", "{7D1048ED-4706-4421-9B01-F8A68E05EAE5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scrub-tui", "scrub-tui\scrub-tui.csproj", "{F05C966E-9BA0-4A8C-B1E6-1ED381ACB111}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{7D1048ED-4706-4421-9B01-F8A68E05EAE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D1048ED-4706-4421-9B01-F8A68E05EAE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D1048ED-4706-4421-9B01-F8A68E05EAE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F05C966E-9BA0-4A8C-B1E6-1ED381ACB111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F05C966E-9BA0-4A8C-B1E6-1ED381ACB111}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F05C966E-9BA0-4A8C-B1E6-1ED381ACB111}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F05C966E-9BA0-4A8C-B1E6-1ED381ACB111}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
