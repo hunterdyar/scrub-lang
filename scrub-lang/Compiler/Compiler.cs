@@ -1,4 +1,5 @@
-﻿using System.Reflection.Metadata.Ecma335;
+﻿using System.Collections;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Transactions;
 using scrub_lang.Evaluator;
@@ -659,6 +660,13 @@ public class Compiler
 	/// <returns>Returns this constants insdex in the constants pool.</returns>
 	public int AddConstant(Object obj)
 	{
+		//todo: Objects are saved by reference, so this isn't going to work.
+		//i think i need to overload the equality operator.
+		var existing = constants.FindIndex(x => obj.SameObjectData(x));
+		if (existing!=-1)
+		{
+			return existing;
+		}
 		this.constants.Add(obj);
 		return this.constants.Count - 1;
 	}

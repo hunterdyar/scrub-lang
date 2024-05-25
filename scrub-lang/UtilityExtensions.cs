@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.Collections;
+using System.Text;
+using Object = scrub_lang.Objects.Object;
 
 namespace scrub_lang;
 
@@ -28,4 +30,20 @@ public static class UtilityExtensions
 
 			return sb.ToString();
 		}
+
+	//todo: this is slowwwwws
+	public static bool SameObjectData(this Object a, Object b)
+	{
+		if (a.GetType() != b.GetType())
+		{
+			return false;
+		}
+
+		if (b.Bits.GetHashCode() != a.Bits.GetHashCode())
+		{
+			return false;
+		}
+
+		return true;
+	}
 }
