@@ -25,25 +25,26 @@ public class VM
 	private Dictionary<OpCode, Stack<bool>> _conditionalHistory = new Dictionary<OpCode, Stack<bool>>(); 
 	public ByteCode ByteCode { get; }
 
-	public Stack<Frame> Frames = new Stack<Frame>();//todo: replace this with pre-allocated array (for SPEeeEEed)
+	//todo: optimize staacks.
+	public Stack<Frame> Frames = new Stack<Frame>();
 	public Stack<Frame> Unframes = new Stack<Frame>();
 	
 	private int frameIndex;
 	
 	private List<Object> constants;
-	private object[] stack;//I do think I want to replace this with my own base ScrubObject? Not sure.
+	private object[] stack = new object[StackSize];//I do think I want to replace this with my own base ScrubObject? Not sure.
 	private Stack<object> unstack = new Stack<object>();//I am extremely split on calling this the UnStack or the AntiStack.
 	public Object[] Globals => globals;
-	private Object[] globals;//globals store. 
+	private Object[] globals = new Object[GlobalsSize];//globals store. 
 	//StackPointer will always point to the next free slot in the stack. Top element will be sp-1
 	//we put something in SP, then increment it.
-	private int sp;//stack pointer
-	private int usp; //unstack pointer.
+	private int sp = 0;//stack pointer
+	private int usp = 0; //unstack pointer.
 	public TextWriter outputStream;
 	
 	//the ENGINE
 	public VMState State => _state;
-	private VMState _state;
+	private VMState _state = VMState.Initialized;
 
 	//just caches
 	private int ip;
@@ -57,27 +58,17 @@ public class VM
 		{
 			outputStream = Console.Out;
 		}
-
-		_state = VMState.Initialized;
 		ByteCode = byteCode;//keep a copy.
+		
+		//prime our conditional histories. Might not be using this anymore? i forget
 		_conditionalHistory.Add(OpCode.OpJumpNotTruthy, new Stack<bool>());
 
 		//instructions
 		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols,false);
 		var mainClosure = new Closure(mainFunction);//all functions are closures. The program is a function. the program is a closure. it's closures all the way down.
 		var mainFrame = new Frame(mainClosure,0,-1);
-		Frames = new Stack<Frame>();
 		Frames.Push(mainFrame);
 		constants = byteCode.Constants.ToList();
-		stack = new object[StackSize];//todo: will this become a different base type? 
-		//todo: list for the unstack. or some kind of growable collection. 
-		//it's going to need to be at least..... 2 times larger than this. (actually infinity overhead).
-		//now, some things we pop off of the stack are knowable from state, because the function is deterministic.
-		//most aren't cus that's why have a stack and not instructions.
-		// unstack = new Stack<object>();//todo: max unstack size... cull from beginning
-		globals = new Object[GlobalsSize];
-		sp = 0;
-		usp = 0;
 	}
 
 	public VM(ByteCode byteCode, Object[] globalsStore, TextWriter writer = null)
@@ -87,23 +78,14 @@ public class VM
 		{
 			outputStream = Console.Out;
 		}
-
-		_state = VMState.Initialized;
 		ByteCode = byteCode; //keep a copy.
 		_conditionalHistory.Add(OpCode.OpJumpNotTruthy,new Stack<bool>());
 		//instructions
 		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols, false);//we track numSymbols here just for fun. 
 		var mainClosure = new Closure(mainFunction);
 		var mainFrame = new Frame(mainClosure,0,-1);
-		Frames = new Stack<Frame>();
 		Frames.Push(mainFrame);
-
 		constants = byteCode.Constants.ToList();
-		stack = new object[StackSize]; //todo: will this become a different base type? 
-		unstack = new Stack<object>();
-		globals = globalsStore;
-		sp = 0;
-		usp = 0;
 	}
 
 	
@@ -183,15 +165,16 @@ public class VM
 			case OpCode.OpReturnValue:
 				var returnValue = Pop();
 				_frame = PopFrame();
-				//pop. The -1 gets rid of the function call too.
 				//after storing the return value top of stack), remove all locals and free's:
-				while (sp > _frame.basePointer -1)
+				while (sp > _frame.basePointer) //sp = basepointer -1
 				{
 					Pop();
 				}
+
+				Pop();//remove function call too
 				
 				//put the return value back on top of the stack.
-				return Push(returnValue);//stack the result of 
+				return Push(returnValue);
 			case OpCode.OpAdd:
 			case OpCode.OpSubtract:
 			case OpCode.OpMult:
