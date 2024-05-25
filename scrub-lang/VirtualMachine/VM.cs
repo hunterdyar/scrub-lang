@@ -32,7 +32,7 @@ public class VM
 	
 	private List<Object> constants;
 	private object[] stack;//I do think I want to replace this with my own base ScrubObject? Not sure.
-	private object[] unstack;//I am extremely split on calling this the UnStack or the AntiStack.
+	private Stack<object> unstack = new Stack<object>();//I am extremely split on calling this the UnStack or the AntiStack.
 	public Object[] Globals => globals;
 	private Object[] globals;//globals store. 
 	//StackPointer will always point to the next free slot in the stack. Top element will be sp-1
@@ -74,7 +74,7 @@ public class VM
 		//it's going to need to be at least..... 2 times larger than this. (actually infinity overhead).
 		//now, some things we pop off of the stack are knowable from state, because the function is deterministic.
 		//most aren't cus that's why have a stack and not instructions.
-		unstack = new object[StackSize];
+		// unstack = new Stack<object>();//todo: max unstack size... cull from beginning
 		globals = new Object[GlobalsSize];
 		sp = 0;
 		usp = 0;
@@ -100,7 +100,7 @@ public class VM
 
 		constants = byteCode.Constants.ToList();
 		stack = new object[StackSize]; //todo: will this become a different base type? 
-		unstack = new object[StackSize];
+		unstack = new Stack<object>();
 		globals = globalsStore;
 		sp = 0;
 		usp = 0;
@@ -185,7 +185,7 @@ public class VM
 				_frame = PopFrame();
 				//pop. The -1 gets rid of the function call too.
 				//after storing the return value top of stack), remove all locals and free's:
-				while (sp > _frame.basePointer - 1)
+				while (sp > _frame.basePointer -1)
 				{
 					Pop();
 				}
@@ -900,7 +900,7 @@ public class VM
 			return new ScrubVMError("Stack Overflow!");
 		}
 
-		var o = unstack[usp-1];
+		var o = unstack.Pop();
 		usp--;
 		stack[sp] = o;
 		sp++;
@@ -931,7 +931,7 @@ public class VM
 	{
 		var o = stack[sp - 1];
 		sp--;
-		unstack[usp] = o;
+		unstack.Push(o);
 		usp++;
 		return o;
 	}
@@ -948,7 +948,7 @@ public class VM
 		//basically calling pop, but faster to just copy/paste. (i know!? wild).
 		var o = stack[sp - 1];
 		sp--;
-		unstack[usp] = o;
+		unstack.Push(o);
 		usp++;
 		if (!(o is Object so))
 		{

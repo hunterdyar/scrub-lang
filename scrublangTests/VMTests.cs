@@ -80,6 +80,25 @@ public class VMTests
 
 	}
 
+	[Test]
+	public void TestRescursiveCallFib()
+	{
+		string fib = """
+		              func fib(x){
+		              if (x==0){return 0}
+		              if (x==1){return 1}else{0}
+		              return (fib(x-1)+fib(x-2))
+		              }
+		              """;
+		new VMTestCase(fib + "fib(0)", new Integer(0));
+		new VMTestCase(fib + "fib(2)", new Integer(1));
+		new VMTestCase(fib + "fib(9)", new Integer(34));
+		//above works but below fails?
+		new VMTestCase(fib + "fib(10)", new Integer(55));
+		new VMTestCase(fib + "fib(11)", new Integer(89));
+		new VMTestCase(fib + "fib(20)", new Integer(6765));
+
+	}
 	static bool CompareObjects(object expected, object actual)
 	{
 		if (actual == null)
