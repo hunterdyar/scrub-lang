@@ -408,9 +408,10 @@ public class VM
 				return null;
 			case OpCode.OpSetGlobal:
 				o = UnPop();
-				var globalIndex = Op.ReadUInt16([ins[ip - 2], ins[ip -1]]);
+				//var globalIndex = Op.ReadUInt16([ins[ip - 2], ins[ip -1]]);
 				CurrentFrame().ip -= 4;//plus sandwich
-				globals[globalIndex] = (Object)o;
+				//globals[globalIndex] = (Object)o;
+				//todo: we don't know the previous value of this variable.
 				return null;
 			case OpCode.OpSetLocal:
 				o = UnPop();//todo: this won't work, the previous value MIGHT be garbage!
@@ -429,7 +430,7 @@ public class VM
 				}
 				return null;
 			case OpCode.OpGetGlobal:
-				globalIndex = Op.ReadUInt16([ins[ip -2], ins[ip + 1]]);
+				var globalIndex = Op.ReadUInt16([ins[ip -2], ins[ip + 1]]);
 				CurrentFrame().ip -= 4;
 				// Push(globals[globalIndex]);
 				UnPush();
@@ -444,19 +445,19 @@ public class VM
 			case OpCode.OpGetBuiltin:
 				var builtInIndex = Op.ReadUInt8(ins[ip - 1]);
 				CurrentFrame().ip -= 3;
-				var def = Builtins.AllBuiltins[builtInIndex];
+				//var def = Builtins.AllBuiltins[builtInIndex];
 				UnPush();
 				return null;
 				//return Push(def.Builtin);
 			case OpCode.OpGetFree:
 				var freeIndex = Op.ReadUInt8(ins[ip - 1]);
 				CurrentFrame().ip -= 3;
-				var currentClosure = CurrentFrame().closure;
+				//var currentClosure = CurrentFrame().closure;
 				//return Push(currentClosure.FreeVariables[freeIndex]);
 				UnPush();
 				return null;
 			case OpCode.OpCurrentClosure:
-				currentClosure = CurrentFrame().closure;
+				//currentClosure = CurrentFrame().closure;
 				// return Push(currentClosure);
 				UnPush();
 				CurrentFrame().ip--;
@@ -492,8 +493,9 @@ public class VM
 			case ScrubType.Closure:
 				return UnCallClosure((Closure)callee, numArgs);
 			case ScrubType.Builtin:
-				//uhhhh
+				//uhhhh todo: allow us to define how this works
 				UnPop();
+				//
 				return null;
 				break;
 			default:
