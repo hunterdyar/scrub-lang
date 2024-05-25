@@ -9,9 +9,16 @@ public class ExpressionGroupParselet : IPrefixParselet
 		List<IExpression> expressions = new List<IExpression>();
 		while (!parser.Peek(TokenType.EndExpressionBlock) && !parser.Peek(TokenType.EOF))
 		{
+			if (parser.Peek(TokenType.Break))
+			{
+				parser.Consume(TokenType.Break);
+				continue;
+			}
 			var e = parser.ParseExpression(0);
 			expressions.Add(e);
 		}
+
+		
 
 		parser.Consume(TokenType.EndExpressionBlock);
 
