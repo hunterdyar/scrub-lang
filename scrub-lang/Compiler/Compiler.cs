@@ -356,6 +356,7 @@ public class Compiler
 		//code-flow
 		else if (expression is ConditionalExpression condExpr)
 		{
+			//todo: this is breaking in the fib test, not sure if it's an off by 1 somewhere or the compilation.
 			//conditional (stack is true or false)
 			//jump if false to :after-consequence
 			//consequence(and we leave a value in it, so don't pop to nothing)
@@ -389,9 +390,11 @@ public class Compiler
 
 			var jumpPos = Emit(OpCode.OpJump, 99999);//skip alternate
 			//this is the "catch" portal of the jumpnottruth, which jumps to after this. we jump to before it.
+			//todo: currectly turn position into uint8 (byte[2])
+			AddInstruction((byte)(0));
 			AddInstruction((byte)(jumpNqePos));
 			AddInstruction((byte)OpCode.OpJumpNotTruthy);
-			var afterConsequencePos = CurrentScope.Instuctions.Count;
+			var afterConsequencePos = CurrentScope.Instuctions.Count+1;
 			ChangeOperand(jumpNqePos, afterConsequencePos);
 
 			//Update the jump-if-conditional-is-not-true destination to be the destination after we compiled the consequence.
@@ -417,7 +420,7 @@ public class Compiler
 				}
 			}
 
-			Emit(OpCode.OpJump, CurrentScope.Instuctions.Count + 6);
+			Emit(OpCode.OpJump, CurrentScope.Instuctions.Count + 7);//6
 			//curr+jumpx2
 			//skip past the jumps that catch us for going in reverse, when going forward through consequence.
 			//the opposite side of the JUMP command.... minus one. this is for going backwards, it must be skipped when going forwards (see afterAlternate defined after this)
