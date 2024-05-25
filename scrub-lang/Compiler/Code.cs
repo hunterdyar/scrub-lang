@@ -32,7 +32,6 @@ public enum OpCode: byte
 	OpConcat = 21, 
 
 	//special ops.
-	OpCall = 30,
 	OpReturnValue = 31,
 	OpCurrentClosure = 32,
 	
@@ -51,6 +50,7 @@ public enum OpCode: byte
 	OpGetGlobal = 57,
 	OpGetFree = 51, //get free! be free! Go forth! fly!
 	OpArray = 58,
+	OpCall = 59,
 
 	}
 

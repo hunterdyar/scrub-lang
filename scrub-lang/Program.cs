@@ -106,20 +106,40 @@ static class Scrub
 			ScrubVMError? vmerror = null;
 			vmerror = vm.RunOne();//start. run until paused.
 			vm.Pause();
-			while (vm.State == VMState.Paused)
+			while (vm.State == VMState.Paused || vm.State == VMState.Complete)
 			{
+				
 				Console.WriteLine("---paused, any key to resume---");
 				var x = Console.ReadKey();
 				if (x.Key == ConsoleKey.D || x.Key == ConsoleKey.RightArrow)
 				{
-					vm.RunOne();//todo 'next and previous' to handle state changing and interface for 'runone, previous one'.
+					vmerror = vm.RunOne();//todo 'next and previous' to handle state changing and interface for 'runone, previous one'.
+					if (vmerror != null)
+					{
+						return vmerror.ToString();
+					}
+					else
+					{
+						Console.WriteLine(vm.LastPopped()?.ToString());
+					}
 				}else if (x.Key == ConsoleKey.A || x.Key == ConsoleKey.LeftArrow)
 				{
-					vm.PreviousOne();
+					vmerror = vm.PreviousOne();
+					if (vmerror != null)
+					{
+						return vmerror.ToString();
+					}
 				}
 				else
 				{
-					vmerror = vm.Run();
+					if (vm.State == VMState.Paused)
+					{
+						vmerror = vm.Run();
+					}
+					else
+					{
+						break;
+					}
 				}
 			}
 

@@ -1,4 +1,5 @@
-﻿using scrub_lang.Compiler;
+﻿using System.Net;
+using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
 using scrub_lang.Objects;
 using scrub_lang.Parser;
@@ -25,6 +26,8 @@ public class VM
 	public ByteCode ByteCode { get; }
 
 	public Stack<Frame> Frames = new Stack<Frame>();//todo: replace this with pre-allocated array (for SPEeeEEed)
+	public Stack<Frame> Unframes = new Stack<Frame>();
+	
 	private int frameIndex;
 	
 	private List<Object> constants;
@@ -60,9 +63,9 @@ public class VM
 		_conditionalHistory.Add(OpCode.OpJumpNotTruthy, new Stack<bool>());
 
 		//instructions
-		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols);
+		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols,false);
 		var mainClosure = new Closure(mainFunction);//all functions are closures. The program is a function. the program is a closure. it's closures all the way down.
-		var mainFrame = new Frame(mainClosure,0);
+		var mainFrame = new Frame(mainClosure,0,-1);
 		Frames = new Stack<Frame>();
 		Frames.Push(mainFrame);
 		constants = byteCode.Constants.ToList();
@@ -89,9 +92,9 @@ public class VM
 		ByteCode = byteCode; //keep a copy.
 		_conditionalHistory.Add(OpCode.OpJumpNotTruthy,new Stack<bool>());
 		//instructions
-		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols);//we track numSymbols here just for fun. 
+		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols, false);//we track numSymbols here just for fun. 
 		var mainClosure = new Closure(mainFunction);
-		var mainFrame = new Frame(mainClosure,0);
+		var mainFrame = new Frame(mainClosure,0,-1);
 		Frames = new Stack<Frame>();
 		Frames.Push(mainFrame);
 
@@ -169,7 +172,7 @@ public class VM
 				break;
 			case OpCode.OpCall:
 				var numArgs = Op.ReadUInt8(ins[ip + 1]);
-				CurrentFrame().ip += 1; //move instruction pointer past the operand.
+				CurrentFrame().ip += 2; //move instruction pointer past the operand.
 				return ExecuteFunction(numArgs);
 				break;
 			case OpCode.OpClosure:
@@ -181,8 +184,14 @@ public class VM
 				var returnValue = Pop();
 				_frame = PopFrame();
 				//pop. The -1 gets rid of the function call too.
-				sp = _frame.basePointer - 1;
-				return Push(returnValue);
+				//after storing the return value top of stack), remove all locals and free's:
+				while (sp > _frame.basePointer - 1)
+				{
+					Pop();
+				}
+				
+				//put the return value back on top of the stack.
+				return Push(returnValue);//stack the result of 
 			case OpCode.OpAdd:
 			case OpCode.OpSubtract:
 			case OpCode.OpMult:
@@ -281,7 +290,8 @@ public class VM
 	{
 		if (CurrentFrame().ip <= 0)
 		{
-			return new ScrubVMError("At beginning, can't undo!");
+			_state = VMState.Paused;
+			Console.WriteLine("At beginning, can't undo!");
 			return null;
 		}
 
@@ -304,10 +314,10 @@ public class VM
 				CurrentFrame().ip -= 4; //increase the number of bytes re read to decode the operands. THis leaves the next instruction pointing at an OpCode.
 				return null;
 			case OpCode.OpCall:
-				throw new NotImplementedException("Reverse OpCall not implemented");
-				var numArgs = Op.ReadUInt8(ins[ip + 1]);
-				CurrentFrame().ip += 1; //move instruction pointer past the operand.
-				return ExecuteFunction(numArgs);
+				var p = UnPush();//first, trash the result of the return.
+				var numArgs = Op.ReadUInt8(ins[ip -1 ]);
+				CurrentFrame().ip -= 3; //move instruction pointer past the operand + sandwich
+				return DeexecuteFunction(numArgs);
 				break;
 			case OpCode.OpClosure:
 				var cIndex = Op.ReadUInt16([ins[ip - 3], ins[ip - 2]]);
@@ -317,12 +327,11 @@ public class VM
 				return null;
 				//return PushClosure((int)cIndex, (int)numFreeVars);
 			case OpCode.OpReturnValue:
-				throw new NotImplementedException("Reverse Return not implemented");
-				var returnValue = Pop();
+				//we jump past the return value, and already popped it off the stack in anti-call.
 				_frame = PopFrame();
 				//pop. The -1 gets rid of the function call too.
-				sp = _frame.basePointer - 1;
-				return Push(returnValue);
+				//sp = _frame.basePointer - 1;
+				return null;
 			case OpCode.OpAdd:
 			case OpCode.OpSubtract:
 			case OpCode.OpMult:
@@ -428,7 +437,7 @@ public class VM
 			case OpCode.OpGetLocal:
 				localIndex = Op.ReadUInt8(ins[ip - 1]);
 				CurrentFrame().ip -= 3;
-				_frame = CurrentFrame();
+				//_frame = CurrentFrame();
 				UnPush();
 				// return Push(stack[_frame.basePointer + (int)localIndex]);
 				return null;
@@ -470,7 +479,30 @@ public class VM
 		}
 		return null;
 	}
-	
+
+	private ScrubVMError? DeexecuteFunction(int numArgs)
+	{
+		//so... we need to go up a frame, into the function again, undo it, then come out the other side.
+		//a call increased our IP. undoing it should.. still do that (before this part)
+		//this isn't the state of the stack......
+		var callee = UnPop();//get the closure.
+		//var callee = stack[sp - 2 - numArgs];//we are at the same location as before in the stack... no we aren't, there's also a return value.
+		switch (((Object)callee).GetType())
+		{
+			case ScrubType.Closure:
+				return UnCallClosure((Closure)callee, numArgs);
+			case ScrubType.Builtin:
+				//uhhhh
+				UnPop();
+				return null;
+				break;
+			default:
+				break;
+		}
+
+		return new ScrubVMError($"Unable to UnExecute Function. Obj \"{callee}\" is not a function.");
+
+	}
 	private ScrubVMError? ExecuteFunction(int numArgs)
 	{
 		//reach further down the stack to get the function, past the locals (arguments)
@@ -485,7 +517,7 @@ public class VM
 				return new ScrubVMError("Trying to Execute Function that isn't wrapped as a closure!");
 		}
 
-		return new ScrubVMError($"Unable to Execute Function. Obj \"{callee}\" is not a function literal.");
+		return new ScrubVMError($"Unable to Execute Function. Obj \"{callee}\" is not a function.");
 	}
 
 	private ScrubVMError? CallBuiltin(Builtin fn, int numArgs)
@@ -522,6 +554,26 @@ public class VM
 		var frame = new Frame(cl,sp-numArgs);
 		PushFrame(frame);
 		sp = frame.basePointer + cl.CompiledFunction.NumLocals;//give us a buffer of the number of local variables we will store in this area on the stack.
+		return null;
+	}
+
+	private ScrubVMError? UnCallClosure(Closure cl, int numArgs)
+	{
+		if (numArgs != cl.CompiledFunction.NumLocals)
+		{
+			return new ScrubVMError("Wrong number of arguments? huh?");
+		}
+		//go into a frame like normal, then move up the stack and call?
+		//when we reach the top of the function, we will need to take it off the stack, but the call is a lateral move to a new Instructions, basically.
+		var frame = Unframes.Pop();
+		
+		
+		PushFrame(frame);
+		//sp = frame.basePointer + cl.CompiledFunction.NumLocals;
+		while (sp < _frame.basePointer +cl.CompiledFunction.NumLocals)
+		{
+			UnPop();
+		}
 		return null;
 	}
 
@@ -563,7 +615,6 @@ public class VM
 			//todo: we don't have a byte type (yet, it's there but untested/unexpected)... or a char type. Keep your UTF8 lookup tables handly!
 			return Push(new Integer(bytes[i]));
 		}else{
-			
 			return new ScrubVMError($"Unable to index {lt} with {it}");
 		}
 
@@ -887,8 +938,6 @@ public class VM
 	{
 		var o = stack[sp - 1];
 		sp--;
-		// unstack[usp] = o;
-		// usp++;
 		return o;
 	}
 
@@ -912,9 +961,15 @@ public class VM
 	}
 
 	public Frame CurrentFrame() => Frames.Peek();
-	public void PushFrame(Frame f) { Frames.Push(f);}
-	public Frame PopFrame() => Frames.Pop();
-	
+	public void PushFrame(Frame f) { Frames.Push(f); }
+
+	public Frame PopFrame()
+	{
+		var f = Frames.Pop();
+		Unframes.Push(f);
+		return f;
+	}
+
 	public static bool IsTruthy(Object obj)
 	{
 		switch (obj.GetType())

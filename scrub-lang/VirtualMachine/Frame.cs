@@ -8,14 +8,14 @@ public class Frame
 	/// The compiled Instructions
 	/// </summary>
 	public Closure closure;
-	//compiled instruction pointer.s
+	//compiled instruction pointer.
 	public int ip;
 	public int basePointer;
 
-	public Frame(Closure closure, int basePointer)
+	public Frame(Closure closure, int basePointer, int startIp = 0)
 	{
 		this.closure = closure;
-		ip = -1;
+		this.ip = startIp;//would be -1 but we put a return at the beginning of the closure.
 		this.basePointer = basePointer;
 	}
 

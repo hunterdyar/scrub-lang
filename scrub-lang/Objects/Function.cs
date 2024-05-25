@@ -1,4 +1,6 @@
-﻿namespace scrub_lang.Objects;
+﻿using scrub_lang.Compiler;
+
+namespace scrub_lang.Objects;
 
 //A function Object is a -compiled- function.
 public class Function : Object
@@ -6,9 +8,19 @@ public class Function : Object
 	public string Name = "";
 	public byte[] CompiledFunction;//too slow to use our bitarray for functions, which are internal only. should we have internal objects not be Scrubobjects?
 	public int NumLocals;//
-	public Function(byte[] instructions, int numLocals)
+	public Function(byte[] instructions, int numLocals, bool prependReturn = true)
 	{
-		CompiledFunction = instructions;
+		if (prependReturn)
+		{
+			CompiledFunction = new byte[instructions.Length + 1];
+			CompiledFunction[0] = (byte)OpCode.OpReturnValue;
+			instructions.CopyTo(CompiledFunction, 1);
+		}
+		else
+		{
+			CompiledFunction =  instructions;
+		}
+
 		NumLocals = numLocals;
 	}
 
