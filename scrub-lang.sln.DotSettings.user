@@ -1,6 +1,44 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=460c1771_002Dea3f_002D4256_002Da7bd_002D9c33a826cc95/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="TestRescursiveCallFib" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestRescursiveCallFib&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=49d56ffd_002D0986_002D4ffd_002Db3ff_002D23432428db73/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Tests #4" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrublangTests.Tests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestGlobalAssignStatements&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestIntegerArithmetic&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestFunctionDec&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestFib&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestRescursiveCallFib&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6fed879a_002D5b84_002D4ef6_002Dbe7c_002D432856ff4b34/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Tests #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrublangTests.Tests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestGlobalAssignStatements&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestIntegerArithmetic&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestFunctionDec&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=e88c504a_002D5329_002D48c0_002D882b_002D824141dad747/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Tests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrublangTests.Tests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestGlobalAssignStatements&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestIntegerArithmetic&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestFunctionDec&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestFib&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestRescursiveCallFib&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=fa63c71e_002D0244_002D408b_002D87a4_002D038e9084b1f8/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Tests #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrublangTests.Tests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestGlobalAssignStatements&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestIntegerArithmetic&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestFunctionDec&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestFib&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestRescursiveCallFib&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
