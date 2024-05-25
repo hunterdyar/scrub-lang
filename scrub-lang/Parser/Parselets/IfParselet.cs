@@ -13,13 +13,13 @@ public class IfParselet : IPrefixParselet
 		//every bone in my body says to parse this as a block and don't allow inlines.
 		//but everything is an expression, so it's actually fine!
 		var thenBranch = parser.ParseExpression();
-		 IExpression elseBranch = new NullExpression();
+		 IExpression elseBranch = new NullExpression(token.Location);
 		if (parser.Peek(TokenType.ElseKeyword))
 		{
 			parser.Consume(TokenType.ElseKeyword);
 			elseBranch = parser.ParseExpression();
 		}
 
-		return new ConditionalExpression(conditionalExpression, thenBranch, elseBranch);
+		return new ConditionalExpression(conditionalExpression, thenBranch, elseBranch, token.Location);
 	}
 }

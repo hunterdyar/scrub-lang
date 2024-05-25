@@ -15,10 +15,10 @@ public class PostfixOperatorParselet : IInfixParselet
 	{
 		if (token.TokenType == TokenType.IncrementConcatenate)
 		{
-			return new IncrementExpression(left, token.TokenType);
+			return new IncrementExpression(left, token.TokenType, token.Location);
 		}else if (token.TokenType == TokenType.Decrement)
 		{
-			return new DecrementExpression(left, token.TokenType);
+			return new DecrementExpression(left, token.TokenType, token.Location);
 		}
 
 		throw new ParseException($"Unable to parse Postfix operator {token.TokenType}");

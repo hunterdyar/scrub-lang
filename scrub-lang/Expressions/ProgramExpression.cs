@@ -6,9 +6,11 @@ public class ProgramExpression : IExpression
 {
 	public List<IExpression> Expressions => _expressions;
 	private List<IExpression> _expressions;
+	public Location Location { get; }
 
-	public ProgramExpression(List<IExpression> expressions)
+	public ProgramExpression(List<IExpression> expressions, Location location)
 	{
+		Location = location;
 		_expressions = expressions;
 	}
 

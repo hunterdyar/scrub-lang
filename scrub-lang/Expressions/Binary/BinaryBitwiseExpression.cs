@@ -5,8 +5,9 @@ namespace scrub_lang.Parser;
 
 public class BinaryBitwiseExpression : BinaryOperatorExpressionBase
 {
-	public BinaryBitwiseExpression(IExpression leftExpression, TokenType op, IExpression rightExpression) : base(leftExpression, op, rightExpression)
+	public BinaryBitwiseExpression(IExpression leftExpression, TokenType op, IExpression rightExpression, Location location) : base(leftExpression, op, rightExpression, location)
 	{
+		Location = location;
 		_leftExpression = leftExpression;
 		_operator = op;
 		_rightExpression = rightExpression;

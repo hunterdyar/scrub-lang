@@ -8,12 +8,12 @@ public class LiteralParselet : IPrefixParselet
 	{
 		if (token.TokenType == TokenType.NumberLiteral)
 		{
-			return new NumberLiteralExpression(token.Literal);
+			return new NumberLiteralExpression(token.Literal, token.Location);
 		}
 
 		if (token.TokenType == TokenType.String)
 		{
-			return new StringLiteralExpression(token.Literal);
+			return new StringLiteralExpression(token.Literal, token.Location);
 		}
 		throw new ParseException("uh oh!");
 	}

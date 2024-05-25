@@ -8,9 +8,11 @@ public class AssignExpression : IExpression
 	private readonly IdentifierExpression _identifier;
 	public IExpression Value => _valueExpression;
 	private readonly IExpression _valueExpression;
+	public Location Location { get; }
 
-	public AssignExpression(IdentifierExpression ident, IExpression valueExpr)
+	public AssignExpression(IdentifierExpression ident, IExpression valueExpr, Location location)
 	{
+		Location = location;
 		_identifier = ident;
 		_valueExpression = valueExpr;
 	}

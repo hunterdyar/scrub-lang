@@ -10,8 +10,11 @@ public class PrefixExpression : IExpression
 	public IExpression Right => _rightExpr;
 	private IExpression _rightExpr;
 
-	public PrefixExpression(TokenType op, IExpression rightExpr)
+	public Location Location { get; }
+
+	public PrefixExpression(TokenType op, IExpression rightExpr, Location location)
 	{
+		Location = location;
 		_operator = op;
 		this._rightExpr = rightExpr;
 	}

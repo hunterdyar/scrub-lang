@@ -4,7 +4,7 @@ namespace scrub_lang.Parser;
 
 public class BinaryConditionalExpression : BinaryOperatorExpressionBase
 {
-	public BinaryConditionalExpression(IExpression leftExpression, TokenType op, IExpression rightExpression) : base(leftExpression, op, rightExpression)
+	public BinaryConditionalExpression(IExpression leftExpression, TokenType op, IExpression rightExpression, Location location) : base(leftExpression, op, rightExpression, location)
 	{
 		if (!IsBinaryConditionalOperator(op))
 		{

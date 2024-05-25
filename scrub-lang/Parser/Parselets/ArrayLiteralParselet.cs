@@ -15,6 +15,6 @@ public class ArrayLiteralParselet : IPrefixParselet
 		}
 
 		//parser.Consume(TokenType.CloseBracket);
-		return new ArrayLiteralExpression(values);
+		return new ArrayLiteralExpression(values, token.Location);
 	}
 }

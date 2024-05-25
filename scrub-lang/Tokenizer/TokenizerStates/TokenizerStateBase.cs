@@ -4,5 +4,5 @@ public abstract class TokenizerStateBase(Tokenizer context)
 {
 	protected Tokenizer context = context;
 
-	public abstract void Consume( char c, int line, int col);
+	public abstract void Consume( char c, Location location);
 }

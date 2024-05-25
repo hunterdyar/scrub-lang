@@ -9,9 +9,11 @@ public abstract class PostfixExpressionBase : IExpression
 	private IExpression _leftExpr;
 	public TokenType Operator => _operator;
 	private TokenType _operator;
+	public Location Location { get; }
 
-	public PostfixExpressionBase(IExpression left, TokenType op)
+	public PostfixExpressionBase(IExpression left, TokenType op, Location location)
 	{
+		Location = location;
 		_leftExpr = left;
 		_operator = op;
 	}

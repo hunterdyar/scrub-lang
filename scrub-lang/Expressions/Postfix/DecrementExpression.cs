@@ -4,7 +4,7 @@ namespace scrub_lang.Parser;
 
 public class DecrementExpression : PostfixExpressionBase
 {
-	public DecrementExpression(IExpression left, TokenType op) : base(left, op)
+	public DecrementExpression(IExpression left, TokenType op, Location location) : base(left, op, location)
 	{
 	}
 }

@@ -8,9 +8,11 @@ public class IndexExpression : IExpression
 	private IExpression _left;
 	public IExpression Index => _index;
 	private IExpression _index;
+	public Location Location { get; }
 
-	public IndexExpression(IExpression left, IExpression index)
+	public IndexExpression(IExpression left, IExpression index, Location location)
 	{
+		Location = location;
 		_left = left;
 		_index = index;
 	}

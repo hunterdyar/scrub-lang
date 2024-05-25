@@ -7,9 +7,10 @@ public class StringLiteralExpression : IExpression
 {
 	public string Literal => _literal;
 	private readonly string _literal;
-
-	public StringLiteralExpression(string literal)
+	public Location Location { get; }
+	public StringLiteralExpression(string literal, Location location)
 	{
+		Location = location;
 		_literal = literal;
 	}
 

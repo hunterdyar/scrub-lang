@@ -15,14 +15,12 @@ public class AssignParselet : IInfixParselet
 				//a = func(){] should work like func a(){}
 				rf.Name = name.Identifier;
 			}
-			return new AssignExpression(name, right);
+			return new AssignExpression(name, right, token.Location);
 		}else if (left is IndexExpression index)
 		{
 			//todo: assign index expressions. A built-in called set that it replaces itself with?
 		}
-
-		
-		throw new ParseException("The left-hand side of an assignment must be an identifier.");
+		throw new ParseException($"The left-hand side of an assignment ({token.Location}) must be an identifier, at {left.Location}");
 	}
 
 	public int GetBindingPower()

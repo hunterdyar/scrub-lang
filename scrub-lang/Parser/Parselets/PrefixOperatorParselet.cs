@@ -14,7 +14,7 @@ public class PrefixOperatorParselet : IPrefixParselet
 	public IExpression Parse(Parser parser, Token token)
 	{
 		var right = parser.ParseExpression(_bindingPower);
-		return new PrefixExpression(token.TokenType, right);
+		return new PrefixExpression(token.TokenType, right, token.Location);
 	}
 
 	public int GetBindingPower()

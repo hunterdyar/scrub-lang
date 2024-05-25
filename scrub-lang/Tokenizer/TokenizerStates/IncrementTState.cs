@@ -7,17 +7,17 @@ public class IncrementTState(Tokenizer context) : TokenizerStateBase(context)
 	private char firstChar;
 	private char secondChar;
 	private int firstCol = -1;
-	public override void Consume(char c, int line, int col)
+	public override void Consume(char c, Location loc)
 	{
 		if (firstCol < 0)
 		{
-			firstCol = col;
+			firstCol = loc.Column;
 			firstChar = c;
 			if (firstChar != '+' && firstChar != '-')
 			{
 				//error: wrong state.
 				Console.WriteLine("Error: Wrong Tokenizer State");
-				context.AddToken(new Token(TokenType.Unexpected, c, line, col));
+				context.AddToken(new Token(TokenType.Unexpected, c, loc));
 				context.ExitState(this);
 				return;
 			}
@@ -36,33 +36,32 @@ public class IncrementTState(Tokenizer context) : TokenizerStateBase(context)
 
 		if (firstChar == '+' && secondChar == '+')
 		{
-			context.AddToken(new Token(TokenType.IncrementConcatenate, firstChar.ToString() + secondChar.ToString(), line, firstCol));
+			context.AddToken(new Token(TokenType.IncrementConcatenate, firstChar.ToString() + secondChar.ToString(), loc.Line, firstCol));
 			context.ExitState(this);
 			return;
 		}
 
 		if (firstChar == '-' && secondChar == '-')
 		{
-			context.AddToken(new Token(TokenType.Decrement, firstChar.ToString() + secondChar.ToString(), line, firstCol));
+			context.AddToken(new Token(TokenType.Decrement, firstChar.ToString() + secondChar.ToString(), loc.Line, firstCol));
 			context.ExitState(this);
 			return;
 		}
 
 		if (firstChar == '+' && secondChar != '+')
 		{
-			context.AddToken(new Token(TokenType.Plus, firstChar.ToString(), line, firstCol));
+			context.AddToken(new Token(TokenType.Plus, firstChar.ToString(), loc.Line, firstCol));
 			context.ExitState(this);
-			context.ConsumeNext(c, line, col);
+			context.ConsumeNext(c, loc);
 			return;
 		}
 
 		if (firstChar == '-' && secondChar != '-')
 		{
-			context.AddToken(new Token(TokenType.Minus, firstChar.ToString(), line, firstCol));
+			context.AddToken(new Token(TokenType.Minus, firstChar.ToString(), loc.Line, firstCol));
 			context.ExitState(this);
-			context.ConsumeNext(c, line, col);
+			context.ConsumeNext(c, loc);
 			return;
 		}
-		
 	}
 }

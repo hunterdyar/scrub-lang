@@ -9,13 +9,13 @@ public class IdentifierParselet : IPrefixParselet
 		switch (token.TokenType)
 		{
 			case TokenType.TrueKeyword:
-				return new BoolLiteralExpression(token.TokenType);
+				return new BoolLiteralExpression(token.TokenType, token.Location);
 			case TokenType.FalseKeyword:
-				return new BoolLiteralExpression(token.TokenType);
+				return new BoolLiteralExpression(token.TokenType, token.Location);
 			case TokenType.NullKeyword:
-				return new NullExpression();
+				return new NullExpression(token.Location);
 			//null
 		}
-		return new IdentifierExpression(token.Literal);
+		return new IdentifierExpression(token.Literal, token.Location);
 	}
 }

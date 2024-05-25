@@ -11,9 +11,12 @@ public abstract class BinaryOperatorExpressionBase : IExpression
 	protected TokenType _operator;
 	public IExpression Right => _rightExpression;
 	protected IExpression _rightExpression;
+	public Location Location { get; protected set; }
 
-	public BinaryOperatorExpressionBase(IExpression leftExpression, TokenType op, IExpression rightExpression)
+
+	public BinaryOperatorExpressionBase(IExpression leftExpression, TokenType op, IExpression rightExpression, Location location)
 	{
+		Location = location;
 		_leftExpression = leftExpression;
 		_operator = op;
 		_rightExpression = rightExpression;

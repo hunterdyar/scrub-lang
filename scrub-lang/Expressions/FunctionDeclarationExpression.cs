@@ -4,12 +4,15 @@ namespace scrub_lang.Parser;
 
 public class FunctionDeclarationExpression : IExpression
 {
+	public Location Location { get; }
+
 	public IdentifierExpression Identity => _identifierExpression;
 	private IdentifierExpression _identifierExpression;
 	public FunctionLiteralExpression Function => _functionLiteral;
 	private FunctionLiteralExpression _functionLiteral;
-	public FunctionDeclarationExpression(IdentifierExpression ident, FunctionLiteralExpression function)
+	public FunctionDeclarationExpression(IdentifierExpression ident, FunctionLiteralExpression function, Location location)
 	{
+		Location = location;
 		this._identifierExpression = ident;
 		this._functionLiteral = function;
 	}

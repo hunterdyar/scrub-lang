@@ -6,9 +6,11 @@ public class ExpressionGroupExpression : IExpression
 {
 	public  IExpression[] Expressions => _expressions;
 	private IExpression[] _expressions;
+	public Location Location { get; }
 
-	public ExpressionGroupExpression(IExpression[] expressions)
+	public ExpressionGroupExpression(IExpression[] expressions, Location location)
 	{
+		Location = location;
 		_expressions = expressions;
 	}
 

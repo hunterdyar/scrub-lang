@@ -14,9 +14,11 @@ public class ConditionalExpression : IExpression
 	private readonly IExpression _consequenceExpr;
 	public IExpression? Alternative =>_alterativeExpr;
 	private readonly IExpression? _alterativeExpr;
+	public Location Location { get; }
 
-	public ConditionalExpression(IExpression conditionExpr, IExpression consequenceExpr, IExpression? aterativeExpr)
+	public ConditionalExpression(IExpression conditionExpr, IExpression consequenceExpr, IExpression? aterativeExpr, Location location)
 	{
+		Location = location;
 		_conditionExpr = conditionExpr;
 		_consequenceExpr = consequenceExpr;
 		_alterativeExpr = aterativeExpr;

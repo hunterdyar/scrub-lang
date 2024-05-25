@@ -8,7 +8,7 @@ public class ArrayLookupParselet : IInfixParselet
 	{
 		var index = parser.ParseExpression();
 		parser.Consume(TokenType.CloseBracket);
-		return new IndexExpression(left, index);
+		return new IndexExpression(left, index, left.Location);//location of a[0] is a, not [.
 	}
 
 	public int GetBindingPower()

@@ -10,15 +10,16 @@ public class StringTState(Tokenizer context) : TokenizerStateBase(context)
 	private bool setFirst = false;
 	public int firstLine = -1;
 	public int firstCol = -1;
-	
+
+	public Location StartLocation => new Location(firstLine, firstCol);
 	//the first " gets ignored by the code that creates us. That's not ideal for clarity of ownership, but its fine i guess.
-	public override void Consume(char c, int line, int col)
+	public override void Consume(char c, Location loc)
 	{
 		//mark the string by it's start point for errors, not it's end point.
 		if (!setFirst)
 		{
-			firstLine = line;
-			firstCol = col;
+			firstLine = loc.Line;
+			firstCol = loc.Column;
 			setFirst = true;
 		}
 		
@@ -42,7 +43,7 @@ public class StringTState(Tokenizer context) : TokenizerStateBase(context)
 			context.ExitState(this);
 			//ignore this closign " in order to consume it.
 		}
-
+		
 		_builder.Append(c);
 	}
 }

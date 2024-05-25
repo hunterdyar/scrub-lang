@@ -13,9 +13,9 @@ public class ReturnParselet : IPrefixParselet
 		
 		if (parser.Peek(TokenType.Break))
 		{
-			return new ReturnExpression(new NullExpression());
+			return new ReturnExpression(new NullExpression(token.Location), token.Location);
 		}
 		var right = parser.ParseExpression();
-		return new ReturnExpression(right);
+		return new ReturnExpression(right, token.Location);
 	}
 }

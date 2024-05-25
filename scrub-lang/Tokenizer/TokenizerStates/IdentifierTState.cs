@@ -20,12 +20,12 @@ public class IdentifierTState(Tokenizer context) : TokenizerStateBase(context)
 		{"else",TokenType.ElseKeyword},
 		{"null",TokenType.NullKeyword},
 	};
-	public override void Consume(char c, int line, int col)
+	public override void Consume(char c, Location loc)
 	{
 		if (firstLine < 0)
 		{
-			firstLine = line;
-			firstCol = col;
+			firstLine = loc.Line;
+			firstCol = loc.Column;
 		}
 		
 		if (Char.IsWhiteSpace(c) || (!char.IsLetter(c) && !char.IsDigit(c)))
@@ -34,7 +34,7 @@ public class IdentifierTState(Tokenizer context) : TokenizerStateBase(context)
 			CreateAndAddToken(literal);
 			context.ExitState(this);
 			//someone still needs to consume this whatever-it-is.
-			context.ConsumeNext(c,line,col);
+			context.ConsumeNext(c,loc);
 			return;
 		}
 		//else... 

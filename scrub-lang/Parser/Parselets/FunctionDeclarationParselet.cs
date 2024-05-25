@@ -8,10 +8,12 @@ public class FunctionDeclarationParselet : IPrefixParselet
 	{
 		//consume func(){} and func a(){}
 		IdentifierExpression id = null;
+		Location idLocation;
 		if (parser.Peek(TokenType.Identifier))
 		{
 			var idtoken = parser.Consume(TokenType.Identifier);
-			id = new IdentifierExpression(idtoken.Literal);
+			idLocation = idtoken.Location;
+			id = new IdentifierExpression(idtoken.Literal, idtoken.Location);
 		}
 
 		var args = new List<IdentifierExpression>();
@@ -21,7 +23,8 @@ public class FunctionDeclarationParselet : IPrefixParselet
 		{
 			do
 			{
-				args.Add(new IdentifierExpression(parser.Consume(TokenType.Identifier).Literal));
+				var idtok = parser.Consume(TokenType.Identifier);
+				args.Add(new IdentifierExpression(idtok.Literal, idtok.Location));
 			} while (parser.Match(TokenType.Comma));
 		}
 
@@ -30,11 +33,11 @@ public class FunctionDeclarationParselet : IPrefixParselet
 
 		if (id == null)
 		{
-			return new FunctionLiteralExpression(args, exp);//func(){}
+			return new FunctionLiteralExpression(args, exp, token.Location);
 		}
 		else
 		{
-			return new FunctionDeclarationExpression(id, new FunctionLiteralExpression(args, exp,id.Identifier));// func identity(){}
+			return new FunctionDeclarationExpression(id, new FunctionLiteralExpression(args, exp, id.Location, id.Identifier), token.Location);// func identity(){}
 		}
 
 		//consume function signature

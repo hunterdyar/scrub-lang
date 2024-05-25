@@ -5,9 +5,11 @@ namespace scrub_lang.Parser;
 public class IdentifierExpression : IExpression
 {
 	public string Identifier;
-	
-	public IdentifierExpression(string identifier)
+	public Location Location { get; }
+
+	public IdentifierExpression(string identifier, Location location)
 	{
+		Location = location;
 		Identifier = identifier;
 	}
 

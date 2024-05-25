@@ -10,9 +10,11 @@ public class CallExpression : IExpression
 	private IExpression _functionExpression;
 	public IExpression[] Args => _argumentExprs;
 	private IExpression[] _argumentExprs;
+	public Location Location { get; }
 
-	public CallExpression(IExpression functionExpression, List<IExpression> argumentExpressions)
+	public CallExpression(IExpression functionExpression, List<IExpression> argumentExpressions, Location location)
 	{
+		Location = location;
 		_functionExpression = functionExpression;
 		_argumentExprs = argumentExpressions.ToArray();
 	}

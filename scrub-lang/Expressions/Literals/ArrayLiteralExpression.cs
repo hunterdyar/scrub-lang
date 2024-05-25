@@ -8,9 +8,11 @@ public class ArrayLiteralExpression : IExpression
 {
 	public List<IExpression> Values => _values;
 	private readonly List<IExpression> _values;
+	public Location Location { get; }
 
-	public ArrayLiteralExpression(List<IExpression> values)
+	public ArrayLiteralExpression(List<IExpression> values, Location location)
 	{
+		Location = location;
 		this._values = values;
 	}
 

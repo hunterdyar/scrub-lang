@@ -19,16 +19,16 @@ public class BinaryOperatorParselet : IInfixParselet
 		IExpression right = parser.ParseExpression(_bindingPower - (_isRight ? 1 : 0));
 		if (BinaryMathExpression.IsBinaryMathOperator(token.TokenType))
 		{
-			return new BinaryMathExpression(left, token.TokenType, right);
+			return new BinaryMathExpression(left, token.TokenType, right, token.Location);
 		}else if (BinaryBitwiseExpression.IsBinaryBitwiseOperator(token.TokenType))
 		{
-			return new BinaryBitwiseExpression(left, token.TokenType, right);
+			return new BinaryBitwiseExpression(left, token.TokenType, right, token.Location);
 		}else if (BinaryConditionalExpression.IsBinaryConditionalOperator(token.TokenType))
 		{
-			return new BinaryConditionalExpression(left, token.TokenType, right);
+			return new BinaryConditionalExpression(left, token.TokenType, right,token.Location);
 		}
 
-		throw new ParseException($"Cannot parse {token.Literal} as binary operator. ");
+		throw new ParseException($"Cannot parse {token.Literal} as binary operator at {token.Location}. ");
 	}
 
 	public int GetBindingPower()

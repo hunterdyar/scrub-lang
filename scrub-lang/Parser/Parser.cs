@@ -96,11 +96,12 @@ public class Parser
 
 		if (expressions.Count == 1)
 		{
-			return new ProgramExpression(expressions);
+			return new ProgramExpression(expressions, expressions[0].Location);
 		}
 		else
 		{
-			return new ProgramExpression(expressions);
+			//todo: empty?
+			return new ProgramExpression(expressions, expressions[0].Location);//i guess
 		}
 	}
 	
@@ -127,7 +128,7 @@ public class Parser
 		
 		if (!_prefixParselets.TryGetValue(token.TokenType, out var prefix))
 		{
-			throw new ParseException($"Could not parse (prefix) \"{token.Literal}\" ({token.TokenType}) at {token.Line},{token.Column}");
+			throw new ParseException($"Could not parse (prefix) \"{token.Literal}\" ({token.TokenType}) at {token.Location}");
 		}
 
 		IExpression left = prefix.Parse(this, token);

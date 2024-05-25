@@ -21,11 +21,14 @@ public class NumberLiteralExpression : IExpression
 	private bool _isDouble;
 	public double AsDouble => _litDouble;
 	private double _litDouble;
+	public Location Location { get; }
+
 	
 	//problem: - is an operator, so it will never be negative. unsigned will have to be a special case (like Ob)
 	
-	public NumberLiteralExpression(string literal)
+	public NumberLiteralExpression(string literal, Location location)
 	{
+		Location = location;
 		_isInt = int.TryParse(literal, out _litInt);
 		_isDouble = double.TryParse(literal, out _litDouble);
 		this._literal = literal;

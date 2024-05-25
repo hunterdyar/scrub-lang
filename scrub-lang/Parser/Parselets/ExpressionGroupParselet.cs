@@ -15,6 +15,6 @@ public class ExpressionGroupParselet : IPrefixParselet
 
 		parser.Consume(TokenType.EndExpressionBlock);
 
-		return new ExpressionGroupExpression(expressions.ToArray());
+		return new ExpressionGroupExpression(expressions.ToArray(), token.Location);
 	}
 }

@@ -20,7 +20,7 @@ public class CallParselet : IInfixParselet
 			parser.Consume(TokenType.CloseParen);
 		}
 
-		return new CallExpression(left, args);
+		return new CallExpression(left, args, left.Location);//location is the identififer, not the (
 	}
 
 	public int GetBindingPower()

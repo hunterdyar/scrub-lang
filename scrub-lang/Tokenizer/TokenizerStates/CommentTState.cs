@@ -13,7 +13,7 @@ public class CommentTState(Tokenizer context) : TokenizerStateBase(context)
 	private bool escapeNext = false;
 	private char prevChar;
 
-	public override void Consume(char c, int line, int col)
+	public override void Consume(char c, Location loc)
 	{
 		if (escapeNext)
 		{
@@ -24,8 +24,8 @@ public class CommentTState(Tokenizer context) : TokenizerStateBase(context)
 
 		if (firstLine < 0)
 		{
-			firstLine = line;
-			firstCol = col;
+			firstLine = loc.Line;
+			firstCol = loc.Column;
 		}
 
 		if (!firstSlash)
@@ -85,12 +85,9 @@ public class CommentTState(Tokenizer context) : TokenizerStateBase(context)
 			context.AddToken(new Token(TokenType.Division, prevChar, firstLine, firstCol));
 			context.ExitState(this);
 			//someone still needs to consume this whatever-it-is..
-			context.ConsumeNext(c, line, col);
+			context.ConsumeNext(c, loc);
 			return;
 		}
-
-		
-
 		prevChar = c;
 	}
 	

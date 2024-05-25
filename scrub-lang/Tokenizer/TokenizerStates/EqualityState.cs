@@ -9,11 +9,11 @@ public class EqualityTState(Tokenizer context) : TokenizerStateBase(context)
 {
 	private StringBuilder literal = new StringBuilder();
 	private int firstCol = -1;
-	public override void Consume(char c, int line, int col)
+	public override void Consume(char c, Location loc)
 	{
 		if (firstCol < 0)
 		{
-			firstCol = col;
+			firstCol = loc.Column;
 		}
 		
 		//we keep adding these things until we hit something different.
@@ -27,34 +27,34 @@ public class EqualityTState(Tokenizer context) : TokenizerStateBase(context)
 			var s = literal.ToString();
 			if (s == "=")
 			{
-				context.AddToken(new Token(TokenType.Assignment,s,line,firstCol));
+				context.AddToken(new Token(TokenType.Assignment,s,loc));
 			}else if (s == "==")
 			{
-				context.AddToken(new Token(TokenType.EqualTo,s,line,firstCol));
+				context.AddToken(new Token(TokenType.EqualTo,s,loc.Line,firstCol));
 			}else if (s == "!=")
 			{
-				context.AddToken(new Token(TokenType.NotEquals, s, line, firstCol));
+				context.AddToken(new Token(TokenType.NotEquals, s, loc.Line, firstCol));
 			}
 			else if (s == ">")
 			{
-				context.AddToken(new Token(TokenType.GreaterThan, s, line, firstCol));
+				context.AddToken(new Token(TokenType.GreaterThan, s, loc.Line, firstCol));
 			}else if (s == "<")
 			{
-				context.AddToken(new Token(TokenType.LessThan, s, line, firstCol));
+				context.AddToken(new Token(TokenType.LessThan, s, loc.Line, firstCol));
 			}
 			else if (s == ">=")
 			{
-				context.AddToken(new Token(TokenType.GreaterThanOrEqualTo, s, line, firstCol));
+				context.AddToken(new Token(TokenType.GreaterThanOrEqualTo, s, loc.Line, firstCol));
 			}
 			else if (s == "<=")
 			{
-				context.AddToken(new Token(TokenType.LessThanOrEqualTo, s, line, firstCol));
+				context.AddToken(new Token(TokenType.LessThanOrEqualTo, s, loc.Line, firstCol));
 			}else if (s == "<<")
 			{
-				context.AddToken(new Token(TokenType.BitwiseLeftShift,s,line,firstCol));
+				context.AddToken(new Token(TokenType.BitwiseLeftShift,s, loc.Line,firstCol));
 			}else if (s == ">>")
 			{
-				context.AddToken(new Token(TokenType.BitwiseRightShift,s,line,firstCol));
+				context.AddToken(new Token(TokenType.BitwiseRightShift,s, loc.Line,firstCol));
 			}
 			else
 			{
@@ -62,18 +62,18 @@ public class EqualityTState(Tokenizer context) : TokenizerStateBase(context)
 				{
 					if (s[i] == '!')
 					{
-						context.AddToken(new Token(TokenType.Bang, s, line, firstCol));
+						context.AddToken(new Token(TokenType.Bang, s, loc.Line, firstCol));
 					}
 					else
 					{
-						context.AddToken(new Token(TokenType.Unexpected, s, line, firstCol));
+						context.AddToken(new Token(TokenType.Unexpected, s, loc.Line, firstCol));
 						break;
 					}
 				}
 			}
 			
 			context.ExitState(this); //leave, but we haven't consumed anything yet, so we need to switch states.
-			context.ConsumeNext(c, line, col);
+			context.ConsumeNext(c, loc);
 		}
 	}
 }

@@ -7,9 +7,10 @@ public class BoolLiteralExpression : IExpression
 {
 	public bool Literal => _literalValue;
 	private bool _literalValue;
-
-	public BoolLiteralExpression(TokenType keyword)
+	public Location Location { get; }
+	public BoolLiteralExpression(TokenType keyword, Location location)
 	{
+		Location = location;
 		if (keyword == TokenType.TrueKeyword)
 		{
 			_literalValue = true;

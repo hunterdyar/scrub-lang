@@ -6,8 +6,9 @@ namespace scrub_lang.Parser;
 public class BinaryMathExpression : BinaryOperatorExpressionBase
 {
 
-	public BinaryMathExpression(IExpression leftExpression, TokenType op, IExpression rightExpression) : base(leftExpression,op,rightExpression)
+	public BinaryMathExpression(IExpression leftExpression, TokenType op, IExpression rightExpression, Location location) : base(leftExpression,op,rightExpression, location)
 	{
+		Location = location;
 		_leftExpression = leftExpression;
 		_operator = op;
 		_rightExpression = rightExpression;
