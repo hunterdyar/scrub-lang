@@ -1,7 +1,11 @@
-﻿func fib(x){
-if (x==0){return 0}else{0}
-if (x==1){return 1}else{0}
-return (fib(x-1)+fib(x-2))
+﻿ 
+func cond(){
+    if(true){
+        return "t"
+    }else{
+        "f"
+    }
+    "hi"
 }
 
-fib(10)
+cond()

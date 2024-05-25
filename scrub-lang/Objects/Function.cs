@@ -6,13 +6,13 @@ namespace scrub_lang.Objects;
 public class Function : Object
 {
 	public string Name = "";
-	public byte[] CompiledFunction;//too slow to use our bitarray for functions, which are internal only. should we have internal objects not be Scrubobjects?
+	public int[] CompiledFunction;//too slow to use our bitarray for functions, which are internal only. should we have internal objects not be Scrubobjects?
 	public int NumLocals;//
-	public Function(byte[] instructions, int numLocals, bool prependReturn = true)
+	public Function(int[] instructions, int numLocals, bool prependReturn = true)
 	{
 		if (prependReturn)
 		{
-			CompiledFunction = new byte[instructions.Length + 1];
+			CompiledFunction = new int[instructions.Length + 1];
 			CompiledFunction[0] = (byte)OpCode.OpReturnValue;
 			instructions.CopyTo(CompiledFunction, 1);
 		}

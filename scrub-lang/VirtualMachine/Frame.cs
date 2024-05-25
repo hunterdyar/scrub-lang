@@ -19,7 +19,7 @@ public class Frame
 		this.basePointer = basePointer;
 	}
 
-	public byte[] Instructions()
+	public int[] Instructions()
 	{
 		return closure.CompiledFunction.CompiledFunction;
 	}

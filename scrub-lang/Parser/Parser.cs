@@ -94,6 +94,10 @@ public class Parser
 			}
 		} while (!compete);
 
+		if (expressions.Count == 0)
+		{
+			return new NullExpression(new Location(0,0));
+		}
 		if (expressions.Count == 1)
 		{
 			return new ProgramExpression(expressions, expressions[0].Location);

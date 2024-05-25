@@ -52,6 +52,7 @@ public enum OpCode: byte
 	OpArray = 58,
 	OpCall = 59,
 
+	//we should not have an op with code >=64. I want to refactor andlonly use the fisrt 6 bits for ops, and then some flag bits.
 	}
 
 public struct Definition
@@ -66,36 +67,61 @@ public struct Definition
 	}
 
 	//this is the opposite of Make()
-	public (UInt16[], int) ReadOperands(byte[] instructions, int start)
+	public (byte,UInt16[]) ReadOperands(int instruction)
 	{
+		byte[] bytes = BitConverter.GetBytes(instruction);
+		var op = bytes[0];//little endian, so this is the leftmost byte.
+		var a = bytes[1];
+		var b = bytes[2];
+		var c = bytes[3];
+		//these reversed?
+		//todo: normalize how we do this using bit shifts instead.
+		var ab = Op.ReadUInt16([bytes[1], bytes[2]]);
+		var bc = Op.ReadUInt16([bytes[2], bytes[3]]);
+		
 		var operands = new UInt16[this.OperandWidths.Length];
-		int offset = start;//start of operands, not of operation.
 		//x operands, each y units widw. For each operand...
-		for (int i = 0; i < OperandWidths.Length; i++)
+		if (OperandWidths.Length == 0)
 		{
-			switch (OperandWidths[i]) // this operand is this many bytes.
-			{
-				case 0: break;
-				case 1:
-					operands[i] = (ushort)Op.ReadUInt8(instructions[offset]);
-					break;
-				case 2:
-					operands[i] = Op.ReadUInt16([instructions[offset + 0], instructions[offset + 1]]);
-					// if (BitConverter.IsLittleEndian)
-					// {
-					// 	operands[i] = BitConverter.ToInt16([instructions[offset + 1], instructions[offset]]);
-					// }
-					// else
-					// {
-					// 	operands[i] = BitConverter.ToInt16(instructions, offset);
-					// }
-					break;
-			}
-
-			offset += (UInt16)OperandWidths[i];
+			return (op, []);
 		}
 		
-		return (operands, offset-start);
+		//at least one operand
+		if (OperandWidths[0] == 1)
+		{
+			operands[0] = a;
+			if (OperandWidths.Length == 2)
+			{
+				//two operands
+				if (OperandWidths[1] == 1)
+				{
+					operands[1] = b;
+				}
+				else
+				{
+					//the only option here now is "op a bc", we only have 3 bytes of operands.
+					operands[1] = bc;
+					return (op,operands);
+				}
+			}else if (OperandWidths.Length == 3)
+			{
+				//3 operands is only possible with op a,b,c.
+				operands[1] = b;
+				operands[2] = c;
+				return (op,operands);
+			}
+		}else if (OperandWidths[0] == 2)
+		{
+			operands[0] = ab;
+		}
+		else
+		{
+			//we have no operands that are >16 bits.
+			//operands[0] = abc
+		}
+		
+
+		return (op,operands);
 	}
 }
 
@@ -104,7 +130,7 @@ public static class Op
 	private const int BidirectionalOpThreshold = 50;//if we end up with more than 50 "normal" op-codes, then we just increase it.
 	public static Dictionary<OpCode, Definition> Definitions = new Dictionary<OpCode, Definition>()
 	{
-		{ OpCode.OpConstant, new Definition("Constant", new int[] { 2 }) },//index of const
+		{ OpCode.OpConstant, new Definition("Constant",new int[] { 2 })},//index of const
 		{ OpCode.OpPop, new Definition("Pop", new int[] { })},
 		{ OpCode.OpAdd, new Definition("Add", new int[] { })},
 		{ OpCode.OpMult, new Definition("Mult", new int[] { })},
@@ -145,21 +171,14 @@ public static class Op
 	{
 		return (int)code >= BidirectionalOpThreshold;
 	}
-	public static byte[] Make(OpCode op, params int[] operands)
+	public static int Make(OpCode op, params int[] operands)
 	{
 		if (!Definitions.TryGetValue(op, out var def))
 		{
-			return new byte[]{};
+			return 0;//0000 - 0000, 0000, 0000
 		}
 
-		bool isOpCodeSandwich = IsOpCodeBidirectional(op);
-		int instructionLength = isOpCodeSandwich ? 2 : 1;
-		foreach (int width in def.OperandWidths)
-		{
-			instructionLength += width;
-		}
-
-		var instruction = new byte[instructionLength];
+		var instruction = new byte[4];
 		instruction[0] = (byte)op;
 		int offset = 1;
 		for (int i = 0; i < operands.Length; i++)
@@ -173,6 +192,7 @@ public static class Op
 					instruction[offset] = ReadUInt8(operands[i]);
 					break;
 				case 2:
+					//todo:convert from int instead of byte[]
 					var o = BitConverter.GetBytes(((ushort)operands[i]));
 					//c# doesn't define endian-ness, so we have to check this flag.
 					//note: MiscUtil EndianBitConverter.
@@ -185,12 +205,13 @@ public static class Op
 		}
 
 		//OpCode Sandwich! Yee-haw!
-		if (isOpCodeSandwich)
-		{
-			instruction[^1] = (byte)op;
-		}
+		// if (isOpCodeSandwich)
+		// {
+		// 	instruction[^1] = (byte)op;
+		// }
 
-		return instruction;
+		//todo: inspect byte order.
+		return BitConverter.ToInt32(instruction);
 	}
 
 	public static UInt16 ReadUInt16(byte[] b)
@@ -219,57 +240,47 @@ public static class Op
 	//helper
 	
 	//minidissembler
-	public static string InstructionsToString(byte[] instructions)
+	public static string InstructionsToString(int[] instructions)
 	{
 		var sb = new StringBuilder();
-		for (int i = 0; i < instructions.Length; i++)
+
+		foreach (int instruction in instructions)
 		{
-			var op = (OpCode)(instructions[i]);
+
+			byte[] bytes = BitConverter.GetBytes(instruction);
+			var opb = bytes[0]; //little endian, so this is the leftmost byte.
+
+			var op = (OpCode)(opb);
 			if (!Op.Definitions.TryGetValue(op, out var def))
 			{
-				throw new CompileException($"Can't find OpCode {instructions[i]}.");
+				throw new CompileException($"Can't find OpCode {opb}.");
 			}
+
 			// var operands = instructions.co
-			var read = def.ReadOperands(instructions,i+1);
-			if ((OpCode)instructions[i] != op)
-			{
-				Console.WriteLine("dafuqs");
-			}
-			string instruction = "";
-			
-			
+			var read = def.ReadOperands(instruction);
+
+			string instr = "";
+
+
 			switch (def.OperandWidths.Length)
 			{
 				case 0:
-					instruction = $"{def.Name}";
+					instr = $"{def.Name}";
 					break;
 				case 1:
-					instruction = $"{def.Name} {read.Item1[0]}";
+					instr = $"{def.Name} {read.Item2[0]}";
 					break;
 				case 2:
-					instruction = $"{def.Name} {read.Item1[0]} {read.Item1[1]}";
+					instr = $"{def.Name} {read.Item2[0]} {read.Item2[1]}";
+					break;
+				case 3:
+					instr = $"{def.Name} {read.Item2[0]} {read.Item2[1]} {read.Item2[3]}";
 					break;
 			}
-			sb.AppendFormat("{0:0000} {1:0}\n", i, instruction);
-			i += read.Item2;
+
+			sb.AppendFormat(instr);
 		}
 
 		return sb.ToString();
 	}
-	public static byte[] ConcatInstructions(byte[][] expectedInstructions)
-	{
-		var expInstructions = new List<byte>();
-		//theres's a way to do this with array.copy or linq concat but i can't be bothered to look it up right now.
-		foreach (byte[] bytes in expectedInstructions)
-		{
-			for (int i = 0; i < bytes.Length; i++)
-			{
-				expInstructions.Add(bytes[i]);
-			}
-		}
-
-		return expInstructions.ToArray();
-	}
-
-	
 }

@@ -23,7 +23,7 @@ public class Compiler
 	public Compiler()
 	{
 		CompilationScope cs = new CompilationScope();
-		cs.Instuctions = new List<byte>();
+		cs.Instuctions = new List<int>();
 		Scopes.Push(cs);
 		_scopeIndex = 0;
 		DefineBuiltins();
@@ -41,7 +41,7 @@ public class Compiler
 		}
 
 		CompilationScope cs = new CompilationScope();
-		cs.Instuctions = new List<byte>();
+		cs.Instuctions = new List<int>();
 		Scopes.Push(cs);
 		_scopeIndex = 0;
 		DefineBuiltins();
@@ -391,10 +391,10 @@ public class Compiler
 			var jumpPos = Emit(OpCode.OpJump, 99999);//skip alternate
 			//this is the "catch" portal of the jumpnottruth, which jumps to after this. we jump to before it.
 			//todo: currectly turn position into uint8 (byte[2])
-			AddInstruction((byte)(0));
-			AddInstruction((byte)(jumpNqePos));
-			AddInstruction((byte)OpCode.OpJumpNotTruthy);
-			var afterConsequencePos = CurrentScope.Instuctions.Count+1;
+			
+			//this is the jumpnottruthy for going back past the consequence on false, we move to the before consequence position
+			Emit(OpCode.OpJumpNotTruthy, firstPos);
+			var afterConsequencePos = CurrentScope.Instuctions.Count;
 			ChangeOperand(jumpNqePos, afterConsequencePos);
 
 			//Update the jump-if-conditional-is-not-true destination to be the destination after we compiled the consequence.
@@ -420,19 +420,16 @@ public class Compiler
 				}
 			}
 
-			Emit(OpCode.OpJump, CurrentScope.Instuctions.Count + 7);//6
+			Emit(OpCode.OpJump, CurrentScope.Instuctions.Count+2);//skip self and next? +2? 
 			//curr+jumpx2
 			//skip past the jumps that catch us for going in reverse, when going forward through consequence.
 			//the opposite side of the JUMP command.... minus one. this is for going backwards, it must be skipped when going forwards (see afterAlternate defined after this)
 			//jump takes two bytes. need to do that.
-			// var bytes = jumpPos. todo: this jumpPos is wrong.
-			AddInstruction((byte)(jumpPos));
-			AddInstruction((byte)(jumpPos));
-			AddInstruction((byte)OpCode.OpJump);
-			//
-			var afterAlternativePos = CurrentScope.Instuctions.Count;
+			// var bytes = jumpPos. todo: this jumpPos is wrong.s
+			Emit(OpCode.OpJump, jumpPos);
+			//todo: 
+			var afterAlternativePos = CurrentScope.Instuctions.Count+1;
 			ChangeOperand(jumpPos, afterAlternativePos); //backpatch to fix the bogus value.
-			
 			return null;
 		}
 		//should we have a literalExpressionBase?
@@ -526,7 +523,7 @@ public class Compiler
 			{
 				//Console.WriteLine("Warning: Function didn't return a value. That's a problemo!");
 				//Emit(OpCode.OpNull);
-				Emit(OpCode.OpReturnValue);
+				Emit(OpCode.OpReturnValue);//return a null.
 			}
 			var freeSymbols = symbolTable.FreeTable;//we grab a reference to this before we leave the scope, and iterate over/load them them after. That's basically the point.
 			var numLocals = symbolTable.NumDefinitions;
@@ -604,14 +601,10 @@ public class Compiler
 		CurrentScope.LastInstruction = last;
 	}
 
-	public int AddInstruction(byte[] instruction)
+	public int AddInstruction(int instruction)
 	{
 		var posNewInstruction = CurrentScope.Instuctions.Count;
-		foreach (byte b in instruction)
-		{
-			CurrentScope.Instuctions.Add(b);
-		}
-
+		CurrentScope.Instuctions.Add(instruction);
 		return posNewInstruction;
 	}
 
@@ -630,7 +623,7 @@ public class Compiler
 		symbolTable = symbolTable.NewEnclosedSymbolTable();
 	}
 
-	private byte[] LeaveScope()
+	private int[] LeaveScope()
 	{
 		var instructions = CurrentScope.Instuctions.ToArray();
 		Scopes.Pop();
@@ -685,12 +678,9 @@ public class Compiler
 		CurrentScope.LastInstruction = CurrentScope.PreviousInstruction;
 	}
 
-	private void ReplaceInstruction(int pos, byte[] newInstruction)
+	private void ReplaceInstruction(int pos, int  newInstruction)
 	{
-		for (int i = 0; i < newInstruction.Length; i++)
-		{
-			CurrentScope.Instuctions[pos + i] = newInstruction[i];
-		}
+		CurrentScope.Instuctions[pos] = newInstruction;
 	}
 
 	private void ChangeOperand(int opPos, int operand)

@@ -63,10 +63,8 @@ public class CompileTests
 		);
 	}
 
-	public static void CompileTest(string input, object[] expectedConstants, params byte[][] expectedInstructions)
+	public static void CompileTest(string input, object[] expectedConstants, params int[] expectedInstructions)
 	{
-		var expInstructions = Op.ConcatInstructions(expectedInstructions);
-	
 		try
 		{
 			var t = new Tokenizer.Tokenizer(input);
@@ -93,7 +91,7 @@ public class CompileTests
 			// 	failed = true;
 			// }
 
-			if (!expInstructions.SequenceEqual(byteCode.Instructions))
+			if (!expectedInstructions.SequenceEqual(byteCode.Instructions))
 			{
 				StringBuilder sb = new StringBuilder();
 				if (!failed)
@@ -101,7 +99,7 @@ public class CompileTests
 					sb.AppendLine("[FAIL] Source: " + input);
 					failed = true;
 				}
-				sb.AppendLine("       Expected Instructions:\n " + Op.InstructionsToString(expInstructions));
+				sb.AppendLine("       Expected Instructions:\n " + Op.InstructionsToString(expectedInstructions));
 				sb.AppendLine("       Actual Instructions:\n " + Op.InstructionsToString(byteCode.Instructions));
 				Assert.Fail(sb.ToString());
 
