@@ -14,25 +14,40 @@ public class Tests
 	}
 
 	[Test]
-	public void ParsingTests()
+	public void UnaryAndBinaryBindingPowerTests()
 	{
-		Assert.IsTrue(ParseTest("a()", "a()"));
-		ParseTest("a(b)", "a(b)");
-		ParseTest("a(b, c)", "a(b, c)");
-		ParseTest("a(b)(c)", "a(b)(c)");
-		ParseTest("a(b) + c(d)", "(a(b) + c(d))");
-		ParseTest("a(b ? c : d, e + f)", "a((b ? c : d), (e + f))");
-		
 		// Unary and binary binding power.
 		ParseTest("-a * b", "((-a) * b)");
 		ParseTest("!a + b", "((!a) + b)");
 		ParseTest("~a ^ b", "((~a) ^ b)");
 		ParseTest("-a--", "(-(a--))");
 		ParseTest("-a++", "(-(a++))");
-		
-		
+	}
+
+	[Test]
+	public void BinaryOperatorTest()
+	{
 		//Binary Operator
 		ParseTest("a == b", "(a == b)");
+		ParseTest("a != b", "(a != b)");
+		ParseTest("a > b", "(a > b)");
+		ParseTest("a < b", "(a < b)");
+		ParseTest("a >= b", "(a >= b)");
+		ParseTest("a <= b", "(a <= b)");
+		ParseTest("a+b>c", "((a + b) > c)");
+		ParseTest("c>a+b", "(c > (a + b))");
+		ParseTest("!a && b == c || d", "(((!a) && (b == c)) || d)");
+	}
+	
+	[Test]
+	public void FuntionCallTest()
+	{
+		ParseTest("a()", "a()");
+		ParseTest("a(b)", "a(b)");
+		ParseTest("a(b, c)", "a(b, c)");
+		ParseTest("a(b)(c)", "a(b)(c)");
+		ParseTest("a(b) + c(d)", "(a(b) + c(d))");
+		ParseTest("a(b ? c : d, e + f)", "a((b ? c : d), (e + f))");
 	}
 
 	[Test]

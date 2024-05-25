@@ -94,6 +94,12 @@ public class Token
 				return "}";
 			case TokenType.StartExpressionBlock:
 				return "{";
+			case TokenType.NotEquals:
+				return "!=";
+			case TokenType.And:
+				return "&&";
+			case TokenType.Or:
+				return "||";
 		}
 
 		return tokenType.ToString();
