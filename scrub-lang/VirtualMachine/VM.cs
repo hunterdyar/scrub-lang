@@ -64,7 +64,7 @@ public class VM
 		_conditionalHistory.Add(OpCode.OpJumpNotTruthy, new Stack<bool>());
 
 		//instructions
-		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols,false);
+		var mainFunction = new Function(byteCode.Instructions, 0,byteCode.NumSymbols,false);
 		var mainClosure = new Closure(mainFunction);//all functions are closures. The program is a function. the program is a closure. it's closures all the way down.
 		var mainFrame = new Frame(mainClosure,0,-1);
 		Frames.Push(mainFrame);
@@ -81,7 +81,7 @@ public class VM
 		ByteCode = byteCode; //keep a copy.
 		_conditionalHistory.Add(OpCode.OpJumpNotTruthy,new Stack<bool>());
 		//instructions
-		var mainFunction = new Function(byteCode.Instructions, byteCode.NumSymbols, false);//we track numSymbols here just for fun. 
+		var mainFunction = new Function(byteCode.Instructions, 0,byteCode.NumSymbols, false);//we track numSymbols here just for fun. 
 		var mainClosure = new Closure(mainFunction);
 		var mainFrame = new Frame(mainClosure,0,-1);
 		Frames.Push(mainFrame);
@@ -130,6 +130,10 @@ public class VM
 	{
 		if (CurrentFrame().ip >= CurrentFrame().Instructions().Length - 1)
 		{
+			if (sp == 1)
+			{
+				return new ScrubVMError("We did not manage to pop the last object! we uh. we should do that.");
+			}
 			_state = VMState.Complete;
 			return null;
 		}
@@ -531,7 +535,7 @@ public class VM
 
 	private ScrubVMError? CallClosure(Closure cl, int numArgs)
 	{
-		if (numArgs != cl.CompiledFunction.NumLocals)
+		if (numArgs != cl.CompiledFunction.NumArgs)
 		{
 			//todo: write tests for this.
 			return new ScrubVMError("Wrong number of arguments!");

@@ -73,8 +73,12 @@ public class Compiler
 				//clean up the stack.
 				if (e.ReturnsValue)
 				{
-					//if expression is "expression" and not "statement", then pop or not?
 					Emit(OpCode.OpPop);
+				}
+				else
+				{
+					return new ScrubCompilerError(
+						"ALl expressions should return values, zombie code got us here. oops.");
 				}
 				//these values are unused. All exresssions are unused unless they go into some operator or such.
 				//it's a little weird because everything is an expression, but... after what would be a statement, we clean up the leftover value that the expressions created.
@@ -392,7 +396,7 @@ public class Compiler
 			//this is the jumpnottruthy for going back past the consequence on false, we move to the before consequence position
 			//Emit(OpCode.OpJumpNotTruthy, jumpNqePos);
 			var afterConsequencePos = CurrentScope.Instructions.Count;
-			ChangeOperand(jumpNqePos, afterConsequencePos);
+			ChangeOperand(jumpNqePos, afterConsequencePos+1);
 
 			//Update the jump-if-conditional-is-not-true destination to be the destination after we compiled the consequence.
 			//if there is an alternative, then the true path needs to hit a jump to skip it.
@@ -425,7 +429,7 @@ public class Compiler
 			// var bytes = jumpPos.
 			//Emit(OpCode.OpJump, jumpPos);
 			var afterAlternativePos = CurrentScope.Instructions.Count;
-			ChangeOperand(jumpPos, afterAlternativePos); //backpatch to fix the bogus value.
+			ChangeOperand(jumpPos, afterAlternativePos+1); //this or this -1 is ... being tested.//backpatch to fix the bogus value.
 			return null;
 		}
 		//should we have a literalExpressionBase?
@@ -523,6 +527,7 @@ public class Compiler
 			}
 			var freeSymbols = symbolTable.FreeTable;//we grab a reference to this before we leave the scope, and iterate over/load them them after. That's basically the point.
 			var numLocals = symbolTable.NumDefinitions;
+			
 			//Add a function literal direclty onto the stack.
 			var instructions = LeaveScope();
 
@@ -532,7 +537,7 @@ public class Compiler
 				EmitLoadSymbol(freeSymbol);
 			}
 			
-			var compiledFunction = new Function(instructions,numLocals);
+			var compiledFunction = new Function(instructions,args.Count,numLocals);
 			
 			var funcIndex = AddConstant(compiledFunction);
 			Emit(OpCode.OpClosure,funcIndex,freeSymbols.Count);//closures wrap functions. all functions are closures, even when there aren't any free variables.

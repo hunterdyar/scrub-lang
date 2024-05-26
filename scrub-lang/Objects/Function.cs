@@ -8,7 +8,8 @@ public class Function : Object
 	public string Name = "";
 	public int[] CompiledFunction;//too slow to use our bitarray for functions, which are internal only. should we have internal objects not be Scrubobjects?
 	public int NumLocals;//
-	public Function(int[] instructions, int numLocals, bool prependReturn = true)
+	public int NumArgs;
+	public Function(int[] instructions, int numArgs, int numLocals, bool prependReturn = true)
 	{
 		if (prependReturn)
 		{
@@ -21,6 +22,7 @@ public class Function : Object
 			CompiledFunction =  instructions;
 		}
 
+		NumArgs = numArgs;
 		NumLocals = numLocals;
 	}
 

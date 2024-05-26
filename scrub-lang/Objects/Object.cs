@@ -10,7 +10,7 @@ public abstract class Object
 	//todo: Implement bitwise operators here, on bytes. so you can do bitwise on any type!
 	public virtual BitArray Concatenate(BitArray[] bitsArrays)
 	{
-		var concatBits = new BitArray[bitsArrays.Sum(x => x.Length)];
+		var concatBits = new BitArray(bitsArrays.Sum(x => x.Length));
 		int offset = 0;
 		
 		//todo: there has to be some horribly clever way to append a series of bitarrays together.
@@ -18,7 +18,7 @@ public abstract class Object
 		{
 			for (int b = 0; b < bitsArrays[i].Length; b++)
 			{
-				concatBits.SetValue(bitsArrays[i][b],offset+i);
+				concatBits.Set(offset+i, bitsArrays[i].Get(b));
 			}
 		}
 
