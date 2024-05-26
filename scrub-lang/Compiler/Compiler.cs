@@ -437,14 +437,13 @@ public class Compiler
 			//Emit(OpCode.OpJump, CurrentScope.Instuctions.Count+1);//skip self and next? +2? 
 			//curr+jumpx2
 			//the opposite side of the JUMP command.... minus one. this is for going backwards, it must be skipped when going forwards (see afterAlternate defined after this)
-			//jump takes two bytes. need to do that.
-			// var bytes = jumpPos.
 			//Emit(OpCode.OpJump, jumpPos);
 			var afterAlternativePos = CurrentScope.Instructions.Count;
 			if (Scopes.Count > 1)
 			{
 				//this just made all my tests pass and im kind of furious about it! 
 				//todo: make jumps inside and outside of closures work the same.
+				//or at least move this edge-case to the VM and not the compiler, so a section of code compiled inside and outside of a function will be the same.
 				afterAlternativePos += 1;
 			}
 			// Console.WriteLine($"afterAlternativePos is after: {Op.InstructionToString(CurrentScope.Instructions[afterAlternativePos-1])}");
