@@ -24,6 +24,7 @@
     &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
+	
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a9ca8841_002D0f3c_002D4e81_002Daadb_002D639d38854b18/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="VMTests #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests&lt;/TestId&gt;&#xD;
@@ -37,6 +38,9 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=fbb5552f_002D8ce6_002D4251_002Daf3e_002Dd67898b4b17f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="TestEarlyReturnOutOfAlernative" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.CompileTests.TestCompile&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.CompileTests.TestConditionalCompile&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.CompileTests.TestExpressionBlockPopCorrectly&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	

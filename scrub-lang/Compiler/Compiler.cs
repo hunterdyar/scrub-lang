@@ -47,7 +47,6 @@ public class Compiler
 		_scopeIndex = 0;
 		DefineBuiltins();
 	}
-
 	
 	public Environment Environment()
 	{
@@ -58,6 +57,7 @@ public class Compiler
 		};
 		return e;
 	}
+	
 	public ScrubCompilerError? Compile(IExpression expression)
 	{
 		if (expression is ProgramExpression pe)
@@ -70,27 +70,27 @@ public class Compiler
 					return new ScrubCompilerError(error.Message);
 				}
 
-				//clean up the stack.
-				if (e.ReturnsValue)
-				{
-					Emit(OpCode.OpPop);
-				}
-				else
-				{
-					return new ScrubCompilerError(
-						"ALl expressions should return values, zombie code got us here. oops.");
-				}
+				Emit(OpCode.OpPop);
 				//these values are unused. All exresssions are unused unless they go into some operator or such.
 				//it's a little weird because everything is an expression, but... after what would be a statement, we clean up the leftover value that the expressions created.
 			}
-
-			//Emit(OpCode.OpPop);
 			return null;
 		}else if (expression is ExpressionGroupExpression block)
 		{
+			//an expression group takes a sequence of expressions and returns a single value from them.
+			
 			if (block.Expressions.Length == 0)
 			{
 				Emit(OpCode.OpNull);
+			}else if (block.Expressions.Length == 1)
+			{
+				var err = Compile(block.Expressions[0]);
+				if (err != null)
+				{
+					return err;
+				}
+
+				return null;
 			}
 			else
 			{
@@ -102,13 +102,14 @@ public class Compiler
 						return err;
 					}
 
-					//Emit(OpCode.OpPop);//emitting always made 0 difference, because the 'pop if pop' if statemetns are there.
+					//Emit(OpCode.OpPop);//emitting always made 0 difference (update: WERONG itmatters)
 					if (i < block.Expressions.Length - 1)
 					{
 						//remove the value from the expression we just called.... which might not have a value? hmmm. shite.
 						//our expression leaves us with one nice value at the end, which is what expression blocks become: their last value.
 						//we also could always emit, and then (if needed?) removeLastPop, like with conditionals? 
 						Emit(OpCode.OpPop);
+						
 					}
 				}
 			}
@@ -362,7 +363,6 @@ public class Compiler
 		//code-flow
 		else if (expression is ConditionalExpression condExpr)
 		{
-			//todo: this is breaking in the fib test, not sure if it's an off by 1 somewhere or the compilation.
 			//conditional (stack is true or false)
 			//jump if false to :after-consequence
 			//consequence(and we leave a value in it, so don't pop to nothing)
@@ -396,7 +396,7 @@ public class Compiler
 			//this is the jumpnottruthy for going back past the consequence on false, we move to the before consequence position
 			//Emit(OpCode.OpJumpNotTruthy, jumpNqePos);
 			var afterConsequencePos = CurrentScope.Instructions.Count;
-			ChangeOperand(jumpNqePos, afterConsequencePos+1);
+			ChangeOperand(jumpNqePos, afterConsequencePos);//the plus one here is a pop added by something else? sometimes...
 
 			//Update the jump-if-conditional-is-not-true destination to be the destination after we compiled the consequence.
 			//if there is an alternative, then the true path needs to hit a jump to skip it.
@@ -404,7 +404,7 @@ public class Compiler
 			if (condExpr.Alternative is NullExpression)//==nulls
 			{
 				//This could be just the compile of the alternative. null emits a null.
-				//if nothing else, it's a minor optimization.
+				//if nothing else, it's a minor optimization. (otherwise, null, pop, get rid of last pop)
 				Emit(OpCode.OpNull);
 			}
 			else
@@ -429,7 +429,7 @@ public class Compiler
 			// var bytes = jumpPos.
 			//Emit(OpCode.OpJump, jumpPos);
 			var afterAlternativePos = CurrentScope.Instructions.Count;
-			ChangeOperand(jumpPos, afterAlternativePos+1); //this or this -1 is ... being tested.//backpatch to fix the bogus value.
+			ChangeOperand(jumpPos, afterAlternativePos); //this or this -1 is ... being tested.//backpatch to fix the bogus value.
 			return null;
 		}
 		//should we have a literalExpressionBase?
@@ -549,11 +549,17 @@ public class Compiler
 			{
 				return err;
 			}
-
+			
 			if (this.Scopes.Count == 1)
 			{
 				//todo: should return exit a program if at root? feels... wrong... how do scripting languages do it?
 				return new ScrubCompilerError($"Invalid 'return' statement at root of program. Must be inside a function to return. {rete.Location}");
+			}
+
+			//todo: i need to test if this did anything.
+			if (LastInstructionIs(OpCode.OpPop))
+			{
+				RemoveLastInstruction();
 			}
 			//presumably, the return value is now on the stack. If there wasn't one, it's null.
 			Emit(OpCode.OpReturnValue);

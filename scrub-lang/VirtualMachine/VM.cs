@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
 using scrub_lang.Objects;
@@ -904,11 +905,16 @@ public class VM
 
 	private object Pop()
 	{
-		if (sp == 0)
-		{
-			Console.WriteLine("Warning, popping with nothing to pop.");
-			return null;
-		}
+		//this is why you don't catch edge cases, but fail them.
+		//i spent half an hour chasing issues elsewhere when the thing that put me on the right track
+		//was that this was silently ignoreing an error
+		//i put a console.write, but the test suite had it below the stack trace and i didn't scroll down)
+		// if (sp == 0)
+		// {
+		// 	return null;
+		// 	return new ScrubVMError("Warning, popping with nothing to pop.");
+		// 	return null;
+		// }
 		
 		var o = stack[sp - 1];
 		sp--;
