@@ -84,10 +84,16 @@ public class Compiler
 				Emit(OpCode.OpNull);
 			}else if (block.Expressions.Length == 1)
 			{
+				
 				var err = Compile(block.Expressions[0]);
 				if (err != null)
 				{
 					return err;
+				}
+
+				if (block.Expressions[0] is ConditionalExpression)
+				{
+					Console.WriteLine($"Conditional is only item in expression block. Last: {CurrentScope.LastInstruction.Op}");
 				}
 
 				return null;
@@ -96,6 +102,7 @@ public class Compiler
 			{
 				for (int i = 0; i < block.Expressions.Length; i++)
 				{
+					
 					var err = Compile(block.Expressions[i]);
 					if (err != null)
 					{
@@ -105,11 +112,18 @@ public class Compiler
 					//Emit(OpCode.OpPop);//emitting always made 0 difference (update: WERONG itmatters)
 					if (i < block.Expressions.Length - 1)
 					{
+						
 						//remove the value from the expression we just called.... which might not have a value? hmmm. shite.
 						//our expression leaves us with one nice value at the end, which is what expression blocks become: their last value.
 						//we also could always emit, and then (if needed?) removeLastPop, like with conditionals? 
 						Emit(OpCode.OpPop);
 						
+					}else{
+						if (block.Expressions[i] is ConditionalExpression)
+						{
+							Console.WriteLine(
+								$"Conditional is last expression block. Last: {CurrentScope.LastInstruction.Op} ");
+						}
 					}
 				}
 			}
@@ -122,11 +136,13 @@ public class Compiler
 			Symbol functionNameSymbol;
 			bool isNotNewSymbol = symbolTable.TryResolve(funcDef.Identity.Identifier, out functionNameSymbol);//todo: false vs true recusion behaviour test
 
+			//we compiled a function
 			var err = Compile(funcDef.Function);
 			if (err != null)
 			{
 				return err;
 			}
+			//anyway
 
 			if (LastInstructionIs(OpCode.OpPop))
 			{
@@ -388,6 +404,10 @@ public class Compiler
 			//this is the jumpnottruthy for going back past the consequence on false, we move to the before consequence position
 			//Emit(OpCode.OpJumpNotTruthy, jumpNqePos);
 			var afterConsequencePos = CurrentScope.Instructions.Count;
+			if (Scopes.Count > 1)
+			{
+				afterConsequencePos += 1;
+			}
 			ChangeOperand(jumpNqePos, afterConsequencePos);//the plus one here is a pop added by something else? sometimes...
 
 			//Update the jump-if-conditional-is-not-true destination to be the destination after we compiled the consequence.
@@ -421,6 +441,13 @@ public class Compiler
 			// var bytes = jumpPos.
 			//Emit(OpCode.OpJump, jumpPos);
 			var afterAlternativePos = CurrentScope.Instructions.Count;
+			if (Scopes.Count > 1)
+			{
+				//this just made all my tests pass and im kind of furious about it! 
+				//todo: make jumps inside and outside of closures work the same.
+				afterAlternativePos += 1;
+			}
+			// Console.WriteLine($"afterAlternativePos is after: {Op.InstructionToString(CurrentScope.Instructions[afterAlternativePos-1])}");
 			ChangeOperand(jumpPos, afterAlternativePos); //this or this -1 is ... being tested.//backpatch to fix the bogus value.
 			return null;
 		}

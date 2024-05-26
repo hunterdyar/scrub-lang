@@ -62,7 +62,6 @@ public class VMTests
 	public void TestStrings()
 	{
 		new VMTestCase("\"hi\"", new String("hi"));
-		
 		//this failure is with string concat, not related to my current pop-pains
 		//new VMTestCase("\"hi\"+\"hi\"", new String("hihi"));
 	}
@@ -101,16 +100,16 @@ public class VMTests
 		//outside of the function, we jnq to the correct location.
 		//why?
 		//my best guess is when we add or remove pops, we lost count.
-		new VMTestCase("""
-		               a = 0;
-		               b = 0;
-		               if(a > 5)
-		               {
-		                    b = b+1
-		               }else{
-		                    b = b-1
-		               }
-		               """, new Integer(-1));
+		// new VMTestCase("""
+		//                a = 0;
+		//                b = 0;
+		//                if(a > 5)
+		//                {
+		//                     b = b+1
+		//                }else{
+		//                     b = b-1
+		//                }
+		//                """, new Integer(-1));
 		//todo: i am unable to compare closures (closures, compiled objects) correctly.
 		//new VMTestCase("func (){}", new Closure(new Function([(byte)OpCode.OpNull],0),null));
 	//	new VMTestCase("a = func(b){return 1};a(500)", new Integer(1));
@@ -124,8 +123,9 @@ public class VMTests
 		                   if(a > 5)
 		                   {
 		                        b = b+1
-		                   }else{
+		                   }else{ //needds tojump one further than it is.
 		                        b = b-1
+		                        b;b;b;
 		                   }
 		                   
 		                   return b
@@ -147,8 +147,10 @@ public class VMTests
 	[Test]
 	public void TestEarlyReturnOutOfAlternative()
 	{
-		new VMTestCase("a = func(){456;if(false){return 1}else{ \"hi\"} }; a()", new String("hi"));
-		//new VMTestCase("a = func(b){456;if(b == 1){return b}else{return \"hi\"} 123;}; a(2)", new String("hi"));
+		new VMTestCase("a = func(){456;if(true){return 1}else{ 3} }; a()", new Integer(1));
+		new VMTestCase("a = func(){456;if(false){return 1}else{ 3} }; a()", new Integer(3));
+		//failing for same reason as cond-wrapped-in-func
+		new VMTestCase("a = func(b){456;if(b == 1){return \"no\"}else{return \"hi\"} 123;}; a(2)", new String("hi"));
 	}
 
 	[Test]
@@ -198,32 +200,76 @@ public class VMTests
 	public void TestExpressionBlockValuess()
 	{
 		new VMTestCase("a = {1;4;} a;", new Integer(4));
-		//new VMTestCase("a = {}a;", VM.Null);
-		//new VMTestCase("a = {0;b = if(true){1}else{2};b+2};a", new Integer(3));
-		//new VMTestCase("a = {b=1;c=3;d=3;b+c+d};a+a", new Integer(14));
-
+		new VMTestCase("a = {}a;", VM.Null);
+		new VMTestCase("a = {0;b = if(true){1}else{2};b+2};a", new Integer(3));
+		new VMTestCase("a = {b=1;c=3;d=3;b+c+d};a+a", new Integer(14));
 	}
 
 	[Test]
 	public void TestConditionals()
 	{
+		
+		new VMTestCase("if(false){0}else{1} + if(true){4}else{10}", new Integer(5));
+		new VMTestCase("{if (true) {1}else{0} if(false){3}else{4}}", new Integer(4));
+		new VMTestCase("{if (false) {1}else{0} if(true){3}else{4}}", new Integer(3));
 		new VMTestCase("a = if (true) { 10;10 }else{0}; a", new Integer(10));
 		new VMTestCase("a = if(false){3}else{1}; a+a", new Integer(2));
 		new VMTestCase("if(true){3;3;3;3;}else{4;4;4;4;4;}", new Integer(3));
 		new VMTestCase("if(false){3;3;3;3;}else{4;4;4;4;4;}", new Integer(4));
-		//new VMTestCase("if(true){3}", new Integer(3));
-		//new VMTestCase("if(true){if(false){0}else{5}}else{1}", new Integer(5));
-		//new VMTestCase("if(4==2+2){1+2}else{0/0}", new Integer(3));
+		new VMTestCase("if(true){3}", new Integer(3));
+		new VMTestCase("if(true){if(false){0}else{5}}else{1}", new Integer(5));
+		new VMTestCase("if(4==2+2){1+2}else{0/0}", new Integer(3));
 	}
 
 	[Test]
-	public void TestConditionalsWrappedInFunctions()
+	public void TestTernary()
 	{
+		new VMTestCase("true?4:0", new Integer(4));
+		new VMTestCase("false ? 4 : 0", new Integer(0));
+		new VMTestCase("a = false ? 4 : 2;a", new Integer(2));
+		new VMTestCase("null?null:0", new Integer(0));
+		new VMTestCase("true?1:2;false?5:3;true?4:0", new Integer(4));
+		//todo: whats' the associativeness of ternaries? i do not know.
+		new VMTestCase("(true?1:2 > false?3:4)? 5:6", new Integer(6));
+
+	}
+
+	[Test]
+	public void TestConditionalsWrappedInFunctions_A()
+	{
+		//sanity...
+		new VMTestCase("true ? 1:0", new Integer(1));
+		new VMTestCase("func f(){1};f()", new Integer(1));
+		//now...
+		//do we jump to a jump to a wrong location only when inside functions?
+		new VMTestCase("func f(){return (true ? 1:0)};f()", new Integer(1)); //1 on stack, function returns. 1 is returned. 
+		new VMTestCase("func f(){true ? 1:0};f()", new Integer(1)); //1 on stack, function returns. 1 is returned. 
+	}
+
+	[Test]
+	public void FunctionsReturningToCorrectLocation()
+	{
+		new VMTestCase("func f(){1};1;f()+{f()}+f()", new Integer(3));
+		new VMTestCase("func f(a){a};f(1)+f(2)+f(3)", new Integer(6));
+		new VMTestCase("func f(a){return a;0;};{f(1);f(2)f(3);}", new Integer(3));
+		new VMTestCase("func f(a){1;a;3;return a;1;b=2;a;};{f(1);f(2)f(3);}", new Integer(3));
+
+		//this is failing unrelated to the return... makes think jumps are off by one inside function scopes.
+		new VMTestCase("func f(a){a = {a > 5? 1:{true?0:20};} a};1;f(6)+{f(0)}+f(7)", new Integer(2));
+
+	}
+
+	[Test]
+	public void TestConditionalsWrappedInFunctions_B()
+	{
+
 		new VMTestCase("func f(){{1;2;3;1}};f()", new Integer(1));//1 on stack, function returns. 1 is returned. 
 		new VMTestCase("if(true){3}else{4}", new Integer(3)); //leaves 3 on stack
 		new VMTestCase("if(false){3}else{4}", new Integer(4)); //leaves 4 on stack
 		new VMTestCase("if(true){3;3;3;3;}else{4;4;4;4;4;}", new Integer(3));
-		new VMTestCase("func f(){if(true){3}else{4}};f()", new Integer(3));
+		new VMTestCase("func f(){if(false){3}else{4}};f()", new Integer(4));
+		
+		new VMTestCase("f = func (){if(true){3}else{4}};f()", new Integer(3));
 		new VMTestCase("func f(){if(true){3;3;3;3;}else{4;4;4;4;4;}};f()", new Integer(3));
 		new VMTestCase("func f(){1;return {if(false){3;3;3;3;}else{4}}};f()", new Integer(4));
 	}

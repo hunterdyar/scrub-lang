@@ -134,6 +134,9 @@ public class VM
 			if (sp == 1)
 			{
 				return new ScrubVMError("We did not manage to pop the last object! we uh. we should do that.");
+			}else if (sp > 1)
+			{
+				return new ScrubVMError("What's all this junk on the stack?");
 			}
 			_state = VMState.Complete;
 			return null;
