@@ -96,6 +96,21 @@ public class VMTests
 	[Test]
 	public void TestFunctionReturns()
 	{
+		//todo: inside of the function, we jnq to the skip-alt jump.
+			//ofsetting that fixes it, breaks the rest.
+		//outside of the function, we jnq to the correct location.
+		//why?
+		//my best guess is when we add or remove pops, we lost count.
+		new VMTestCase("""
+		               a = 0;
+		               b = 0;
+		               if(a > 5)
+		               {
+		                    b = b+1
+		               }else{
+		                    b = b-1
+		               }
+		               """, new Integer(-1));
 		//todo: i am unable to compare closures (closures, compiled objects) correctly.
 		//new VMTestCase("func (){}", new Closure(new Function([(byte)OpCode.OpNull],0),null));
 	//	new VMTestCase("a = func(b){return 1};a(500)", new Integer(1));
@@ -112,6 +127,7 @@ public class VMTests
 		                   }else{
 		                        b = b-1
 		                   }
+		                   
 		                   return b
 		               }
 		               f(1)
