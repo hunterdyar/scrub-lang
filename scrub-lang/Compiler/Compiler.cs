@@ -544,6 +544,12 @@ public class Compiler
 			{
 				return err;
 			}
+
+			if (this.Scopes.Count == 1)
+			{
+				//todo: should return exit a program if at root? feels... wrong... how do scripting languages do it?
+				return new ScrubCompilerError($"Invalid 'return' statement at root of program. Must be inside a function to return. {rete.Location}");
+			}
 			//presumably, the return value is now on the stack. If there wasn't one, it's null.
 			Emit(OpCode.OpReturnValue);
 			return null;
