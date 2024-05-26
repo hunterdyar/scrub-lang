@@ -244,9 +244,9 @@ public static class Op
 	{
 		var sb = new StringBuilder();
 
-		foreach (int instruction in instructions)
+		for (var i = 0; i < instructions.Length; i++)
 		{
-
+			int instruction = instructions[i];
 			byte[] bytes = BitConverter.GetBytes(instruction);
 			var opb = bytes[0]; //little endian, so this is the leftmost byte.
 
@@ -265,19 +265,20 @@ public static class Op
 			switch (def.OperandWidths.Length)
 			{
 				case 0:
-					instr = $"{def.Name}";
+					instr = $"{i}: {def.Name}";
 					break;
 				case 1:
-					instr = $"{def.Name} {read.Item2[0]}";
+					instr = $"{i}: {def.Name} {read.Item2[0]}";
 					break;
 				case 2:
-					instr = $"{def.Name} {read.Item2[0]} {read.Item2[1]}";
+					instr = $"{i}: {def.Name} {read.Item2[0]} {read.Item2[1]}";
 					break;
 				case 3:
-					instr = $"{def.Name} {read.Item2[0]} {read.Item2[1]} {read.Item2[3]}";
+					instr = $"{i}: {def.Name} {read.Item2[0]} {read.Item2[1]} {read.Item2[3]}";
 					break;
 			}
 
+			sb.Append("\n");
 			sb.AppendFormat(instr);
 		}
 

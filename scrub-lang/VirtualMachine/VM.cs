@@ -880,19 +880,7 @@ public class VM
 		return null;
 	}
 
-	private object UnPop()
-	{
-		if (sp >= StackSize)
-		{
-			return new ScrubVMError("Stack Overflow!");
-		}
-
-		var o = unstack.Pop();
-		usp--;
-		stack[sp] = o;
-		sp++;
-		return o;
-	}
+	
 
 	private ScrubVMError? PushClosure(int closureConstIndex, int numFree)
 	{
@@ -916,6 +904,12 @@ public class VM
 
 	private object Pop()
 	{
+		if (sp == 0)
+		{
+			Console.WriteLine("Warning, popping with nothing to pop.");
+			return null;
+		}
+		
 		var o = stack[sp - 1];
 		sp--;
 		unstack.Push(o);
@@ -923,6 +917,19 @@ public class VM
 		return o;
 	}
 
+	private object UnPop()
+	{
+		if (sp >= StackSize)
+		{
+			return new ScrubVMError("Stack Overflow!");
+		}
+
+		var o = unstack.Pop();
+		usp--;
+		stack[sp] = o;
+		sp++;
+		return o;
+	}
 	private object UnPush()
 	{
 		var o = stack[sp - 1];

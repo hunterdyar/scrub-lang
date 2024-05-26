@@ -39,11 +39,20 @@ public static class UtilityExtensions
 			return false;
 		}
 
-		if (b.Bits.GetHashCode() != a.Bits.GetHashCode())
+		if (a.Bits.Length != b.Bits.Length)
 		{
 			return false;
 		}
-
+		
+		//todo: this sucks but I think i'm refactorying back to bytes later.
+		for (int i= 0; i < a.Bits.Length; i++)
+		{
+			if (a.Bits.Get(i) != b.Bits.Get(i))
+			{
+				return false;
+			}
+		}
+		
 		return true;
 	}
 }
