@@ -225,13 +225,14 @@ public class VM
 				return Push(Null);
 			case OpCode.OpSetGlobal:
 				var globalIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]);
-				globals[globalIndex] = PopScrubObject();
+				//don't pop it, just assign it.
+				globals[globalIndex] = (Object)stack[sp - 1];//was =PopScrobject. might need to be a pop-push to get undo's to work correctly.
 				return null;
 			case OpCode.OpSetLocal:
 				var localIndex = Op.ReadUInt8(insBytes[1]);
 				_frame = CurrentFrame();
 				//set the stack in our buffer area to our object. THis is going to be a tricky one to UNDO
-				stack[_frame.basePointer + (int)localIndex] = PopScrubObject(); //popscrubObject is to force errors if we pop an instruction.
+				stack[_frame.basePointer + (int)localIndex] = (Object)stack[sp - 1];
 				return null;
 			case OpCode.OpGetGlobal:
 				globalIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]);

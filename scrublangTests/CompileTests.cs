@@ -39,7 +39,6 @@ public class CompileTests
 					[new Integer(1)],
 					Op.Make(OpCode.OpConstant, 0),
 					Op.Make(OpCode.OpSetGlobal, 0),
-					Op.Make(OpCode.OpGetGlobal,0),
 					Op.Make(OpCode.OpPop)
 					);
 	}
@@ -95,18 +94,15 @@ public class CompileTests
 			[new Integer(1), new Integer(2)],
 			Op.Make(OpCode.OpConstant, 0),
 			Op.Make(OpCode.OpSetGlobal, 0),
-			Op.Make(OpCode.OpGetGlobal, 0),
 			Op.Make(OpCode.OpPop),
 			Op.Make(OpCode.OpConstant,1),
 			Op.Make(OpCode.OpSetGlobal,1),
-			Op.Make(OpCode.OpGetGlobal,1),
 			Op.Make(OpCode.OpPop)
 		);
 		CompileTest("one = 1\n one",
 			[new Integer(1)],
 			Op.Make(OpCode.OpConstant, 0),
 			Op.Make(OpCode.OpSetGlobal, 0),
-			Op.Make(OpCode.OpGetGlobal, 0),
 			Op.Make(OpCode.OpPop),
 			Op.Make(OpCode.OpGetGlobal, 0),
 			Op.Make(OpCode.OpPop)
@@ -115,11 +111,9 @@ public class CompileTests
 			[new Integer(1)],
 			Op.Make(OpCode.OpConstant, 0),
 			Op.Make(OpCode.OpSetGlobal, 0),
-			Op.Make(OpCode.OpGetGlobal, 0),
 			Op.Make(OpCode.OpPop),
 			Op.Make(OpCode.OpGetGlobal, 0),
 			Op.Make(OpCode.OpSetGlobal, 1),
-			Op.Make(OpCode.OpGetGlobal, 1),
 			Op.Make(OpCode.OpPop),
 			Op.Make(OpCode.OpGetGlobal, 1),
 			Op.Make(OpCode.OpPop)

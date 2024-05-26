@@ -145,13 +145,11 @@ public class Compiler
 				if (functionNameSymbol.Scope == SymbolTable.GlobalScope)
 				{
 					Emit(OpCode.OpSetGlobal, functionNameSymbol.Index); //assign
-					Emit(OpCode.OpGetGlobal, functionNameSymbol.Index);
 				}
 				else
 				{
 					//else local scope
 					Emit(OpCode.OpSetLocal, functionNameSymbol.Index);
-					Emit(OpCode.OpGetLocal, functionNameSymbol.Index);
 				}
 
 				return null;
@@ -163,13 +161,11 @@ public class Compiler
 				if (functionNameSymbol.Scope == SymbolTable.GlobalScope)
 				{
 					Emit(OpCode.OpSetGlobal, functionNameSymbol.Index);
-					Emit(OpCode.OpGetGlobal, functionNameSymbol.Index);
 				}
 				else
 				{
 					//else local scope.
 					Emit(OpCode.OpSetLocal, functionNameSymbol.Index);
-					Emit(OpCode.OpGetLocal, functionNameSymbol.Index);
 				}
 
 				return null;
@@ -196,13 +192,11 @@ public class Compiler
 				if (symbol.Scope == SymbolTable.GlobalScope)
 				{
 					Emit(OpCode.OpSetGlobal, symbol.Index); //assign
-					Emit(OpCode.OpGetGlobal, symbol.Index); //return the value we assigned as the result of the expression.
 				}
 				else
 				{
 					//else local scope
 					Emit(OpCode.OpSetLocal, symbol.Index);
-					Emit(OpCode.OpGetLocal, symbol.Index);
 				}
 
 				return null;
@@ -214,13 +208,11 @@ public class Compiler
 				if (symbol.Scope == SymbolTable.GlobalScope)
 				{
 					Emit(OpCode.OpSetGlobal, symbol.Index);
-					Emit(OpCode.OpGetGlobal, symbol.Index);
 				}
 				else
 				{
 					//else local scope.
 					Emit(OpCode.OpSetLocal, symbol.Index);
-					Emit(OpCode.OpGetLocal, symbol.Index);
 				}
 
 				return null;
