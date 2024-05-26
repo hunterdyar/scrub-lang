@@ -24,7 +24,7 @@ public class Compiler
 	public Compiler()
 	{
 		CompilationScope cs = new CompilationScope();
-		cs.Instuctions = new List<int>();
+		cs.Instructions = new List<int>();
 		Scopes.Push(cs);
 		_scopeIndex = 0;
 		DefineBuiltins();
@@ -42,7 +42,7 @@ public class Compiler
 		}
 
 		CompilationScope cs = new CompilationScope();
-		cs.Instuctions = new List<int>();
+		cs.Instructions = new List<int>();
 		Scopes.Push(cs);
 		_scopeIndex = 0;
 		DefineBuiltins();
@@ -98,6 +98,7 @@ public class Compiler
 						return err;
 					}
 
+					//Emit(OpCode.OpPop);//emitting always made 0 difference, because the 'pop if pop' if statemetns are there.
 					if (i < block.Expressions.Length - 1)
 					{
 						//remove the value from the expression we just called.... which might not have a value? hmmm. shite.
@@ -366,8 +367,7 @@ public class Compiler
 			//alternative
 			//:skip-alternative
 			//with portals:
-			//Cond,jumpJNq[],consequence,jumptoend[],[]jumpJNQ_back,alternative,[]jumptoend_back
-			var firstPos = CurrentScope.Instuctions.Count;
+			//Cond,jumpJNq[],consequence,jumptoend[],jumpJNQ_back[],alternative,JumpPastjumpback[],jumpback[]
 			var err = Compile(condExpr.Conditional);
 			if (err != null)
 			{
@@ -375,27 +375,23 @@ public class Compiler
 			}
 			
 			var jumpNqePos = Emit(OpCode.OpJumpNotTruthy, 9999);//bogus value, let's fix it later.
-			//add skipNWQwhenReverse (-3)
-			//add jump
 			err = Compile(condExpr.Consequence);
 			if (err != null)
 			{
 				return err;
 			}
-			
-			// Emit(OpCode.OpPop);
 			if (LastInstructionIs(OpCode.OpPop))
 			{
 				RemoveLastInstruction();
 			}
 
-			var jumpPos = Emit(OpCode.OpJump, 99999);//skip alternate
-			//this is the "catch" portal of the jumpnottruth, which jumps to after this. we jump to before it.
-			//todo: currectly turn position into uint8 (byte[2])
+			//skip alternative if you did consequence.
+			var jumpPos = Emit(OpCode.OpJump, 99999);
 			
+			//this is the "catch" portal of the jumpnottruth, which jumps to after this. we jump to before it.
 			//this is the jumpnottruthy for going back past the consequence on false, we move to the before consequence position
-			Emit(OpCode.OpJumpNotTruthy, firstPos);
-			var afterConsequencePos = CurrentScope.Instuctions.Count;
+			//Emit(OpCode.OpJumpNotTruthy, jumpNqePos);
+			var afterConsequencePos = CurrentScope.Instructions.Count;
 			ChangeOperand(jumpNqePos, afterConsequencePos);
 
 			//Update the jump-if-conditional-is-not-true destination to be the destination after we compiled the consequence.
@@ -403,7 +399,7 @@ public class Compiler
 			//and the false path needs to jump to after that jump. lest we skip the whole thing.
 			if (condExpr.Alternative is NullExpression)//==nulls
 			{
-				//THis could be just the compile of the alternative. null emits a null.
+				//This could be just the compile of the alternative. null emits a null.
 				//if nothing else, it's a minor optimization.
 				Emit(OpCode.OpNull);
 			}
@@ -421,15 +417,14 @@ public class Compiler
 				}
 			}
 
-			Emit(OpCode.OpJump, CurrentScope.Instuctions.Count+2);//skip self and next? +2? 
+			//skip past the jumps that jump us for going in reverse, when going forward through consequence.
+			//Emit(OpCode.OpJump, CurrentScope.Instuctions.Count+1);//skip self and next? +2? 
 			//curr+jumpx2
-			//skip past the jumps that catch us for going in reverse, when going forward through consequence.
 			//the opposite side of the JUMP command.... minus one. this is for going backwards, it must be skipped when going forwards (see afterAlternate defined after this)
 			//jump takes two bytes. need to do that.
-			// var bytes = jumpPos. todo: this jumpPos is wrong.s
-			Emit(OpCode.OpJump, jumpPos);
-			//todo: 
-			var afterAlternativePos = CurrentScope.Instuctions.Count+1;
+			// var bytes = jumpPos.
+			//Emit(OpCode.OpJump, jumpPos);
+			var afterAlternativePos = CurrentScope.Instructions.Count;
 			ChangeOperand(jumpPos, afterAlternativePos); //backpatch to fix the bogus value.
 			return null;
 		}
@@ -500,7 +495,7 @@ public class Compiler
 			{
 				if (arg.Identifier == n)
 				{
-					return new ScrubCompilerError("A function cannot have the same name as one of it's arguments!");
+					return new ScrubCompilerError($"A function cannot have the same name as one of it's arguments! {arg.Location}");
 				}
 				symbolTable.Define(arg.Identifier);
 			}
@@ -604,15 +599,15 @@ public class Compiler
 
 	public int AddInstruction(int instruction)
 	{
-		var posNewInstruction = CurrentScope.Instuctions.Count;
-		CurrentScope.Instuctions.Add(instruction);
+		var posNewInstruction = CurrentScope.Instructions.Count;
+		CurrentScope.Instructions.Add(instruction);
 		return posNewInstruction;
 	}
 
 	public int AddInstruction(byte instruction)
 	{
-		var posNewInstruction = CurrentScope.Instuctions.Count;
-		CurrentScope.Instuctions.Add(instruction);
+		var posNewInstruction = CurrentScope.Instructions.Count;
+		CurrentScope.Instructions.Add(instruction);
 		return posNewInstruction;
 	}
 
@@ -626,7 +621,7 @@ public class Compiler
 
 	private int[] LeaveScope()
 	{
-		var instructions = CurrentScope.Instuctions.ToArray();
+		var instructions = CurrentScope.Instructions.ToArray();
 		Scopes.Pop();
 		_scopeIndex--;
 		symbolTable = symbolTable.Outer;
@@ -673,7 +668,7 @@ public class Compiler
 
 	private bool LastInstructionIs(OpCode op)
 	{
-		if (CurrentScope.Instuctions.Count == 0)
+		if (CurrentScope.Instructions.Count == 0)
 		{
 			return false;
 		}
@@ -682,19 +677,19 @@ public class Compiler
 
 	private void RemoveLastInstruction()
 	{
-		CurrentScope.Instuctions = CurrentScope.Instuctions.Slice(0, CurrentScope.LastInstruction.Position);
+		CurrentScope.Instructions = CurrentScope.Instructions.Slice(0, CurrentScope.LastInstruction.Position);
 		CurrentScope.LastInstruction = CurrentScope.PreviousInstruction;
 	}
 
 	private void ReplaceInstruction(int pos, int  newInstruction)
 	{
-		CurrentScope.Instuctions[pos] = newInstruction;
+		CurrentScope.Instructions[pos] = newInstruction;
 	}
 
 	private void ChangeOperand(int opPos, int operand)
 	{
 		//we assume that we only change op's of the same type.
-		var op = (OpCode)CurrentScope.Instuctions[opPos];
+		var op = (OpCode)BitConverter.GetBytes(CurrentScope.Instructions[opPos])[0];
 		var newInstruction = Op.Make(op, operand);
 		
 		ReplaceInstruction(opPos, newInstruction);
@@ -702,7 +697,7 @@ public class Compiler
 	//this is what gets passed to the VM.
 	public ByteCode ByteCode()
 	{
-		return new ByteCode(CurrentScope.Instuctions.ToArray(),constants.ToArray(), symbolTable.NumDefinitions);
+		return new ByteCode(CurrentScope.Instructions.ToArray(),constants.ToArray(), symbolTable.NumDefinitions);
 	}
 
 	private void DefineBuiltins()

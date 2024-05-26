@@ -131,6 +131,11 @@ public class Tokenizer
 				//we "consume" the first " by ignoring it.
 				//_state.Consume(c,l,col);
 				return;
+			case '\'':
+				_state = new StringTState(this);
+				//we "consume" the first " by ignoring it.
+				//_state.Consume(c,l,col);
+				return;
 			case ',':
 				AddToken(new Token(TokenType.Comma, c, loc));
 				return;

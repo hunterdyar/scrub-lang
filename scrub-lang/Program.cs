@@ -81,7 +81,6 @@ static class Scrub
 		}
 
 		var comp = environment == null ? new Compiler() : new Compiler(environment);
-		
 		try
 		{
 			var error = comp.Compile(p);

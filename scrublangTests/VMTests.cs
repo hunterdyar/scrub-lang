@@ -2,6 +2,7 @@
 using scrub_lang.Compiler;
 using scrub_lang.Objects;
 using Object = scrub_lang.Objects.Object;
+using String = scrub_lang.Objects.String;
 
 namespace scrub_lang.VirtualMachine;
 
@@ -30,8 +31,6 @@ public class VMTests
 			var error = comp.Compile(p);
 			if (error != null)
 			{
-				//testException
-				Failures++;
 				throw new VMException(error.ToString());
 			}
 
@@ -40,12 +39,13 @@ public class VMTests
 			var vmerror = vm.Run();
 			if (vmerror != null)
 			{
-				Failures++;
 				throw new VMException(vmerror.ToString());
 			}
 
 			var top = vm.LastPopped();
-			return CompareObjects(expected, top);
+			var b= CompareObjects(expected, top);
+			Assert.IsTrue(b);
+			return b;
 		}
 	}
 	
@@ -56,6 +56,13 @@ public class VMTests
 		new VMTestCase("2", new Integer(2));
 		new VMTestCase("1+2", new Integer(3));
 	
+	}
+
+	[Test]
+	public void TestStrings()
+	{
+		new VMTestCase("\"hi\"", new String("hi"));
+		new VMTestCase("\"hi\"+\"hi\"", new String("hihi"));
 	}
 
 	[Test]
@@ -70,14 +77,92 @@ public class VMTests
 	[Test]
 	public void TestFunctionDec()
 	{
-		//todo: i am unable to compare closures (closures, compiled objects) correctly.
 		//new VMTestCase("func (){}", new Closure(new Function([(byte)OpCode.OpNull],0),null));
 		new VMTestCase("a = func(b){b+2};a(1)", new Integer(3));
 		new VMTestCase("func a(){};a()", VM.Null);
 		new VMTestCase("a = func b(){12};a()", new Integer(12));
 		new VMTestCase("b = func(a){a+1};c = b;c(2)", new Integer(3));
 		new VMTestCase("b = func(a){a()};c = b;c(func(){3})", new Integer(3));
+		new VMTestCase("func a(b){};a(1)", VM.Null);
+		new VMTestCase("func a(b,c){};a(1,2)", VM.Null);
+		new VMTestCase("func a(b,c,d){};a(1,2,3)", VM.Null);
+		new VMTestCase("func a(b,c,d,e){};a(1,2,3,4)", VM.Null);
 
+	}
+
+	[Test]
+	public void TestFunctionReturns()
+	{
+		//todo: i am unable to compare closures (closures, compiled objects) correctly.
+		//new VMTestCase("func (){}", new Closure(new Function([(byte)OpCode.OpNull],0),null));
+		new VMTestCase("a = func(b){return 1};a(500)", new Integer(1));
+		new VMTestCase("func a(){return null};a()", VM.Null);
+		new VMTestCase("a = func b(){0;return 12;0;0};a()", new Integer(12));
+		new VMTestCase("b = func(a){101;return a+1;100};c = b;c(2)", new Integer(3));
+		new VMTestCase("b = func(a){return a()};c = b;c(func(){3})", new Integer(3));
+		new VMTestCase("""
+		               func f(a){
+		                   b = 0;
+		                   if(a > 5){
+		                        b = b+1
+		                        }else{
+		                        b = b-1
+		                   }
+		                   return b
+		               }
+		               f(1)
+		               """, new Integer(1));
+	}
+
+	[Test]
+	public void TestFunctionEarlyReturnOutOfConsequence()
+	{
+		//todo: i am unable to compare closures (closures, compiled objects) correctly.
+		new VMTestCase("a = func(b){if(b == 1){return b}else{return 0}};a(1)", new Integer(1));
+		new VMTestCase("a = func(b){134;if(b == 1){return 1+b}else{return 0};123;};a(1)", new Integer(2));
+		new VMTestCase("func a(b){if(b == 1){20;30;40;return b;50;60;}else{return 0}};a(1)", new Integer(1));
+		new VMTestCase("func a(){0;return 5;2;3;4;}a()", new Integer(5));
+	}
+
+	[Test]
+	public void TestEarlyReturnOutOfAlternative()
+	{
+		new VMTestCase("a = func(){456;if(false){return 1}else{return 'no'} 123;}; a()", new String("no"));
+		//new VMTestCase("a = func(b){456;if(b == 1){return b}else{return \"hi\"} 123;}; a(2)", new String("hi"));
+	}
+
+	[Test]
+	public void TestLocalsPopped()
+	{
+		//I think, this and the above case, the return statement isn't getting pushed, so the top of the stack is the last local.
+		//that me
+		new VMTestCase("""
+		               f = func(a,b,c,d){
+		               456;
+		               if(d == 1){
+		                 return b
+		               }else{
+		               //push hi
+		               //return top-of-stack
+		                 return \"hi\"
+		               }
+		                 123;
+		               };
+		               
+		               f(1,2,3,4)
+		               """, new String("hi"));
+		//new VMTestCase("a = func(b){if(b != 1){return b}else{1;2;3;return 0;4}};a(1)", new Integer(0));
+	}
+
+	[Test]
+	public void TestConditionals()
+	{
+		new VMTestCase("if(true){3}", new Integer(3));
+		new VMTestCase("if(false){3}", new Null());
+		new VMTestCase("if(false){3}else{1}", new Integer(1));
+		new VMTestCase("if(true){if(false){0}else{5}}else{1}", new Integer(5));
+		new VMTestCase("if(4==2+2){1+2}else{0/0}", new Integer(3));
+		
 	}
 
 	[Test]

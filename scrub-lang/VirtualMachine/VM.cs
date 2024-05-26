@@ -250,7 +250,14 @@ public class VM
 			case OpCode.OpArray:
 				int numElements = Op.ReadUInt16([insBytes[1], insBytes[2]]); 
 				var array = BuildArray(sp - numElements, sp);
-				sp = sp - numElements;
+				
+				//sp = sp - numElements;
+				for (int i = 0; i < numElements; i++)
+				{
+					//got to do it this weird slow way because undo-ability.
+					Pop();
+				}
+				
 				return Push(array);
 			case OpCode.OpIndex:
 				var index = PopScrubObject();
