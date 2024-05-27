@@ -7,9 +7,11 @@ public class ByteCode
 {
 	public int[] Instructions;
 	public Object[] Constants;
+	public OpLocationLookup Lookup;
 	public int NumSymbols;
-	public ByteCode(int[] instructions, Object[] constants, int numSymbols)
+	public ByteCode(int[] instructions, Object[] constants, OpLocationLookup locationLookup, int numSymbols)
 	{
+		Lookup = locationLookup;
 		Instructions = instructions;
 		Constants = constants;
 		NumSymbols = numSymbols;

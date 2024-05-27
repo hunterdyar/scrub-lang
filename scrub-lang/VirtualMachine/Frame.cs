@@ -1,4 +1,5 @@
-﻿using scrub_lang.Objects;
+﻿using scrub_lang.Compiler;
+using scrub_lang.Objects;
 
 namespace scrub_lang.VirtualMachine;
 
@@ -22,5 +23,18 @@ public class Frame
 	public int[] Instructions()
 	{
 		return closure.CompiledFunction.CompiledFunction;
+	}
+
+	public Location GetLocation()
+	{
+		return closure.CompiledFunction.LocationLookup.GetLocation(ip);
+	}
+	public Location GetLocation(int opPos)
+	{
+		return closure.CompiledFunction.LocationLookup.GetLocation(opPos);
+	}
+	public OpLocationLookup Lookup()
+	{
+		return closure.CompiledFunction.LocationLookup;
 	}
 }

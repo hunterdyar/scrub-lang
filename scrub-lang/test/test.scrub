@@ -1,11 +1,13 @@
-﻿ 
-func cond(){
-    if(true){
+﻿ func cond(){
+    if(false){
         return "t"
     }else{
         "f"
     }
-    "hi"
+    "hi"+3
 }
+
+
+
 
 cond()

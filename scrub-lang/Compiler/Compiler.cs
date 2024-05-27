@@ -66,7 +66,7 @@ public class Compiler
 					return new ScrubCompilerError(error.Message);
 				}
 
-				Emit(OpCode.OpPop);
+				Emit(e.Location,OpCode.OpPop);
 				//these values are unused. All exresssions are unused unless they go into some operator or such.
 				//it's a little weird because everything is an expression, but... after what would be a statement, we clean up the leftover value that the expressions created.
 			}
@@ -74,10 +74,9 @@ public class Compiler
 		}else if (expression is ExpressionGroupExpression block)
 		{
 			//an expression group takes a sequence of expressions and returns a single value from them.
-			
 			if (block.Expressions.Length == 0)
 			{
-				Emit(OpCode.OpNull);
+				Emit(block.Location,OpCode.OpNull);
 			}else if (block.Expressions.Length == 1)
 			{
 				
@@ -112,7 +111,7 @@ public class Compiler
 						//remove the value from the expression we just called.... which might not have a value? hmmm. shite.
 						//our expression leaves us with one nice value at the end, which is what expression blocks become: their last value.
 						//we also could always emit, and then (if needed?) removeLastPop, like with conditionals? 
-						Emit(OpCode.OpPop);
+						Emit(block.Expressions[i].Location,OpCode.OpPop);
 						
 					}else{
 						if (block.Expressions[i] is ConditionalExpression)
@@ -156,12 +155,12 @@ public class Compiler
 			{
 				if (functionNameSymbol.Scope == ScopeDef.Global)
 				{
-					Emit(OpCode.OpSetGlobal, functionNameSymbol.Index); //assign
+					Emit(funcDef.Location,OpCode.OpSetGlobal, functionNameSymbol.Index); //assign
 				}
 				else
 				{
 					//else local scope
-					Emit(OpCode.OpSetLocal, functionNameSymbol.Index);
+					Emit(funcDef.Location,OpCode.OpSetLocal, functionNameSymbol.Index);
 				}
 
 				return null;
@@ -172,12 +171,12 @@ public class Compiler
 				functionNameSymbol = _symbolTable.Define(funcDef.Identity.Identifier);
 				if (functionNameSymbol.Scope == ScopeDef.Global)
 				{
-					Emit(OpCode.OpSetGlobal, functionNameSymbol.Index);
+					Emit(funcDef.Location,OpCode.OpSetGlobal, functionNameSymbol.Index);
 				}
 				else
 				{
 					//else local scope.
-					Emit(OpCode.OpSetLocal, functionNameSymbol.Index);
+					Emit(funcDef.Location,OpCode.OpSetLocal, functionNameSymbol.Index);
 				}
 
 				return null;
@@ -203,12 +202,12 @@ public class Compiler
 				//assign (overwrite)
 				if (symbol.Scope == ScopeDef.Global)
 				{
-					Emit(OpCode.OpSetGlobal, symbol.Index); //assign
+					Emit(assignExpression.Location,OpCode.OpSetGlobal, symbol.Index); //assign
 				}
 				else
 				{
 					//else local scope
-					Emit(OpCode.OpSetLocal, symbol.Index);
+					Emit(assignExpression.Location,OpCode.OpSetLocal, symbol.Index);
 				}
 
 				return null;
@@ -219,12 +218,13 @@ public class Compiler
 				symbol = _symbolTable.Define(assignExpression.Identifier.Identifier);
 				if (symbol.Scope == ScopeDef.Global)
 				{
-					Emit(OpCode.OpSetGlobal, symbol.Index);
+					//location is this or identifier?
+					Emit(assignExpression.Location,OpCode.OpSetGlobal, symbol.Index);
 				}
 				else
 				{
 					//else local scope.
-					Emit(OpCode.OpSetLocal, symbol.Index);
+					Emit(assignExpression.Location,OpCode.OpSetLocal, symbol.Index);
 				}
 
 				return null;
@@ -234,15 +234,7 @@ public class Compiler
 		{
 			if (_symbolTable.TryResolve(identExpr.Identifier, out var symbol))
 			{
-				EmitLoadSymbol(symbol);
-				// if (symbol.Scope == SymbolTable.GlobalScope)
-				// {
-				// 	Emit(OpCode.OpGetGlobal, symbol.Index);
-				// }
-				// else //scope is Local.
-				// {
-				// 	Emit(OpCode.OpGetLocal, symbol.Index);
-				// }
+				EmitLoadSymbol(identExpr.Location,symbol);
 			}
 			else
 			{
@@ -269,7 +261,7 @@ public class Compiler
 				}
 
 				// a<b gets sent to the stack as b>a. we do right before left (above), then a > op
-				Emit(OpCode.OpGreaterThan);
+				Emit(bin.Location,OpCode.OpGreaterThan);
 				return null;
 			}
 			var leftError = Compile(bin.Left);
@@ -287,40 +279,40 @@ public class Compiler
 			switch (bin.Operator)
 			{
 				case TokenType.Plus:
-					Emit(OpCode.OpAdd);
+					Emit(bin.Location,OpCode.OpAdd);
 					break;
 				case TokenType.Minus:
-					Emit(OpCode.OpSubtract);
+					Emit(bin.Location, OpCode.OpSubtract);
 					break;
 				case TokenType.Multiply:
-					Emit(OpCode.OpMult);
+					Emit(bin.Location, OpCode.OpMult);
 					break;
 				case TokenType.Division:
-					Emit(OpCode.OpDivide);
+					Emit(bin.Location, OpCode.OpDivide);
 					break;
 				case TokenType.EqualTo:
-					Emit(OpCode.OpEqual);
+					Emit(bin.Location, OpCode.OpEqual);
 					break;
 				case TokenType.NotEquals:
-					Emit(OpCode.OpNotEqual);
+					Emit(bin.Location, OpCode.OpNotEqual);
 					break;
 				case TokenType.GreaterThan:
-					Emit(OpCode.OpGreaterThan);
+					Emit(bin.Location, OpCode.OpGreaterThan);
 					break;
 				case TokenType.BitwiseAnd:
-					Emit(OpCode.OpBitAnd);
+					Emit(bin.Location, OpCode.OpBitAnd);
 					break;
 				case TokenType.BitwiseOr:
-					Emit(OpCode.OpBitOr);
+					Emit(bin.Location, OpCode.OpBitOr);
 					break;
 				case TokenType.BitwiseXOR:
-					Emit(OpCode.OpBitXor);
+					Emit(bin.Location, OpCode.OpBitXor);
 					break;
 				case TokenType.BitwiseLeftShift:
-					Emit(OpCode.OpBitShiftLeft);
+					Emit(bin.Location, OpCode.OpBitShiftLeft);
 					break;
 				case TokenType.BitwiseRightShift:
-					Emit(OpCode.OpBitShiftRight);
+					Emit(bin.Location, OpCode.OpBitShiftRight);
 					break;
 				default:
 					return new ScrubCompilerError($"Unable to Compile Operator {Token.OperatorToString(bin.Operator)}");
@@ -338,13 +330,13 @@ public class Compiler
 			switch (pre.Op)
 			{
 				case TokenType.Minus:
-					Emit(OpCode.OpNegate);
+					Emit(pre.Location,OpCode.OpNegate);
 					break;
 				case TokenType.Bang:
-					Emit(OpCode.OpBang);
+					Emit(pre.Location,OpCode.OpBang);
 					break;
 				case TokenType.BitwiseNot:
-					Emit(OpCode.OpBitNot);
+					Emit(pre.Location,OpCode.OpBitNot);
 					break;
 				default:
 					return new ScrubCompilerError($"Unable to Compile Prefix Operator {pre.Op}");
@@ -382,7 +374,7 @@ public class Compiler
 				return err;
 			}
 			
-			var jumpNqePos = Emit(OpCode.OpJumpNotTruthy, -1,0);//-1 is bogus value, let's fix it later.
+			var jumpNqePos = Emit(condExpr.Conditional.Location,OpCode.OpJumpNotTruthy, -1,0);//-1 is bogus value, let's fix it later.
 			err = Compile(condExpr.Consequence);
 			if (err != null)
 			{
@@ -394,11 +386,11 @@ public class Compiler
 			}
 
 			//skip alternative if you did consequence.
-			var jumpPos = Emit(OpCode.OpJump, -1,0);
+			var jumpPos = Emit(condExpr.Consequence.Location,OpCode.OpJump, -1,0);
 			
 			//this is the "catch" portal of the jumpnottruth, which jumps to after this. we jump to before it.
 			//this is the jumpnottruthy for going back past the consequence on false, we move to the before consequence position
-			Emit(OpCode.OpJump, jumpNqePos,1);
+			Emit(condExpr.Consequence.Location,OpCode.OpJump, jumpNqePos,1);
 			var afterConsequencePos = CurrentScope.Instructions.Count;
 			if (Scopes.Count > 1)
 			{
@@ -413,7 +405,7 @@ public class Compiler
 			{
 				//This could be just the compile of the alternative. null emits a null.
 				//if nothing else, it's a minor optimization. (otherwise, null, pop, get rid of last pop)
-				Emit(OpCode.OpNull);
+				Emit(condExpr.Location,OpCode.OpNull);
 			}
 			else
 			{
@@ -433,7 +425,7 @@ public class Compiler
 			//Emit(OpCode.OpJump, CurrentScope.Instuctions.Count+1);//skip self and next? +2? 
 			//curr+jumpx2
 			//the opposite side of the JUMP command.... minus one. this is for going backwards, it must be skipped when going forwards
-			Emit(OpCode.OpJumpNotTruthy, afterConsequencePos,1);//problem: the truth/false position is one too far back?
+			Emit(condExpr.Alternative.Location,OpCode.OpJumpNotTruthy, afterConsequencePos,1);//problem: the truth/false position is one too far back?
 			var afterAlternativePos = CurrentScope.Instructions.Count;
 			if (Scopes.Count > 1)
 			{
@@ -451,21 +443,21 @@ public class Compiler
 		{
 			var number = numLitExp.GetScrubObject();
 			//create a new instruction. The operatand is the index of number in our constants pool, basically.
-			Emit(OpCode.OpConstant, AddConstant(number));
+			Emit(numLitExp.Location,OpCode.OpConstant, AddConstant(number));
 			return null;
 		}else if (expression is BoolLiteralExpression boolLitExp)
 		{
-			Emit(boolLitExp.Literal ? OpCode.OpTrue : OpCode.OpFalse);
+			Emit(boolLitExp.Location,boolLitExp.Literal ? OpCode.OpTrue : OpCode.OpFalse);
 			return null;
-		}else if(expression is NullExpression)
+		}else if(expression is NullExpression ne)
 		{
-			Emit(OpCode.OpNull);
+			Emit(ne.Location,OpCode.OpNull);
 			//chill.
 			return null;
 		}else if (expression is StringLiteralExpression stringlitExpr)
 		{
 			var str = stringlitExpr.GetScrubObject();
-			Emit(OpCode.OpConstant, AddConstant(str));
+			Emit(stringlitExpr.Location,OpCode.OpConstant, AddConstant(str));
 			return null;
 		}else if (expression is ArrayLiteralExpression arrayLiteralExpression)
 		{
@@ -479,7 +471,7 @@ public class Compiler
 				}
 			}
 
-			Emit(OpCode.OpArray, length);
+			Emit(arrayLiteralExpression.Location,OpCode.OpArray, length);
 			return null;
 		}else if (expression is IndexExpression arrayLookupExpression)
 		{
@@ -496,7 +488,7 @@ public class Compiler
 				return err;
 			}
 
-			Emit(OpCode.OpIndex);
+			Emit(arrayLookupExpression.Location,OpCode.OpIndex);
 			return null;
 		}else if (expression is FunctionLiteralExpression funcLiteralExpr)
 		{
@@ -530,14 +522,14 @@ public class Compiler
 				Console.WriteLine("Warning: Function ended with a pop.");
 				//there's a more optimized way to do this in one, using replaceInstruction and also replace the opcode.
 				RemoveLastInstruction();
-				Emit(OpCode.OpReturnValue,0);
+				Emit(funcLiteralExpr.Location,OpCode.OpReturnValue,0);
 			}
 
 			if (!LastInstructionIs(OpCode.OpReturnValue))
 			{
 				//Console.WriteLine("Warning: Function didn't return a value. That's a problemo!");
 				//Emit(OpCode.OpNull);
-				Emit(OpCode.OpReturnValue,0);//return whatever we have.
+				Emit(funcLiteralExpr.Location,OpCode.OpReturnValue,0);//return whatever we have.
 			}
 			var freeSymbols = _symbolTable.FreeTable;//we grab a reference to this before we leave the scope, and iterate over/load them them after. That's basically the point.
 			var numLocals = _symbolTable.NumDefinitions;
@@ -548,13 +540,13 @@ public class Compiler
 			//put all free variables on the stack.
 			foreach (var freeSymbol in freeSymbols)
 			{
-				EmitLoadSymbol(freeSymbol);
+				EmitLoadSymbol(funcLiteralExpr.Location,freeSymbol);
 			}
 			
-			var compiledFunction = new Function(instructions,args.Count,numLocals);
+			var compiledFunction = new Function(instructions.Item1,args.Count,numLocals,instructions.Item2);
 			
 			var funcIndex = AddConstant(compiledFunction);
-			Emit(OpCode.OpClosure,funcIndex,freeSymbols.Count);//closures wrap functions. all functions are closures, even when there aren't any free variables.
+			Emit(funcLiteralExpr.Location,OpCode.OpClosure,funcIndex,freeSymbols.Count);//closures wrap functions. all functions are closures, even when there aren't any free variables.
 			return null;
 		}else if (expression is ReturnExpression rete)
 		{
@@ -574,7 +566,7 @@ public class Compiler
 				RemoveLastInstruction();
 			}
 			//presumably, the return value is now on the stack. If there wasn't one, it's null.
-			Emit(OpCode.OpReturnValue);
+			Emit(rete.Location,OpCode.OpReturnValue);
 			return null;
 		}else if (expression is CallExpression callExpr)
 		{
@@ -594,7 +586,7 @@ public class Compiler
 				}
 			}
 			
-			Emit(OpCode.OpCall,callExpr.Args.Length);
+			Emit(callExpr.Location,OpCode.OpCall,callExpr.Args.Length);
 			return null;
 		}
 
@@ -610,10 +602,10 @@ public class Compiler
 		return new ScrubCompilerError($"Unable to compile expression {sb}. Probably not implemented the type yet.");
 	}
 
-	public int Emit(OpCode op, params int[] operands)
+	public int Emit(Location loc, OpCode op, params int[] operands)
 	{
 		var ins = Op.Make(op, operands);
-		var pos = AddInstruction(ins);
+		var pos = AddInstruction(loc,ins);
 		SetLastInstruction(op, pos);
 		return pos;
 	}
@@ -626,17 +618,9 @@ public class Compiler
 		CurrentScope.LastInstruction = last;
 	}
 
-	public int AddInstruction(int instruction)
+	public int AddInstruction(Location loc, int instruction)
 	{
-		var posNewInstruction = CurrentScope.Instructions.Count;
-		CurrentScope.Instructions.Add(instruction);
-		return posNewInstruction;
-	}
-
-	public int AddInstruction(byte instruction)
-	{
-		var posNewInstruction = CurrentScope.Instructions.Count;
-		CurrentScope.Instructions.Add(instruction);
+		var posNewInstruction = CurrentScope.AddInstruction(instruction,loc);
 		return posNewInstruction;
 	}
 
@@ -648,33 +632,33 @@ public class Compiler
 		_symbolTable = _symbolTable.NewEnclosedSymbolTable();
 	}
 
-	private int[] LeaveScope()
+	private (int[],OpLocationLookup) LeaveScope()
 	{
 		var instructions = CurrentScope.Instructions.ToArray();
 		Scopes.Pop();
 		_scopeIndex--;
 		_symbolTable = _symbolTable.Outer;
-		return instructions;
+		return (instructions,CurrentScope.OpLocationLookup);
 	}
 
-	void EmitLoadSymbol(Symbol s)
+	void EmitLoadSymbol(Location loc,Symbol s)
 	{
 		switch (s.Scope)
 		{
 			case ScopeDef.Global:
-				Emit(OpCode.OpGetGlobal, s.Index);
+				Emit(loc,OpCode.OpGetGlobal, s.Index);
 				break;
 			case ScopeDef.Local:
-				Emit(OpCode.OpGetLocal, s.Index);
+				Emit(loc,OpCode.OpGetLocal, s.Index);
 				break;
 			case ScopeDef.Builtin:
-				Emit(OpCode.OpGetBuiltin, s.Index);
+				Emit(loc,OpCode.OpGetBuiltin, s.Index);
 				break;
 			case ScopeDef.Free:
-				Emit(OpCode.OpGetFree, s.Index);
+				Emit(loc,OpCode.OpGetFree, s.Index);
 				break;
 			case ScopeDef.Function:
-				Emit(OpCode.OpCurrentClosure);//get constant... of a closure, but whatever the current one is in the vm at runtime.
+				Emit(loc,OpCode.OpCurrentClosure);//get constant... of a closure, but whatever the current one is in the vm at runtime.
 				break;
 			default:
 				throw new CompileException($"what scope is {s.Scope}? that's not right.");
@@ -725,7 +709,8 @@ public class Compiler
 	//this is what gets passed to the VM.
 	public ByteCode ByteCode()
 	{
-		return new ByteCode(CurrentScope.Instructions.ToArray(),_constants.ToArray(), _symbolTable.NumDefinitions);
+		//todo: decide how to encode the Location Lookup tables and pass them to the VM for errors.
+		return new ByteCode(CurrentScope.Instructions.ToArray(),_constants.ToArray(),CurrentScope.OpLocationLookup, _symbolTable.NumDefinitions);
 	}
 
 	private void DefineBuiltins()

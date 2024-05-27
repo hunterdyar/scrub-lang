@@ -12,7 +12,7 @@ namespace scrub_lang.Tokenizer;
 public class Tokenizer
 {
 	private TokenizerStateBase? _state;
-	private int _currentLine = 0;
+	private int _currentLine = 1;
 	private int _currentColumn = -1;
 
 	public List<Token> Tokens => _tokens;

@@ -66,7 +66,7 @@ public class VM
 		_conditionalHistory.Add(OpCode.OpJumpNotTruthy, new Stack<bool>());
 
 		//instructions
-		var mainFunction = new Function(byteCode.Instructions, 0,byteCode.NumSymbols,false);
+		var mainFunction = new Function(byteCode.Instructions, 0,byteCode.NumSymbols,byteCode.Lookup,false);
 		var mainClosure = new Closure(mainFunction);//all functions are closures. The program is a function. the program is a closure. it's closures all the way down.
 		var mainFrame = new Frame(mainClosure,0,-1);
 		Frames.Push(mainFrame);
@@ -83,7 +83,8 @@ public class VM
 		ByteCode = byteCode; //keep a copy.
 		_conditionalHistory.Add(OpCode.OpJumpNotTruthy,new Stack<bool>());
 		//instructions
-		var mainFunction = new Function(byteCode.Instructions, 0,byteCode.NumSymbols, false);//we track numSymbols here just for fun. 
+		//todo: should we put a function object into the bytecode class instead of basically deconstrucctin and reconstructing?
+		var mainFunction = new Function(byteCode.Instructions, 0,byteCode.NumSymbols,byteCode.Lookup, false);//we track numSymbols here just for fun. 
 		var mainClosure = new Closure(mainFunction);
 		var mainFrame = new Frame(mainClosure,0,-1);
 		Frames.Push(mainFrame);
@@ -134,7 +135,7 @@ public class VM
 	
 	public ScrubVMError? RunOne()
 	{
-		if (CurrentFrame().ip >= CurrentFrame().Instructions().Length - 1)
+		if (CurrentFrame.ip >= CurrentFrame.Instructions().Length - 1)
 		{
 			if (sp == 1)
 			{
@@ -152,11 +153,11 @@ public class VM
 		ScrubVMError? error = null;
 		//ip is instructionPointer
 	
-		CurrentFrame().ip++;//increment at start instead of at end because of all the returns. THis is why we init the frame with an ip of -1.
+		CurrentFrame.ip++;//increment at start instead of at end because of all the returns. THis is why we init the frame with an ip of -1.
 		//fetch -> decode -> execute
-		ip = CurrentFrame().ip;
-		ins = CurrentFrame().Instructions();
-		Console.WriteLine($"Do: {Op.InstructionToString(ins[ip])}");
+		ip = CurrentFrame.ip;
+		ins = CurrentFrame.Instructions();
+		Console.WriteLine($"({CurrentLocation}) Do: {Op.InstructionToString(ins[ip])}");
 
 		var insBytes = BitConverter.GetBytes(ins[ip]);
 		//fetch
@@ -221,7 +222,7 @@ public class VM
 				{
 					return null;
 				}
-				CurrentFrame().ip = pos - 1; //+1 when the loop ends :p
+				CurrentFrame.ip = pos - 1; //+1 when the loop ends :p
 				return null;
 			case OpCode.OpJumpNotTruthy:
 				pos = Op.ReadUInt16([insBytes[1], insBytes[2]]);
@@ -235,7 +236,7 @@ public class VM
 				_conditionalHistory[OpCode.OpJumpNotTruthy].Push(jmp);
 				if (jmp)
 				{
-					CurrentFrame().ip = pos - 1;
+					CurrentFrame.ip = pos - 1;
 				}
 				return null;
 			case OpCode.OpNull:
@@ -248,7 +249,7 @@ public class VM
 				return null;
 			case OpCode.OpSetLocal:
 				var localIndex = Op.ReadUInt8(insBytes[1]);
-				_frame = CurrentFrame();
+				_frame = CurrentFrame;
 				_unstack.Push(_stack[_frame.basePointer + (int)localIndex]);//save old value to history.
 				//set the stack in our buffer area to our object. THis is going to be a tricky one to UNDO
 				_stack[_frame.basePointer + (int)localIndex] = (Object)_stack[sp - 1];
@@ -259,7 +260,7 @@ public class VM
 				return null;
 			case OpCode.OpGetLocal:
 				localIndex = Op.ReadUInt8(insBytes[1]);
-				_frame = CurrentFrame();
+				_frame = CurrentFrame;
 				return Push(_stack[_frame.basePointer + (int)localIndex]);
 			case OpCode.OpGetBuiltin:
 				var builtInIndex = Op.ReadUInt8(insBytes[1]);
@@ -267,10 +268,10 @@ public class VM
 				return Push(def.Builtin);
 			case OpCode.OpGetFree:
 				var freeIndex = Op.ReadUInt8(insBytes[1]);
-				var currentClosure = CurrentFrame().closure;
+				var currentClosure = CurrentFrame.closure;
 				return Push(currentClosure.FreeVariables[freeIndex]);
 			case OpCode.OpCurrentClosure:
-				currentClosure = CurrentFrame().closure;
+				currentClosure = CurrentFrame.closure;
 				return Push(currentClosure);
 			case OpCode.OpArray:
 				int numElements = Op.ReadUInt16([insBytes[1], insBytes[2]]); 
@@ -294,7 +295,7 @@ public class VM
 	}
 	public ScrubVMError? PreviousOne()
 	{
-		if (CurrentFrame().ip < 0)
+		if (CurrentFrame.ip < 0)
 		{
 			if (Frames.TryPop(out var old))
 			{
@@ -316,9 +317,9 @@ public class VM
 		//ip is instructionPointer
 	
 		// CurrentFrame().ip;
-		ip = CurrentFrame().ip;
-		ins = CurrentFrame().Instructions();
-		Console.WriteLine($"Undo: {Op.InstructionToString(ins[ip])}");
+		ip = CurrentFrame.ip;
+		ins = CurrentFrame.Instructions();
+		Console.WriteLine($"({CurrentLocation}) Undo: {Op.InstructionToString(ins[ip])}");
 		var insBytes = BitConverter.GetBytes(ins[ip]);
 		//fetch
 		OpCode op = (OpCode)insBytes[0];
@@ -328,18 +329,18 @@ public class VM
 			case OpCode.OpConstant:
 				UnPush();
 				var constIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]); 
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpCall:
 				var p = UnPush();//first, trash the result of the return.
 				var numArgs = Op.ReadUInt8(insBytes[1]);
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return DeexecuteFunction(numArgs);
 				break;
 			case OpCode.OpClosure:
 				var cIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]);
 				UnPush();
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 				//return PushClosure((int)cIndex, (int)numFreeVars);
 			case OpCode.OpReturnValue:
@@ -349,7 +350,7 @@ public class VM
 				_frame = PopFrame();
 				//pop. The -1 gets rid of the function call too.
 				//sp = _frame.basePointer - 1;
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpAdd:
 			case OpCode.OpSubtract:
@@ -364,13 +365,13 @@ public class VM
 				UnPush();//remove the result of the op
 				UnPop();//restore the previous values. I think this will do it in the right order?
 				UnPop();
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpConcat:
-				return new ScrubVMError("Concatenation Operator Not Yet Implemented");
+				return new ScrubVMError($"Concatenation Operator Not Yet Implemented {CurrentLocation}");
 			case OpCode.OpPop:
 				UnPop();
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpTrue:
 				var o = UnPush();
@@ -379,11 +380,11 @@ public class VM
 					throw new VMException($"Reverse error (expected True, got {o}");
 				}
 
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpFalse:
 				UnPush();
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpEqual:
 			case OpCode.OpNotEqual:
@@ -391,14 +392,14 @@ public class VM
 				UnPush(); //remove the result of the op
 				UnPop(); //restore the previous values
 				UnPop();
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpBang:
 			case OpCode.OpNegate:
 				//todo: can't we just run the negate operator again?
 				UnPush();
 				UnPop();
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpJump:
 				int pos = Op.ReadUInt16([insBytes[1], insBytes[2]]);
@@ -406,10 +407,10 @@ public class VM
 				if (!reverse)
 				{
 					//don't jump forward jumps.
-					CurrentFrame().ip--;
+					CurrentFrame.ip--;
 					return null;
 				}
-				CurrentFrame().ip = pos - 1; //+1 when the loop ends :p
+				CurrentFrame.ip = pos - 1; //+1 when the loop ends :p
 				return null;
 			case OpCode.OpJumpNotTruthy:
 				//push truthy value w checked before back onto the stack.
@@ -418,7 +419,7 @@ public class VM
 				if (!reverse)
 				{
 					//don't jump forward jumps.
-					CurrentFrame().ip--;
+					CurrentFrame.ip--;
 					return null;
 				}
 				var condition = UnPop();
@@ -426,7 +427,7 @@ public class VM
 				_conditionalHistory[OpCode.OpJumpNotTruthy].Push(jmp);
 				if (jmp)
 				{
-					CurrentFrame().ip = pos - 1;//pos-1 or pos+1? or pos? can't think, trial-and-error-ing.
+					CurrentFrame.ip = pos - 1;//pos-1 or pos+1? or pos? can't think, trial-and-error-ing.
 				}
 				return null;
 			case OpCode.OpNull:
@@ -435,7 +436,7 @@ public class VM
 				{
 					throw new VMException($"Reverse error (expected True, got {o}");
 				}
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpSetGlobal:
 				var oldVal = _unstack.Pop();
@@ -444,31 +445,31 @@ public class VM
 				var globalIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]);
 				_globals[globalIndex] = (Object)oldVal;
 				//todo: we don't know the previous value of this variable. 
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpSetLocal:
 				oldVal = _unstack.Pop();
 				var localIndex = Op.ReadUInt8(insBytes[1]);
-				_frame = CurrentFrame();
+				_frame = CurrentFrame;
 				_stack[_frame.basePointer + (int)localIndex] = oldVal;
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpGetGlobal:
 				globalIndex = Op.ReadUInt16([insBytes[1],insBytes[2]]);
 				// Push(globals[globalIndex]);
 				UnPush();
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpGetLocal:
 				localIndex = Op.ReadUInt8(insBytes[1]);
 				//_frame = CurrentFrame();
 				UnPush();
 				// return Push(stack[_frame.basePointer + (int)localIndex]);
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpGetBuiltin:
 				var builtInIndex = Op.ReadUInt8(insBytes[1]);
-				CurrentFrame().ip --;
+				CurrentFrame.ip --;
 				//var def = Builtins.AllBuiltins[builtInIndex];
 				UnPush();
 				return null;
@@ -478,20 +479,20 @@ public class VM
 				//var currentClosure = CurrentFrame().closure;
 				//return Push(currentClosure.FreeVariables[freeIndex]);
 				UnPush();
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpCurrentClosure:
 				//currentClosure = CurrentFrame().closure;
 				// return Push(currentClosure);
 				UnPush();
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 			case OpCode.OpArray:
 				int numElements = Op.ReadUInt16([insBytes[1], insBytes[2]]);
 				var array = BuildArray(sp - numElements, sp);
 				sp = sp - numElements;
 				UnPush();
-				CurrentFrame().ip--;
+				CurrentFrame.ip--;
 				return null;
 				// return Push(array);
 			case OpCode.OpIndex:
@@ -499,7 +500,7 @@ public class VM
 				var left = UnPop();
 				var index = UnPop();
 				// return RunIndexExpression(left, index);
-				CurrentFrame().ip --;
+				CurrentFrame.ip --;
 				return null;
 		}
 		return null;
@@ -526,7 +527,7 @@ public class VM
 				break;
 		}
 
-		return new ScrubVMError($"Unable to UnExecute Function. Obj \"{callee}\" is not a function.");
+		return new ScrubVMError($"Unable to UnExecute Function. Obj \"{callee}\" is not a function. {CurrentLocation}");
 
 	}
 	private ScrubVMError? ExecuteFunction(int numArgs)
@@ -541,10 +542,10 @@ public class VM
 			case ScrubType.Builtin:
 				return CallBuiltin((Builtin)callee, numArgs);
 			case ScrubType.Function:
-				return new ScrubVMError("Trying to Execute Function that isn't wrapped as a closure!");
+				return new ScrubVMError($"Trying to Execute Function that isn't wrapped as a closure! {CurrentLocation}");
 		}
 
-		return new ScrubVMError($"Unable to Execute Function. Obj \"{callee}\" is not a function.");
+		return new ScrubVMError($"Unable to Execute Function. Obj \"{callee}\" is not a function. {CurrentLocation}");
 	}
 
 	private ScrubVMError? CallBuiltin(Builtin fn, int numArgs)
@@ -576,7 +577,7 @@ public class VM
 		if (numArgs != cl.CompiledFunction.NumArgs)
 		{
 			//todo: write tests for this.
-			return new ScrubVMError("Wrong number of arguments!");
+			return new ScrubVMError($"Wrong number of arguments! {CurrentLocation}");
 		}
 		var frame = new Frame(cl,sp-numArgs);
 		PushFrame(frame);
@@ -588,7 +589,7 @@ public class VM
 	{
 		if (numArgs != cl.CompiledFunction.NumArgs)
 		{
-			return new ScrubVMError("Wrong number of arguments? But we are undo-ing? huh?");
+			return new ScrubVMError($"Wrong number of arguments? But we are undo-ing? huh? {CurrentLocation}");
 		}
 		//go into a frame like normal, then move up the stack and call?
 		//when we reach the top of the function, we will need to take it off the stack, but the call is a lateral move to a new Instructions, basically.
@@ -642,7 +643,7 @@ public class VM
 			//todo: we don't have a byte type (yet, it's there but untested/unexpected)... or a char type. Keep your UTF8 lookup tables handly!
 			return Push(new Integer(bytes[i]));
 		}else{
-			return new ScrubVMError($"Unable to index {lt} with {it}");
+			return new ScrubVMError($"Unable to index {lt} with {it} at {CurrentLocation}");
 		}
 
 		return null;
@@ -678,7 +679,7 @@ public class VM
 			return Push(new Integer(-(operand as Integer).NativeInt));
 		}
 
-		return new ScrubVMError($"Unable to negate (-) {operand}");
+		return new ScrubVMError($"Unable to negate (-) {operand} at {CurrentLocation}");
 	}
 
 	private ScrubVMError? RunBangOperator(OpCode op)
@@ -700,7 +701,7 @@ public class VM
 			if (op == OpCode.OpBang)
 			{
 				return new ScrubVMError(
-					$"Can't run bang operator on {obj}. I don't know what our truthy  table is yet and I haven't decided.");
+					$"Can't run bang operator on {obj}. I don't know what our truthy  table is yet and I haven't decided. {CurrentLocation}");
 			}else
 			{
 				return new ScrubVMError("Trying to run bang operator from incorrect state. Somnething went wrong earlier and the VM ended up here.");
@@ -731,7 +732,7 @@ public class VM
 				case OpCode.OpNotEqual:
 					return Push(NativeBoolToBooleanObject(lb != rb));
 				default:
-					return new ScrubVMError($"Unknown Operator {{op}} for {l.GetType()} and {r.GetType()}");
+					return new ScrubVMError($"Unknown Operator {{op}} for {l.GetType()} and {r.GetType()} at {CurrentLocation}");
 			}
 		}
 		switch (op)
@@ -741,7 +742,7 @@ public class VM
 			case OpCode.OpNotEqual:
 				return Push(NativeBoolToBooleanObject(l != r));
 			default:
-				return new ScrubVMError($"Unknown Operator {{op}} for {l.GetType()} and {r.GetType()}");
+				return new ScrubVMError($"Unknown Operator {{op}} for {l.GetType()} and {r.GetType()} at {CurrentLocation}");
 		}
 	}
 
@@ -757,7 +758,7 @@ public class VM
 			case OpCode.OpGreaterThan:
 				return Push(NativeBoolToBooleanObject(a.NativeInt > b.NativeInt));
 			default:
-				return new ScrubVMError($"Unknown Operator {op}");
+				return new ScrubVMError($"Unknown integer comparison Operator {op} {CurrentLocation}");
 		}
 	}
 
@@ -783,11 +784,11 @@ public class VM
 			//if opcode is not bitshift, which feel sunlikely enough to ignore it for now.
 			if (op != OpCode.OpBitShiftLeft && op != OpCode.OpBitShiftRight)
 			{
-				return new ScrubVMError("Trying to bit shift, but wrong operator? ");
+				return new ScrubVMError($"Trying to bit shift, but wrong operator? {CurrentLocation}");
 			}
 			else if(rightType != ScrubType.Int)
 			{
-				return new ScrubVMError("Cannot Bitshift by non-integer amount");
+				return new ScrubVMError($"Cannot Bitshift by non-integer amount. {CurrentLocation}");
 			}
 		}
 
@@ -825,7 +826,7 @@ public class VM
 			return RunConcatOperation(op, l, r);
 		}
 		
-		return new ScrubVMError($"Unsupported types for operation {op}");
+		return new ScrubVMError($"Unsupported types ({l.GetType()},{r.GetType()}) for operation {op} at {CurrentLocation}");
 	}
 
 	private ScrubVMError? RunBinaryBooleanOperation(OpCode op, Bool left, Bool right)
@@ -844,7 +845,7 @@ public class VM
 				result = new Bool(left.NativeBool ^ right.NativeBool);
 				break;
 			default:
-				return new ScrubVMError($"Unsupported binary operation {op} for 2 booleans.");
+				return new ScrubVMError($"Unsupported binary operation {op} for 2 booleans at {CurrentLocation}");
 		}
 
 		return Push(result);
@@ -881,7 +882,7 @@ public class VM
 				//todo: should 1++2 return 12 or "12". right now it's "12", which i think is right.
 				return RunBinaryStringOperation(op, new String(left.ToString()), new String(right.ToString()));
 			default:
-				return new ScrubVMError($"Unkown Integer Operation {op}");
+				return new ScrubVMError($"Unkown Integer Operation {op} at {CurrentLocation}");
 		}
 		return Push(result);
 	}
@@ -898,7 +899,7 @@ public class VM
 				result = new String(left, right);
 				break;
 			default:
-				return new ScrubVMError($"Unkown Integer Operation {op}");
+				return new ScrubVMError($"Unkown Integer Operation {op} at {CurrentLocation}");
 		}
 
 		return Push(result);
@@ -1008,7 +1009,9 @@ public class VM
 		return _stack[sp];
 	}
 
-	public Frame CurrentFrame() => Frames.Peek();
+	public Location CurrentLocation => CurrentFrame.GetLocation();
+	public Frame CurrentFrame => Frames.Peek();
+
 	public void PushFrame(Frame f) { Frames.Push(f); }
 
 	public Frame PopFrame()
