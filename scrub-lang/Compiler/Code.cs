@@ -1,7 +1,4 @@
-﻿using System.Data;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using scrub_lang.Compiler;
+﻿using System.Text;
 
 namespace scrub_lang.Compiler;
 

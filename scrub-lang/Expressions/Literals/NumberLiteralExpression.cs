@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using scrub_lang.Compiler;
 using scrub_lang.Objects;
-using Object = System.Object;
 
 namespace scrub_lang.Parser;
 

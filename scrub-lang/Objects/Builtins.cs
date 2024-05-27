@@ -1,5 +1,4 @@
-﻿using scrub_lang.Evaluator;
-using scrub_lang.VirtualMachine;
+﻿using scrub_lang.VirtualMachine;
 
 namespace scrub_lang.Objects;
 

@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices.JavaScript;
-using scrub_lang.Parser;
+﻿using scrub_lang.Parser;
 using scrub_lang.Tokenizer.Tokens;
 
 namespace scrub_lang.Tokenizer;

@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using scrub_lang.VirtualMachine;
-
-namespace scrub_lang.Compiler;
+﻿namespace scrub_lang.Compiler;
 
 public class SymbolTable
 {

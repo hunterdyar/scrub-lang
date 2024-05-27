@@ -15,10 +15,7 @@ public class ConditionalExpression : IExpression
 	public IExpression? Alternative =>_alterativeExpr;
 	private readonly IExpression? _alterativeExpr;
 	public Location Location { get; }
-
-	//i don't need this little test but damn if im not chasing bugs down!
-	public bool ReturnsValue => true;
-
+	
 	public ConditionalExpression(IExpression conditionExpr, IExpression consequenceExpr, IExpression? aterativeExpr, Location location)
 	{
 		Location = location;

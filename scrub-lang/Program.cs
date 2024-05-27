@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Security.Cryptography;
-using scrub_lang;
 using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
 using scrub_lang.Parser;

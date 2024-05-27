@@ -1,10 +1,8 @@
-﻿using System.Text;
-using scrub_lang.Compiler;
-using scrub_lang.Evaluator;
-using scrub_lang.Parser;
+﻿using scrub_lang.Compiler;
 
 namespace scrub_lang.Evaluator;
 
+//todo: refactor this. I think we are passing two symbol tables around? 
 public class Environment
 {
 	public SymbolTable? SymbolTable;

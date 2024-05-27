@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using scrub_lang.Tokenizer.Tokens;
+﻿using scrub_lang.Tokenizer.Tokens;
 
 namespace scrub_lang.Parser;
 

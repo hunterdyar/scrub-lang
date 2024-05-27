@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace scrub_lang.Tokenizer.Tokens;
+﻿namespace scrub_lang.Tokenizer.Tokens;
 
 public class Token
 {

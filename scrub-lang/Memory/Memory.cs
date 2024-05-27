@@ -1,5 +1,4 @@
 ﻿using scrub_lang.Evaluator;
-using scrub_lang.Parser;
 
 namespace scrub_lang.Memory;
 
