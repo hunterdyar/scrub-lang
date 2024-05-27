@@ -208,7 +208,7 @@ public class VMTests
 	[Test]
 	public void TestConditionals()
 	{
-		
+		new VMTestCase("if(false){0}else{1}", new Integer(1));
 		new VMTestCase("if(false){0}else{1} + if(true){4}else{10}", new Integer(5));
 		new VMTestCase("{if (true) {1}else{0} if(false){3}else{4}}", new Integer(4));
 		new VMTestCase("{if (false) {1}else{0} if(true){3}else{4}}", new Integer(3));

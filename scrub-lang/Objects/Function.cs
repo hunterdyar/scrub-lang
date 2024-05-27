@@ -13,9 +13,9 @@ public class Function : Object
 	{
 		if (prependReturn)
 		{
-			//CompiledFunction = new int[instructions.Length + 1];
-			//CompiledFunction[0] = Op.Make(OpCode.OpReturnValue,0,0);//hmmmmmmmmmmmmmmmm
-			//instructions.CopyTo(CompiledFunction, 1);
+			CompiledFunction = new int[instructions.Length + 1];
+			CompiledFunction[0] = Op.Make(OpCode.OpReturnValue,1);//hmmmmmmmmmmmmmmmm
+			instructions.CopyTo(CompiledFunction, 1);
 		}
 		else
 		{

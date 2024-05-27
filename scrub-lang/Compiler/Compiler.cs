@@ -382,7 +382,7 @@ public class Compiler
 				return err;
 			}
 			
-			var jumpNqePos = Emit(OpCode.OpJumpNotTruthy, -1,1);//bogus value, let's fix it later.
+			var jumpNqePos = Emit(OpCode.OpJumpNotTruthy, -1,0);//-1 is bogus value, let's fix it later.
 			err = Compile(condExpr.Consequence);
 			if (err != null)
 			{
@@ -394,17 +394,17 @@ public class Compiler
 			}
 
 			//skip alternative if you did consequence.
-			var jumpPos = Emit(OpCode.OpJump, -1,1);
+			var jumpPos = Emit(OpCode.OpJump, -1,0);
 			
 			//this is the "catch" portal of the jumpnottruth, which jumps to after this. we jump to before it.
 			//this is the jumpnottruthy for going back past the consequence on false, we move to the before consequence position
-			Emit(OpCode.OpJump, jumpNqePos,0);
+			Emit(OpCode.OpJump, jumpNqePos,1);
 			var afterConsequencePos = CurrentScope.Instructions.Count;
 			if (Scopes.Count > 1)
 			{
 				afterConsequencePos += 1;
 			}
-			ChangeOperand(jumpNqePos, afterConsequencePos,1);//the plus one here is a pop added by something else? sometimes...
+			ChangeOperand(jumpNqePos, afterConsequencePos,0);//the plus one here is a pop added by something else? sometimes...
 
 			//Update the jump-if-conditional-is-not-true destination to be the destination after we compiled the consequence.
 			//if there is an alternative, then the true path needs to hit a jump to skip it.
@@ -433,7 +433,7 @@ public class Compiler
 			//Emit(OpCode.OpJump, CurrentScope.Instuctions.Count+1);//skip self and next? +2? 
 			//curr+jumpx2
 			//the opposite side of the JUMP command.... minus one. this is for going backwards, it must be skipped when going forwards
-			Emit(OpCode.OpJumpNotTruthy, afterConsequencePos,0);//problem: the truth/false position is one too far back?
+			Emit(OpCode.OpJumpNotTruthy, afterConsequencePos,1);//problem: the truth/false position is one too far back?
 			var afterAlternativePos = CurrentScope.Instructions.Count;
 			if (Scopes.Count > 1)
 			{
@@ -443,7 +443,7 @@ public class Compiler
 				afterAlternativePos += 1;
 			}
 			// Console.WriteLine($"afterAlternativePos is after: {Op.InstructionToString(CurrentScope.Instructions[afterAlternativePos-1])}");
-			ChangeOperand(jumpPos, afterAlternativePos,1); //this or this -1 is ... being tested.//backpatch to fix the bogus value.
+			ChangeOperand(jumpPos, afterAlternativePos,0); //this or this -1 is ... being tested.//backpatch to fix the bogus value.
 			return null;
 		}
 		//should we have a literalExpressionBase?
@@ -530,14 +530,14 @@ public class Compiler
 				Console.WriteLine("Warning: Function ended with a pop.");
 				//there's a more optimized way to do this in one, using replaceInstruction and also replace the opcode.
 				RemoveLastInstruction();
-				Emit(OpCode.OpReturnValue);
+				Emit(OpCode.OpReturnValue,0);
 			}
 
 			if (!LastInstructionIs(OpCode.OpReturnValue))
 			{
 				//Console.WriteLine("Warning: Function didn't return a value. That's a problemo!");
 				//Emit(OpCode.OpNull);
-				Emit(OpCode.OpReturnValue);//return a null.
+				Emit(OpCode.OpReturnValue,0);//return whatever we have.
 			}
 			var freeSymbols = _symbolTable.FreeTable;//we grab a reference to this before we leave the scope, and iterate over/load them them after. That's basically the point.
 			var numLocals = _symbolTable.NumDefinitions;

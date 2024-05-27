@@ -152,7 +152,7 @@ public static class Op
 		{ OpCode.OpArray, new Definition("Array", new int[] { 2 }) },//length of array
 		{ OpCode.OpIndex, new Definition("Index", new int[] { }) },//no operands, it expects two values on the stack. an object and an index.
 		{ OpCode.OpCall, new Definition("Call", new int[] { 1 }) },//number of arguments
-		{ OpCode.OpReturnValue, new Definition("Return", new int[] { }) },//no arguments. The value to be returned will be on the stack.
+		{ OpCode.OpReturnValue, new Definition("Return", new int[] { 1 }) },//no arguments. (reverse flag) The value to be returned will be on the stack.
 		{ OpCode.OpGetLocal, new Definition("GetLocal", new int[] { 1 }) },//make these 2bytes? 256 local variables vs ... more than that.
 		{ OpCode.OpSetLocal, new Definition("SetLocal", new int[] { 1 }) },
 		{ OpCode.OpGetBuiltin, new Definition("GetBuiltin", new int[] { 1 }) },//if we ever have >256 builtins, then we can just make it two bytes wide.

@@ -175,6 +175,8 @@ public class VM
 				var numFreeVars = Op.ReadUInt8(insBytes[3]);
 				return PushClosure((int)cIndex, (int)numFreeVars);
 			case OpCode.OpReturnValue:
+				bool frwd = 0 == Op.ReadUInt8(insBytes[1]); //is this a return from function or a finished-undoing-function (fstart)
+				if (!frwd) return null;
 				var returnValue = Pop();
 				_frame = PopFrame();
 				//after storing the return value top of stack), remove all locals and free's:
@@ -214,7 +216,7 @@ public class VM
 				return RunNegateOperator(op);
 			case OpCode.OpJump:
 				int pos = Op.ReadUInt16([insBytes[1], insBytes[2]]);
-				bool frwd = 1 == Op.ReadUInt8(insBytes[3]);//is this a jump or an un-jump?if
+				frwd = 0 == Op.ReadUInt8(insBytes[3]);//is this a jump or an un-jump?if
 				if (!frwd)
 				{
 					return null;
@@ -223,7 +225,7 @@ public class VM
 				return null;
 			case OpCode.OpJumpNotTruthy:
 				pos = Op.ReadUInt16([insBytes[1], insBytes[2]]);
-				frwd = 1 == Op.ReadUInt8(insBytes[3]); //is this a jump or an un-jump?if
+				frwd = 0 == Op.ReadUInt8(insBytes[3]); //is this a jump or an un-jump?if
 				if (!frwd)
 				{
 					return null;
@@ -341,7 +343,9 @@ public class VM
 				return null;
 				//return PushClosure((int)cIndex, (int)numFreeVars);
 			case OpCode.OpReturnValue:
-				//we jump past the return value, and already popped it off the stack in anti-call.
+				bool backwrds = 1 == Op.ReadUInt8(insBytes[1]); //is this a return from function or a finished-undoing-function (fstart)
+				if (!backwrds) return null;
+				//we already popped it off the stack in anti-call.
 				_frame = PopFrame();
 				//pop. The -1 gets rid of the function call too.
 				//sp = _frame.basePointer - 1;
@@ -398,7 +402,7 @@ public class VM
 				return null;
 			case OpCode.OpJump:
 				int pos = Op.ReadUInt16([insBytes[1], insBytes[2]]);
-				var reverse = Op.ReadUInt8(insBytes[3]) == 0;
+				var reverse = Op.ReadUInt8(insBytes[3]) == 1;
 				if (!reverse)
 				{
 					//don't jump forward jumps.
