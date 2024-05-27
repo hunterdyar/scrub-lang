@@ -15,7 +15,7 @@ public class Integer : Object
 			//hmmmm. This right? we should reverse byte-wise before storing the bits.
 			bytes = bytes.Reverse().ToArray();
 		}
-		Bits = new BitArray(bytes); //todo: this will make integers always 32 bits, which i think is desired.
+		Bits = new BitArray(bytes);
 	}
 
 	public Integer(BitArray bits)

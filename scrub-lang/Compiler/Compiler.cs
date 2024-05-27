@@ -130,7 +130,7 @@ public class Compiler
 			//todo: consider re-combining functiondecs and assign, since the code is duplicated.
 			//create the symbol before compiling the function, so that it can recursively find its own name.
 			Symbol functionNameSymbol;
-			bool isNotNewSymbol = _symbolTable.TryResolve(funcDef.Identity.Identifier, out functionNameSymbol);//todo: false vs true recusion behaviour test
+			bool isNotNewSymbol = _symbolTable.TryResolve(funcDef.Identity.Identifier, out functionNameSymbol);
 
 			//we compiled a function
 			var err = Compile(funcDef.Function);
@@ -154,7 +154,7 @@ public class Compiler
 			//the only difference between this and AssignExpression is that functions defined as func NAME(){} are always global scoped. thats... weird?s
 			if (isNotNewSymbol)
 			{
-				if (functionNameSymbol.Scope == SymbolTable.GlobalScope)
+				if (functionNameSymbol.Scope == ScopeDef.Global)
 				{
 					Emit(OpCode.OpSetGlobal, functionNameSymbol.Index); //assign
 				}
@@ -170,7 +170,7 @@ public class Compiler
 			{
 				//This function name does not exist yet. Creating it.
 				functionNameSymbol = _symbolTable.Define(funcDef.Identity.Identifier);
-				if (functionNameSymbol.Scope == SymbolTable.GlobalScope)
+				if (functionNameSymbol.Scope == ScopeDef.Global)
 				{
 					Emit(OpCode.OpSetGlobal, functionNameSymbol.Index);
 				}
@@ -201,7 +201,7 @@ public class Compiler
 			//only check the current scope on assignment. we need some override for global access.
 			if(resolved){
 				//assign (overwrite)
-				if (symbol.Scope == SymbolTable.GlobalScope)
+				if (symbol.Scope == ScopeDef.Global)
 				{
 					Emit(OpCode.OpSetGlobal, symbol.Index); //assign
 				}
@@ -217,7 +217,7 @@ public class Compiler
 			{
 				//This symbol does not exist yet. Creating it.
 				symbol = _symbolTable.Define(assignExpression.Identifier.Identifier);
-				if (symbol.Scope == SymbolTable.GlobalScope)
+				if (symbol.Scope == ScopeDef.Global)
 				{
 					Emit(OpCode.OpSetGlobal, symbol.Index);
 				}
@@ -566,11 +566,9 @@ public class Compiler
 			
 			if (this.Scopes.Count == 1)
 			{
-				//todo: should return exit a program if at root? feels... wrong... how do scripting languages do it?
 				return new ScrubCompilerError($"Invalid 'return' statement at root of program. Must be inside a function to return. {rete.Location}");
 			}
 
-			//todo: i need to test if this did anything.
 			if (LastInstructionIs(OpCode.OpPop))
 			{
 				RemoveLastInstruction();
@@ -663,19 +661,19 @@ public class Compiler
 	{
 		switch (s.Scope)
 		{
-			case SymbolTable.GlobalScope:
+			case ScopeDef.Global:
 				Emit(OpCode.OpGetGlobal, s.Index);
 				break;
-			case SymbolTable.LocalScope:
+			case ScopeDef.Local:
 				Emit(OpCode.OpGetLocal, s.Index);
 				break;
-			case SymbolTable.BuiltInScope:
+			case ScopeDef.Builtin:
 				Emit(OpCode.OpGetBuiltin, s.Index);
 				break;
-			case SymbolTable.FreeScope:
+			case ScopeDef.Free:
 				Emit(OpCode.OpGetFree, s.Index);
 				break;
-			case SymbolTable.FunctionScope:
+			case ScopeDef.Function:
 				Emit(OpCode.OpCurrentClosure);//get constant... of a closure, but whatever the current one is in the vm at runtime.
 				break;
 			default:
@@ -685,8 +683,7 @@ public class Compiler
 	
 	/// <returns>Returns this constants insdex in the constants pool.</returns>
 	public int AddConstant(Object obj)
-	{
-		//todo: Objects are saved by reference, so this isn't going to work.
+	{ 
 		//i think i need to overload the equality operator.
 		var existing = _constants.FindIndex(x => obj.SameObjectData(x));
 		if (existing!=-1)

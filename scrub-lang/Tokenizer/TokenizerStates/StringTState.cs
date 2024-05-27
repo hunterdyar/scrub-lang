@@ -11,7 +11,7 @@ public class StringTState(Tokenizer context) : TokenizerStateBase(context)
 	public int firstLine = -1;
 	public int firstCol = -1;	
 
-	//todo: figure out if we were a single or double quote string and close accordingly.
+	//todo: single-quote strings
 	public Location StartLocation => new Location(firstLine, firstCol);
 	//the first " gets ignored by the code that creates us. That's not ideal for clarity of ownership, but its fine i guess.
 	public override void Consume(char c, Location loc)

@@ -192,8 +192,7 @@ public static class Op
 					instruction[offset] = ReadUInt8(operands[i]);
 					break;
 				case 2:
-					//todo:convert from int instead of byte[]
-					var o = BitConverter.GetBytes(((ushort)operands[i]));
+					var o = BitConverter.GetBytes((operands[i]));
 					//c# doesn't define endian-ness, so we have to check this flag.
 					//note: MiscUtil EndianBitConverter.
 					instruction[offset] = BitConverter.IsLittleEndian ? o[1] : o[0];

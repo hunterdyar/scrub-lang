@@ -6,12 +6,7 @@ namespace scrub_lang.Compiler;
 public class SymbolTable
 {
 	public SymbolTable? Outer;
-	public const string GlobalScope = "GLOBAL";
-	public const string LocalScope = "LOCAL";
-	public const string BuiltInScope = "BUILTIN";
-	public const string FunctionScope = "FUNCTION";
-	public const string FreeScope = "FREE";//every non-global non-local non-built-in is free. e.g. local variables from enclosing scopes. ('free' is a relative term. free in one scope could be local in an enclosing).
-	public Dictionary<string, Symbol> Table = new Dictionary<string, Symbol>();//todo: enums for scope?
+	public Dictionary<string, Symbol> Table = new Dictionary<string, Symbol>();
 	public List<Symbol> FreeTable = new List<Symbol>();
 	
 	public int NumDefinitions => _numDefinitions;
@@ -22,7 +17,7 @@ public class SymbolTable
 	
 	public Symbol Define(string name)
 	{
-		Symbol s = new Symbol(name, _numDefinitions, Outer == null ? GlobalScope : LocalScope);
+		Symbol s = new Symbol(name, _numDefinitions, Outer == null ? ScopeDef.Global : ScopeDef.Local);
 		Table.Add(name,s);
 		_numDefinitions++;
 		return s;
@@ -30,14 +25,14 @@ public class SymbolTable
 
 	public Symbol DefineBuiltin(int index, string name)
 	{
-		var s = new Symbol(name, index, BuiltInScope);
+		var s = new Symbol(name, index, ScopeDef.Builtin);
 		this.Table[name] = s;
 		return s;
 	}
 
 	public Symbol DefineFunctionName(string name)
 	{
-		var s = new Symbol(name, 0, FunctionScope);//it's always 0... there will only ever be one functon scope. we could choose any number, but that would be dumb.
+		var s = new Symbol(name, 0, ScopeDef.Function);//it's always 0... there will only ever be one functon scope. we could choose any number, but that would be dumb.
 		this.Table[name] = s;
 		return s;
 	}
@@ -46,7 +41,7 @@ public class SymbolTable
 	public Symbol DefineFree(Symbol original)
 	{
 		FreeTable.Add(original);
-		var newFree = new Symbol(original.Name, _numFree , FreeScope);
+		var newFree = new Symbol(original.Name, _numFree , ScopeDef.Free);
 		_numFree++;
 
 		Table[original.Name] = newFree;
@@ -54,7 +49,7 @@ public class SymbolTable
 		return newFree;
 	}
 	
-	public bool TryResolve(string name, out Symbol s, bool recurse = true)
+	public bool TryResolve(string name, out Symbol s)
 	{
 		//error handling
 		if (Table.TryGetValue(name, out s))
@@ -64,7 +59,7 @@ public class SymbolTable
 		}
 
 		//recursively check outer symbols.
-		if (recurse && Outer != null)
+		if (Outer != null)
 		{
 			//is defined in outer
 			if (!Outer.TryResolve(name, out s))
@@ -72,7 +67,7 @@ public class SymbolTable
 				return false;
 			}
 			//is it a global? or a built-in? then we got the right one.
-			if (s.Scope == GlobalScope || s.Scope == BuiltInScope)
+			if (s.Scope == ScopeDef.Global || s.Scope == ScopeDef.Builtin)
 			{
 				return true;
 			}

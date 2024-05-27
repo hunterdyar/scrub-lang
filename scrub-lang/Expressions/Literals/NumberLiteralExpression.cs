@@ -22,7 +22,6 @@ public class NumberLiteralExpression : IExpression
 	public double AsDouble => _litDouble;
 	private double _litDouble;
 	public Location Location { get; }
-
 	
 	//problem: - is an operator, so it will never be negative. unsigned will have to be a special case (like Ob)
 	

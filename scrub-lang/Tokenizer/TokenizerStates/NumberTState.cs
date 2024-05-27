@@ -25,7 +25,6 @@ public class NumberTState(Tokenizer context) : TokenizerStateBase(context)
 				context.AddToken(new Token(TokenType.NumberLiteral, lit, loc));
 				context.ExitState(this);
 				context.ConsumeNext(c, loc);
-
 			}
 			else
 			{
