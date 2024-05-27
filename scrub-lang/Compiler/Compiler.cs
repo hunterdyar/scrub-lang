@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Transactions;
+﻿using System.Text;
 using scrub_lang.Evaluator;
 using scrub_lang.Objects;
 using scrub_lang.Parser;
@@ -9,14 +6,13 @@ using scrub_lang.Tokenizer.Tokens;
 using ConditionalExpression = scrub_lang.Parser.ConditionalExpression;
 using Environment = scrub_lang.Evaluator.Environment;
 using Object = scrub_lang.Objects.Object;
-using String = scrub_lang.Objects.String;
 
 namespace scrub_lang.Compiler;
 
 public class Compiler
 {
-	private SymbolTable symbolTable = new SymbolTable();
-	private List<Object> constants = new List<Object>();//ScrubObject?
+	private SymbolTable _symbolTable = new SymbolTable();
+	private List<Object> _constants = new List<Object>();//ScrubObject?
 	public Stack<CompilationScope> Scopes = new Stack<CompilationScope>();
 	private int _scopeIndex = 0;//we don't need scope index now that scopes is a stack; but it's useful to glance at when debugging.
 	public CompilationScope CurrentScope => Scopes.Peek();
@@ -33,12 +29,12 @@ public class Compiler
 	{
 		if (env.SymbolTable != null)
 		{
-			symbolTable = env.SymbolTable;
+			_symbolTable = env.SymbolTable;
 		}
 
 		if (env.Constants != null)
 		{
-			constants = env.Constants;
+			_constants = env.Constants;
 		}
 
 		CompilationScope cs = new CompilationScope();
@@ -52,8 +48,8 @@ public class Compiler
 	{
 		var e = new Environment()
 		{
-			SymbolTable = symbolTable,
-			Constants = constants
+			SymbolTable = _symbolTable,
+			Constants = _constants
 		};
 		return e;
 	}
@@ -134,7 +130,7 @@ public class Compiler
 			//todo: consider re-combining functiondecs and assign, since the code is duplicated.
 			//create the symbol before compiling the function, so that it can recursively find its own name.
 			Symbol functionNameSymbol;
-			bool isNotNewSymbol = symbolTable.TryResolve(funcDef.Identity.Identifier, out functionNameSymbol);//todo: false vs true recusion behaviour test
+			bool isNotNewSymbol = _symbolTable.TryResolve(funcDef.Identity.Identifier, out functionNameSymbol);//todo: false vs true recusion behaviour test
 
 			//we compiled a function
 			var err = Compile(funcDef.Function);
@@ -152,7 +148,7 @@ public class Compiler
 			if (isNotNewSymbol)
 			{
 				return new ScrubCompilerError($"A function named {functionNameSymbol.Name} has already been defined.");
-				functionNameSymbol = symbolTable.Define(funcDef.Identity.Identifier);
+				functionNameSymbol = _symbolTable.Define(funcDef.Identity.Identifier);
 			}
 
 			//the only difference between this and AssignExpression is that functions defined as func NAME(){} are always global scoped. thats... weird?s
@@ -173,7 +169,7 @@ public class Compiler
 			else
 			{
 				//This function name does not exist yet. Creating it.
-				functionNameSymbol = symbolTable.Define(funcDef.Identity.Identifier);
+				functionNameSymbol = _symbolTable.Define(funcDef.Identity.Identifier);
 				if (functionNameSymbol.Scope == SymbolTable.GlobalScope)
 				{
 					Emit(OpCode.OpSetGlobal, functionNameSymbol.Index);
@@ -189,7 +185,7 @@ public class Compiler
 		}
 		else if (expression is AssignExpression assignExpression)
 		{
-			bool resolved = symbolTable.TryResolve(assignExpression.Identifier.Identifier, out var symbol);
+			bool resolved = _symbolTable.TryResolve(assignExpression.Identifier.Identifier, out var symbol);
 			//compile error.
 			var err = Compile(assignExpression.Value);
 			if (err != null)
@@ -220,7 +216,7 @@ public class Compiler
 			else
 			{
 				//This symbol does not exist yet. Creating it.
-				symbol = symbolTable.Define(assignExpression.Identifier.Identifier);
+				symbol = _symbolTable.Define(assignExpression.Identifier.Identifier);
 				if (symbol.Scope == SymbolTable.GlobalScope)
 				{
 					Emit(OpCode.OpSetGlobal, symbol.Index);
@@ -236,7 +232,7 @@ public class Compiler
 			//return null			
 		}else if (expression is IdentifierExpression identExpr)
 		{
-			if (symbolTable.TryResolve(identExpr.Identifier, out var symbol))
+			if (_symbolTable.TryResolve(identExpr.Identifier, out var symbol))
 			{
 				EmitLoadSymbol(symbol);
 				// if (symbol.Scope == SymbolTable.GlobalScope)
@@ -508,7 +504,7 @@ public class Compiler
 			string n = "";
 			if (!string.IsNullOrEmpty(funcLiteralExpr.Name))
 			{
-				symbolTable.DefineFunctionName(funcLiteralExpr.Name);
+				_symbolTable.DefineFunctionName(funcLiteralExpr.Name);
 				n = funcLiteralExpr.Name;
 			}
 			
@@ -519,7 +515,7 @@ public class Compiler
 				{
 					return new ScrubCompilerError($"A function cannot have the same name as one of it's arguments! {arg.Location}");
 				}
-				symbolTable.Define(arg.Identifier);
+				_symbolTable.Define(arg.Identifier);
 			}
 			
 			var err = Compile(funcLiteralExpr.Expression);
@@ -543,8 +539,8 @@ public class Compiler
 				//Emit(OpCode.OpNull);
 				Emit(OpCode.OpReturnValue);//return a null.
 			}
-			var freeSymbols = symbolTable.FreeTable;//we grab a reference to this before we leave the scope, and iterate over/load them them after. That's basically the point.
-			var numLocals = symbolTable.NumDefinitions;
+			var freeSymbols = _symbolTable.FreeTable;//we grab a reference to this before we leave the scope, and iterate over/load them them after. That's basically the point.
+			var numLocals = _symbolTable.NumDefinitions;
 			
 			//Add a function literal direclty onto the stack.
 			var instructions = LeaveScope();
@@ -651,7 +647,7 @@ public class Compiler
 		var s = new CompilationScope();
 		Scopes.Push(s);
 		_scopeIndex++;
-		symbolTable = symbolTable.NewEnclosedSymbolTable();
+		_symbolTable = _symbolTable.NewEnclosedSymbolTable();
 	}
 
 	private int[] LeaveScope()
@@ -659,7 +655,7 @@ public class Compiler
 		var instructions = CurrentScope.Instructions.ToArray();
 		Scopes.Pop();
 		_scopeIndex--;
-		symbolTable = symbolTable.Outer;
+		_symbolTable = _symbolTable.Outer;
 		return instructions;
 	}
 
@@ -692,13 +688,13 @@ public class Compiler
 	{
 		//todo: Objects are saved by reference, so this isn't going to work.
 		//i think i need to overload the equality operator.
-		var existing = constants.FindIndex(x => obj.SameObjectData(x));
+		var existing = _constants.FindIndex(x => obj.SameObjectData(x));
 		if (existing!=-1)
 		{
 			return existing;
 		}
-		this.constants.Add(obj);
-		return this.constants.Count - 1;
+		this._constants.Add(obj);
+		return this._constants.Count - 1;
 	}
 
 	private bool LastInstructionIs(OpCode op)
@@ -732,14 +728,14 @@ public class Compiler
 	//this is what gets passed to the VM.
 	public ByteCode ByteCode()
 	{
-		return new ByteCode(CurrentScope.Instructions.ToArray(),constants.ToArray(), symbolTable.NumDefinitions);
+		return new ByteCode(CurrentScope.Instructions.ToArray(),_constants.ToArray(), _symbolTable.NumDefinitions);
 	}
 
 	private void DefineBuiltins()
 	{
 		for (int i = 0; i < Builtins.AllBuiltins.Length; i++)
 		{
-			symbolTable.DefineBuiltin(i, Builtins.AllBuiltins[i].Name);
+			_symbolTable.DefineBuiltin(i, Builtins.AllBuiltins[i].Name);
 		}
 	}
 	

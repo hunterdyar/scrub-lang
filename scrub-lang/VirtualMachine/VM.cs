@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net;
-using scrub_lang.Compiler;
+﻿using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
 using scrub_lang.Objects;
 using scrub_lang.Parser;
@@ -14,8 +12,8 @@ public class VM
 {
 	//references for passing around everything with just the vm object.
 	//end keeping the last-used parser from getting gc'd.
-	public static Parser.Parser Parser { get; private set; }
-	public static Tokenizer.Tokenizer Tokenizer { get; private set; }
+	public static Parser.Parser? Parser { get; private set; }
+	public static Tokenizer.Tokenizer? Tokenizer { get; private set; }
 	//
 	public const int StackSize = 2048;
 	public const int GlobalsSize = UInt16.MaxValue;
@@ -23,23 +21,25 @@ public class VM
 	public static readonly Bool True = new Bool(true);
 	public static readonly Bool False = new Bool(false);
 	public static readonly Null Null = new Null();
-	private Dictionary<OpCode, Stack<bool>> _conditionalHistory = new Dictionary<OpCode, Stack<bool>>(); 
-	public ByteCode ByteCode { get; }
+	private Dictionary<OpCode, Stack<bool>> _conditionalHistory = new Dictionary<OpCode, Stack<bool>>();
+	public ByteCode ByteCode;
 
 	//todo: optimize staacks.
 	public Stack<Frame> Frames = new Stack<Frame>();
 	public Stack<Frame> Unframes = new Stack<Frame>();
-	
-	private int frameIndex;
-	
-	private List<Object> constants;
-	private object[] stack = new object[StackSize];//I do think I want to replace this with my own base ScrubObject? Not sure.
-	private Stack<object> unstack = new Stack<object>();//I am extremely split on calling this the UnStack or the AntiStack.
-	public Object[] Globals => globals;
-	private Object[] globals = new Object[GlobalsSize];//globals store. 
+
+	private List<Object> Constants => _constants;
+	private List<Object> _constants;
+	public object[] Stack => _stack;
+	private object[] _stack = new object[StackSize];//I do think I want to replace this with my own base ScrubObject? Not sure.
+	private Stack<object> _unstack = new Stack<object>();//I am extremely split on calling this the UnStack or the AntiStack.
+	public Object[] Globals => _globals;
+	private Object[] _globals = new Object[GlobalsSize];//globals store. 
 	//StackPointer will always point to the next free slot in the stack. Top element will be sp-1
 	//we put something in SP, then increment it.
+	// ReSharper disable once InconsistentNaming
 	private int sp = 0;//stack pointer
+	// ReSharper disable once InconsistentNaming
 	private int usp = 0; //unstack pointer.
 	public TextWriter outputStream;
 	
@@ -48,6 +48,7 @@ public class VM
 	private VMState _state = VMState.Initialized;
 
 	//just caches
+	// ReSharper disable once InconsistentNaming
 	private int ip;
 	private Frame _frame;
 	//tdoo: refactor constructors
@@ -69,7 +70,7 @@ public class VM
 		var mainClosure = new Closure(mainFunction);//all functions are closures. The program is a function. the program is a closure. it's closures all the way down.
 		var mainFrame = new Frame(mainClosure,0,-1);
 		Frames.Push(mainFrame);
-		constants = byteCode.Constants.ToList();
+		_constants = byteCode.Constants.ToList();
 	}
 
 	public VM(ByteCode byteCode, Object[] globalsStore, TextWriter writer = null)
@@ -86,8 +87,8 @@ public class VM
 		var mainClosure = new Closure(mainFunction);
 		var mainFrame = new Frame(mainClosure,0,-1);
 		Frames.Push(mainFrame);
-		constants = byteCode.Constants.ToList();
-		globals = globalsStore;
+		_constants = byteCode.Constants.ToList();
+		_globals = globalsStore;
 	}
 
 	
@@ -125,6 +126,10 @@ public class VM
 		{
 			_state = VMState.Paused;
 		}
+		else
+		{
+			Console.WriteLine("Notice: Pausing already paused VM.");
+		}
 	}
 	
 	public ScrubVMError? RunOne()
@@ -159,12 +164,10 @@ public class VM
 		{
 			case OpCode.OpConstant:
 				var constIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]); 
-				return Push(constants[constIndex]);
-				break;
+				return Push(_constants[constIndex]);
 			case OpCode.OpCall:
 				var numArgs = Op.ReadUInt8(insBytes[1]);
 				return ExecuteFunction(numArgs);
-				break;
 			case OpCode.OpClosure:
 				var cIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]); 
 				var numFreeVars = Op.ReadUInt8(insBytes[3]);
@@ -229,22 +232,22 @@ public class VM
 			case OpCode.OpSetGlobal:
 				var globalIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]);
 				//don't pop it, just assign it.
-				globals[globalIndex] = (Object)stack[sp - 1];//was =PopScrobject. might need to be a pop-push to get undo's to work correctly.
+				_globals[globalIndex] = (Object)_stack[sp - 1];//was =PopScrobject. might need to be a pop-push to get undo's to work correctly.
 				return null;
 			case OpCode.OpSetLocal:
 				var localIndex = Op.ReadUInt8(insBytes[1]);
 				_frame = CurrentFrame();
 				//set the stack in our buffer area to our object. THis is going to be a tricky one to UNDO
-				stack[_frame.basePointer + (int)localIndex] = (Object)stack[sp - 1];
+				_stack[_frame.basePointer + (int)localIndex] = (Object)_stack[sp - 1];
 				return null;
 			case OpCode.OpGetGlobal:
 				globalIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]);
-				Push(globals[globalIndex]);
+				Push(_globals[globalIndex]);
 				return null;
 			case OpCode.OpGetLocal:
 				localIndex = Op.ReadUInt8(insBytes[1]);
 				_frame = CurrentFrame();
-				return Push(stack[_frame.basePointer + (int)localIndex]);
+				return Push(_stack[_frame.basePointer + (int)localIndex]);
 			case OpCode.OpGetBuiltin:
 				var builtInIndex = Op.ReadUInt8(insBytes[1]);
 				var def = Builtins.AllBuiltins[builtInIndex];
@@ -302,12 +305,12 @@ public class VM
 			case OpCode.OpConstant:
 				UnPush();
 				var constIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]); 
+				
 				return null;
 			case OpCode.OpCall:
 				var p = UnPush();//first, trash the result of the return.
 				var numArgs = Op.ReadUInt8(ins[ip -1 ]);
-				//CurrentFrame().ip--;
-
+				CurrentFrame().ip--;
 				return DeexecuteFunction(numArgs);
 				break;
 			case OpCode.OpClosure:
@@ -411,11 +414,11 @@ public class VM
 				if (o == null)
 				{
 					//when we set it the first time, it was WHO KNOWs. now? who knows.
-					stack[_frame.basePointer + (int)localIndex] = Null; //popscrubObject is to force errors if we pop an instruction.
+					_stack[_frame.basePointer + (int)localIndex] = Null; //popscrubObject is to force errors if we pop an instruction.
 				}
 				else
 				{
-					stack[_frame.basePointer + (int)localIndex] = o; //popscrubObject is to force errors if we pop an instruction.
+					_stack[_frame.basePointer + (int)localIndex] = o; //popscrubObject is to force errors if we pop an instruction.
 				}
 
 				CurrentFrame().ip--;
@@ -500,7 +503,7 @@ public class VM
 	{
 		//reach further down the stack to get the function, past the locals (arguments)
 		//should be -1, why is it -2?
-		var callee = stack[sp - 1 - numArgs];
+		var callee = _stack[sp - 1 - numArgs];
 		switch (((Object)callee).GetType())
 		{
 			case ScrubType.Closure:
@@ -520,7 +523,7 @@ public class VM
 		//a lazy slice copy. fast tho.
 		for (int i = 0; i < numArgs; i++)
 		{
-			args[i] = (Object)stack[sp - numArgs + i];
+			args[i] = (Object)_stack[sp - numArgs + i];
 		}
 		//the actual funtion call
 		var result = fn.Function(this,args);
@@ -631,7 +634,7 @@ public class VM
 		var elements = new Object[endIndex - startIndex];
 		for (int i = startIndex; i < endIndex; i++)
 		{
-			elements[i - startIndex] = (Object)stack[i];//todo: wrap this cast with error handling.
+			elements[i - startIndex] = (Object)_stack[i];//todo: wrap this cast with error handling.
 		}
 
 		return new Array(elements);
@@ -650,20 +653,29 @@ public class VM
 
 	private ScrubVMError? RunBangOperator(OpCode op)
 	{
-		var operand = PopScrubObject();
+		var obj = PopScrubObject();
 
-		if (operand == True)
+		if (obj == True)
 		{
 			return Push(False);
-		}else if (operand == False)
+		}else if (obj == False)
 		{
 			return Push(True);
-		}else if (operand == Null)
+		}else if (obj == Null)
 		{
 			return Push(True);
 		}
 		else
 		{
+			if (op == OpCode.OpBang)
+			{
+				return new ScrubVMError(
+					$"Can't run bang operator on {obj}. I don't know what our truthy  table is yet and I haven't decided.");
+			}else
+			{
+				return new ScrubVMError("Trying to run bang operator from incorrect state. Somnething went wrong earlier and the VM ended up here.");
+			}
+
 			//uh oh. warning? everythnig that is not false is truthy. Not so sure! todo: Investigate truthiness table.
 			return Push(False);
 		}
@@ -677,6 +689,20 @@ public class VM
 		if (l.GetType() == ScrubType.Int && r.GetType() == ScrubType.Int)
 		{
 			return RunIntegerComparisonOperation(op, (Integer)l, (Integer)r);
+		}else if (l.GetType() == ScrubType.Bool && r.GetType() == ScrubType.Bool)
+		{
+			//RunBooleanComparisonOperator:
+			var lb = ((Bool)l).NativeBool;
+			var rb = ((Bool)r).NativeBool;
+			switch (op)
+			{
+				case OpCode.OpEqual:
+					return Push(NativeBoolToBooleanObject(lb == rb));
+				case OpCode.OpNotEqual:
+					return Push(NativeBoolToBooleanObject(lb != rb));
+				default:
+					return new ScrubVMError($"Unknown Operator {{op}} for {l.GetType()} and {r.GetType()}");
+			}
 		}
 		switch (op)
 		{
@@ -789,7 +815,6 @@ public class VM
 				break;
 			default:
 				return new ScrubVMError($"Unsupported binary operation {op} for 2 booleans.");
-				break;
 		}
 
 		return Push(result);
@@ -880,7 +905,7 @@ public class VM
 			return new ScrubVMError("Stack Overflow!");
 		}
 		
-		stack[sp] = o;
+		_stack[sp] = o;
 		sp++;
 		return null;
 	}
@@ -889,7 +914,7 @@ public class VM
 
 	private ScrubVMError? PushClosure(int closureConstIndex, int numFree)
 	{
-		var constant = constants[closureConstIndex];//todo: type check throw error.
+		var constant = _constants[closureConstIndex];//todo: type check throw error.
 		var fn = (Function)constant;
 
 		//pull the free objects off of the stack and shove them into the closure object at runtime.
@@ -897,7 +922,7 @@ public class VM
 		var free = new Object[numFree];
 		for (var i = 0; i < free.Length; i++)
 		{
-			free[i] = (Object)stack[sp - numFree + i];
+			free[i] = (Object)_stack[sp - numFree + i];
 		}
 
 		sp = sp - numFree;
@@ -920,9 +945,9 @@ public class VM
 		// 	return null;
 		// }
 		
-		var o = stack[sp - 1];
+		var o = _stack[sp - 1];
 		sp--;
-		unstack.Push(o);
+		_unstack.Push(o);
 		usp++;
 		return o;
 	}
@@ -934,15 +959,15 @@ public class VM
 			return new ScrubVMError("Stack Overflow!");
 		}
 
-		var o = unstack.Pop();
+		var o = _unstack.Pop();
 		usp--;
-		stack[sp] = o;
+		_stack[sp] = o;
 		sp++;
 		return o;
 	}
 	private object UnPush()
 	{
-		var o = stack[sp - 1];
+		var o = _stack[sp - 1];
 		sp--;
 		return o;
 	}
@@ -950,9 +975,9 @@ public class VM
 	public Object PopScrubObject()
 	{
 		//basically calling pop, but faster to just copy/paste. (i know!? wild).
-		var o = stack[sp - 1];
+		var o = _stack[sp - 1];
 		sp--;
-		unstack.Push(o);
+		_unstack.Push(o);
 		usp++;
 		if (!(o is Object so))
 		{
@@ -963,7 +988,7 @@ public class VM
 	}
 	public object LastPopped()
 	{
-		return stack[sp];
+		return _stack[sp];
 	}
 
 	public Frame CurrentFrame() => Frames.Peek();

@@ -7,6 +7,6 @@ namespace scrub_lang.Evaluator;
 
 public class Environment
 {
-	public SymbolTable SymbolTable;
-	public List<Objects.Object> Constants;
+	public SymbolTable? SymbolTable;
+	public List<Objects.Object>? Constants;
 }

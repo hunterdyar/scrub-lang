@@ -1,4 +1,5 @@
-﻿using scrub_lang.VirtualMachine;
+﻿using scrub_lang.Evaluator;
+using scrub_lang.VirtualMachine;
 
 namespace scrub_lang.Objects;
 
@@ -11,15 +12,16 @@ public static class Builtins
 
 	static Builtins()
 	{
-		//todo: inline array literal
-		_builtins = new (string, Builtin)[4];
+		//Not doing an array literal because I think we're using the indexes?
+		_builtins = new (string, Builtin)[5];
 		_builtins[0] = ("print", new Builtin(Print));
 		_builtins[1] = ("len", new Builtin(Len));
 		_builtins[2] = ("push", new Builtin(Push));
 		_builtins[3] = ("pause", new Builtin(PauseVM));
-		//todo: first
+		_builtins[4] = ("first", new Builtin(First));
 		//todo: last
 		//todo: abs
+		//todo: sin
 		//todo: sin
 		//todo: cos, etc.
 	}
@@ -103,6 +105,30 @@ public static class Builtins
 		}
 	}
 
+	static Object? First(VM context, Object[] args)
+	{
+		if (args.Length != 1)
+		{
+			NewError($"Wrong number of arguments for Len. Need 1, got {args.Length}.");
+		}
+
+		switch (args[0].GetType())
+		{
+			case ScrubType.Array:
+				var arr = (Array)args[0];
+				if (arr.Length.NativeInt == 0)
+				{
+					return VM.Null;//should this be new null?
+				}
+				return (arr.NativeArray[0]);
+			case ScrubType.String:
+				//todo: return first byte of the string
+			default:
+				return NewError($"Cannot get First of {args[0].GetType()}.");
+				//or: yes, we can get the number of bytes of ANY data type! but that doesn't make sense for ints, it would always be 4
+				return new Integer(args[0].Bits.Length / 8);
+		}
+	}
 	static public Object NewError(string message)
 	{
 		//todo: update this when we make an error type...
