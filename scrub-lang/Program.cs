@@ -100,6 +100,10 @@ static class Scrub
 		{
 			vm.SetGlobals(globals);
 		}
+
+		//I think we can enlose status in VM.
+		var status = new Status(vm);
+		
 		try
 		{
 			ScrubVMError? vmerror = null;
@@ -146,6 +150,13 @@ static class Scrub
 			{
 				return vmerror.ToString();
 			}
+			Console.WriteLine("---status---");
+			foreach (var vs in status.GetVariables())
+			{
+				Console.WriteLine($"{vs.Name} ({vs.Scope}):    {vs.Object}");
+			}
+			Console.WriteLine("---status---");
+
 		}
 		catch (VMException vme)
 		{

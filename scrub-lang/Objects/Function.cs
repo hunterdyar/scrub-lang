@@ -8,9 +8,10 @@ public class Function : Object
 	public string Name = "";
 	public int[] CompiledFunction;//too slow to use our bitarray for functions, which are internal only. should we have internal objects not be Scrubobjects?
 	public OpLocationLookup LocationLookup;
+	public SymbolTable Symbols;
 	public int NumLocals;//
 	public int NumArgs;
-	public Function(int[] instructions, int numArgs, int numLocals, OpLocationLookup locationLookup, bool prependReturn = true)
+	public Function(int[] instructions, int numArgs, SymbolTable symbolTable, OpLocationLookup locationLookup, bool prependReturn = true)
 	{
 		LocationLookup = locationLookup;
 		if (prependReturn)
@@ -25,7 +26,8 @@ public class Function : Object
 		}
 
 		NumArgs = numArgs;
-		NumLocals = numLocals;
+		NumLocals = symbolTable.NumDefinitions;
+		Symbols = symbolTable;
 	}
 
 	public override ScrubType GetType() => ScrubType.Function;

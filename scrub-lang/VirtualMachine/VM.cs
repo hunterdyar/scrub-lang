@@ -22,7 +22,7 @@ public class VM
 	public static readonly Bool False = new Bool(false);
 	public static readonly Null Null = new Null();
 	private Dictionary<OpCode, Stack<bool>> _conditionalHistory = new Dictionary<OpCode, Stack<bool>>();
-	public ByteCode ByteCode;
+	public Program Program;
 
 	//todo: optimize staacks.
 	public Stack<Frame> Frames = new Stack<Frame>();
@@ -52,8 +52,10 @@ public class VM
 	// ReSharper disable once InconsistentNaming
 	private int ip;
 	private Frame _frame;
+
+	public readonly SymbolTable Symbols;
 	//tdoo: refactor constructors
-	public VM(ByteCode byteCode, TextWriter? writer = null)
+	public VM(Program program, TextWriter? writer = null)
 	{
 		//optional non-default output.
 		outputStream = writer;
@@ -61,17 +63,19 @@ public class VM
 		{
 			outputStream = Console.Out;
 		}
-		ByteCode = byteCode;//keep a copy.
+		Program = program;//keep a copy.
 		
 		//prime our conditional histories. Might not be using this anymore? i forget
 		_conditionalHistory.Add(OpCode.OpJumpNotTruthy, new Stack<bool>());
 
+		//reference for reports
+		Symbols = program.Symbols;
 		//instructions
-		var mainFunction = new Function(byteCode.Instructions, 0,byteCode.NumSymbols,byteCode.Lookup,false);
+		var mainFunction = new Function(program.Instructions, 0,program.Symbols,program.Lookup,false);
 		var mainClosure = new Closure(mainFunction);//all functions are closures. The program is a function. the program is a closure. it's closures all the way down.
 		var mainFrame = new Frame(mainClosure,0,-1);
 		Frames.Push(mainFrame);
-		_constants = byteCode.Constants.ToList();
+		_constants = program.Constants.ToList();
 	}
 
 	public void SetGlobals( Object[] globalsStore)

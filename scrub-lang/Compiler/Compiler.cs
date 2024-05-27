@@ -543,7 +543,7 @@ public class Compiler
 				EmitLoadSymbol(funcLiteralExpr.Location,freeSymbol);
 			}
 			
-			var compiledFunction = new Function(instructions.Item1,args.Count,numLocals,instructions.Item2);
+			var compiledFunction = new Function(instructions.Item1,args.Count, _symbolTable,instructions.Item2);
 			
 			var funcIndex = AddConstant(compiledFunction);
 			Emit(funcLiteralExpr.Location,OpCode.OpClosure,funcIndex,freeSymbols.Count);//closures wrap functions. all functions are closures, even when there aren't any free variables.
@@ -707,10 +707,10 @@ public class Compiler
 		ReplaceInstruction(opPos, newInstruction);
 	}
 	//this is what gets passed to the VM.
-	public ByteCode ByteCode()
+	public Program ByteCode()
 	{
 		//todo: decide how to encode the Location Lookup tables and pass them to the VM for errors.
-		return new ByteCode(CurrentScope.Instructions.ToArray(),_constants.ToArray(),CurrentScope.OpLocationLookup, _symbolTable.NumDefinitions);
+		return new Program(CurrentScope.Instructions.ToArray(),_constants.ToArray(),CurrentScope.OpLocationLookup, _symbolTable);
 	}
 
 	private void DefineBuiltins()
