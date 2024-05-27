@@ -37,6 +37,7 @@ public class VM
 	private Object[] _globals = new Object[GlobalsSize];//globals store. 
 	//StackPointer will always point to the next free slot in the stack. Top element will be sp-1
 	//we put something in SP, then increment it.
+	public int StackPointer => sp;
 	// ReSharper disable once InconsistentNaming
 	private int sp = 0;//stack pointer
 	// ReSharper disable once InconsistentNaming
@@ -73,22 +74,8 @@ public class VM
 		_constants = byteCode.Constants.ToList();
 	}
 
-	public VM(ByteCode byteCode, Object[] globalsStore, TextWriter writer = null)
+	public void SetGlobals( Object[] globalsStore)
 	{
-		outputStream = writer;
-		if (outputStream == null)
-		{
-			outputStream = Console.Out;
-		}
-		ByteCode = byteCode; //keep a copy.
-		_conditionalHistory.Add(OpCode.OpJumpNotTruthy,new Stack<bool>());
-		//instructions
-		//todo: should we put a function object into the bytecode class instead of basically deconstrucctin and reconstructing?
-		var mainFunction = new Function(byteCode.Instructions, 0,byteCode.NumSymbols,byteCode.Lookup, false);//we track numSymbols here just for fun. 
-		var mainClosure = new Closure(mainFunction);
-		var mainFrame = new Frame(mainClosure,0,-1);
-		Frames.Push(mainFrame);
-		_constants = byteCode.Constants.ToList();
 		_globals = globalsStore;
 	}
 

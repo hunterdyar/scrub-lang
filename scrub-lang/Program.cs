@@ -94,12 +94,12 @@ static class Scrub
 		{
 			return ce.Message;
 		}
-		
-		var vm = globals == null ? new VM(comp.ByteCode()) :  new VM(comp.ByteCode(), globals);
-		//Console.WriteLine("Executing Bytecode instructions:");
-		//var s = Op.InstructionsToString(vm.ByteCode.Instructions);
-		//Console.WriteLine(s);
-		//Console.WriteLine("---");
+
+		var vm = new VM(comp.ByteCode());
+		if (globals != null)
+		{
+			vm.SetGlobals(globals);
+		}
 		try
 		{
 			ScrubVMError? vmerror = null;
