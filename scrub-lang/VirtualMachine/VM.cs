@@ -30,9 +30,9 @@ public class VM
 
 	private List<Object> Constants => _constants;
 	private List<Object> _constants;
-	public object[] Stack => _stack;
-	private object[] _stack = new object[StackSize];//I do think I want to replace this with my own base ScrubObject? Not sure.
-	private Stack<object> _unstack = new Stack<object>();//I am extremely split on calling this the UnStack or the AntiStack.
+	public Object[] Stack => _stack;
+	private Object[] _stack = new Object[StackSize];//I do think I want to replace this with my own base ScrubObject? Not sure.
+	private Stack<Object> _unstack = new Stack<Object>();//I am extremely split on calling this the UnStack or the AntiStack.
 	public Object[] Globals => _globals;
 	private Object[] _globals = new Object[GlobalsSize];//globals store. 
 	//StackPointer will always point to the next free slot in the stack. Top element will be sp-1
@@ -219,7 +219,7 @@ public class VM
 				return null;
 			case OpCode.OpJumpNotTruthy:
 				pos = Op.ReadUInt16([insBytes[1], insBytes[2]]);
-				var condition = PopScrubObject();
+				var condition = Pop();
 				bool jmp = !IsTruthy(condition);
 				_conditionalHistory[OpCode.OpJumpNotTruthy].Push(jmp);
 				if (jmp)
@@ -272,8 +272,8 @@ public class VM
 				
 				return Push(array);
 			case OpCode.OpIndex:
-				var index = PopScrubObject();
-				var left = PopScrubObject();
+				var index = Pop();
+				var left = Pop();
 				return RunIndexExpression(left, index);
 		}
 		return null;
@@ -642,7 +642,7 @@ public class VM
 
 	private ScrubVMError? RunNegateOperator(OpCode op)
 	{
-		var operand = PopScrubObject();
+		var operand = Pop();
 		if (operand.GetType() == ScrubType.Int)
 		{
 			return Push(new Integer(-(operand as Integer).NativeInt));
@@ -653,7 +653,7 @@ public class VM
 
 	private ScrubVMError? RunBangOperator(OpCode op)
 	{
-		var obj = PopScrubObject();
+		var obj = Pop();
 
 		if (obj == True)
 		{
@@ -683,8 +683,8 @@ public class VM
 
 	private ScrubVMError? RunComparisonOperation(OpCode op)
 	{
-		var r = PopScrubObject();
-		var l = PopScrubObject();
+		var r = Pop();
+		var l = Pop();
 
 		if (l.GetType() == ScrubType.Int && r.GetType() == ScrubType.Int)
 		{
@@ -734,8 +734,8 @@ public class VM
 	private ScrubVMError? RunBitShiftOperation(OpCode op)
 	{
 		//todo: these are broken because, i think, bitwise things?
-		var r = PopScrubObject();
-		var l = PopScrubObject();
+		var r = Pop();
+		var l = Pop();
 		var rightType = r.GetType();
 		
 		if (op == OpCode.OpBitShiftLeft && rightType == ScrubType.Int)
@@ -766,8 +766,8 @@ public class VM
 
 	private ScrubVMError? RunBinaryOperation(OpCode op)
 	{
-		var r = PopScrubObject();
-		var l = PopScrubObject();
+		var r = Pop();
+		var l = Pop();
 		
 		//Do we cast to Object here, to get the type?
 		var leftType = l.GetType();
@@ -898,7 +898,7 @@ public class VM
 
 		return RunBinaryStringOperation(op,ls, rs);
 	}
-	private ScrubVMError? Push(object o)
+	private ScrubVMError? Push(Object o)
 	{
 		if (sp >= StackSize)
 		{
@@ -932,7 +932,7 @@ public class VM
 		return null;
 	}
 
-	private object Pop()
+	private Object Pop()
 	{
 		//this is why you don't catch edge cases, but fail them.
 		//i spent half an hour chasing issues elsewhere when the thing that put me on the right track
@@ -952,11 +952,13 @@ public class VM
 		return o;
 	}
 
-	private object UnPop()
+	private Object UnPop()
 	{
 		if (sp >= StackSize)
 		{
-			return new ScrubVMError("Stack Overflow!");
+			//todo: error objects.
+			throw new VMException("Stack Overflow!");
+			//return new ScrubVMError("Stack Overflow!");
 		}
 
 		var o = _unstack.Pop();
@@ -965,28 +967,13 @@ public class VM
 		sp++;
 		return o;
 	}
-	private object UnPush()
+	private Object UnPush()
 	{
 		var o = _stack[sp - 1];
 		sp--;
 		return o;
 	}
-
-	public Object PopScrubObject()
-	{
-		//basically calling pop, but faster to just copy/paste. (i know!? wild).
-		var o = _stack[sp - 1];
-		sp--;
-		_unstack.Push(o);
-		usp++;
-		if (!(o is Object so))
-		{
-			throw new VMException($"Unable To Pop ScrubObject. Popped {o} instead");
-		}
-
-		return so;
-	}
-	public object LastPopped()
+	public Object LastPopped()
 	{
 		return _stack[sp];
 	}

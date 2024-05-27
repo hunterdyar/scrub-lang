@@ -12,4 +12,5 @@ public enum ScrubType
 	Function,
 	Builtin,
 	Closure,
+	Error,
 }

@@ -1,6 +1,8 @@
-﻿namespace scrub_lang.Evaluator;
+﻿using Object = scrub_lang.Objects.Object;
 
-public abstract class ScrubError
+namespace scrub_lang.Evaluator;
+
+public abstract class ScrubError : Object
 {
 	public readonly string Message;
 	

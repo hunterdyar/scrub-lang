@@ -1,4 +1,5 @@
-﻿using scrub_lang.Parser;
+﻿using scrub_lang.Objects;
+using scrub_lang.Parser;
 
 namespace scrub_lang.Evaluator;
 
@@ -15,5 +16,9 @@ public class ScrubRuntimeError : ScrubError
 	{
 		Expression = expression;
 	}
-	
+
+	public override ScrubType GetType()
+	{
+		return ScrubType.Error;
+	}
 }
