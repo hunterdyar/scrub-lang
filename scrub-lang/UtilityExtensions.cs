@@ -44,7 +44,7 @@ public static class UtilityExtensions
 			return false;
 		}
 		
-		//todo: this sucks but I think i'm refactorying back to bytes later.
+		//todo: this sucks but I think i'm refactoring back to bytes later.
 		for (int i= 0; i < a.Bits.Length; i++)
 		{
 			if (a.Bits.Get(i) != b.Bits.Get(i))

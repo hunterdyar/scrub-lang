@@ -96,6 +96,11 @@ public class Parser
 
 		if (expressions.Count == 0)
 		{
+			//Create a new expression that pushes and pops a null.
+			//todo: it should just be some kind of Null. this is really an edge-case avoidance.
+			var exp = new List<IExpression>();
+			//exp.Add(new NullExpression(new Location(0, 0)));
+			return new ProgramExpression(exp, new Location(0, 0));
 			return new NullExpression(new Location(0,0));
 		}
 		if (expressions.Count == 1)

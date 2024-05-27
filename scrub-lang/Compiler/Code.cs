@@ -143,8 +143,8 @@ public static class Op
 		{ OpCode.OpGreaterThan, new Definition("GreaterThan", new int[] { }) },
 		{ OpCode.OpNegate, new Definition("Negate", new int[] { }) },
 		{ OpCode.OpBang, new Definition("Bang", new int[] { }) },
-		{ OpCode.OpJump, new Definition("Jump", new int[] { 2 }) },//jump location
-		{ OpCode.OpJumpNotTruthy, new Definition("JumpNotTruthy", new int[] { 2 }) },//jump location
+		{ OpCode.OpJump, new Definition("Jump", new int[] { 2,1 }) },//jump location
+		{ OpCode.OpJumpNotTruthy, new Definition("JumpNotTruthy", new int[] { 2,1 }) },//jump location
 		{ OpCode.OpNull, new Definition("NullPush", new int[] { }) },
 		{ OpCode.OpSetGlobal, new Definition("SetGlobal", new int[] { 2 }) },//index of constant
 		{ OpCode.OpGetGlobal, new Definition("GetGlobal", new int[] { 2 }) },//index of constant

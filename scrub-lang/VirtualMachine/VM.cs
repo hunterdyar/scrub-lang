@@ -156,6 +156,8 @@ public class VM
 		//fetch -> decode -> execute
 		ip = CurrentFrame().ip;
 		ins = CurrentFrame().Instructions();
+		Console.WriteLine($"Do: {Op.InstructionToString(ins[ip])}");
+
 		var insBytes = BitConverter.GetBytes(ins[ip]);
 		//fetch
 		OpCode op = (OpCode)insBytes[0];
@@ -180,9 +182,6 @@ public class VM
 				{
 					Pop();
 				}
-
-				//Pop();//remove function call too
-				
 				//put the return value back on top of the stack.
 				return Push(returnValue);
 			case OpCode.OpAdd:
@@ -215,10 +214,20 @@ public class VM
 				return RunNegateOperator(op);
 			case OpCode.OpJump:
 				int pos = Op.ReadUInt16([insBytes[1], insBytes[2]]);
+				bool frwd = 1 == Op.ReadUInt8(insBytes[3]);//is this a jump or an un-jump?if
+				if (!frwd)
+				{
+					return null;
+				}
 				CurrentFrame().ip = pos - 1; //+1 when the loop ends :p
 				return null;
 			case OpCode.OpJumpNotTruthy:
 				pos = Op.ReadUInt16([insBytes[1], insBytes[2]]);
+				frwd = 1 == Op.ReadUInt8(insBytes[3]); //is this a jump or an un-jump?if
+				if (!frwd)
+				{
+					return null;
+				}
 				var condition = Pop();
 				bool jmp = !IsTruthy(condition);
 				_conditionalHistory[OpCode.OpJumpNotTruthy].Push(jmp);
@@ -232,11 +241,13 @@ public class VM
 			case OpCode.OpSetGlobal:
 				var globalIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]);
 				//don't pop it, just assign it.
+				_unstack.Push(_globals[globalIndex]);//save the previous value.
 				_globals[globalIndex] = (Object)_stack[sp - 1];//was =PopScrobject. might need to be a pop-push to get undo's to work correctly.
 				return null;
 			case OpCode.OpSetLocal:
 				var localIndex = Op.ReadUInt8(insBytes[1]);
 				_frame = CurrentFrame();
+				_unstack.Push(_stack[_frame.basePointer + (int)localIndex]);//save old value to history.
 				//set the stack in our buffer area to our object. THis is going to be a tricky one to UNDO
 				_stack[_frame.basePointer + (int)localIndex] = (Object)_stack[sp - 1];
 				return null;
@@ -281,12 +292,21 @@ public class VM
 	}
 	public ScrubVMError? PreviousOne()
 	{
-		if (CurrentFrame().ip <= 0)
+		if (CurrentFrame().ip < 0)
 		{
-			_state = VMState.Paused;
-			Console.WriteLine("At beginning, can't undo!");
-			return null;
+			if (Frames.TryPop(out var old))
+			{
+				//this is an undo of a Return. or, uh. Call.
+				return new ScrubVMError("Can't undo out of the start of functions. yet.");
+			}
+			else
+			{
+				_state = VMState.Paused;
+				Console.WriteLine("At beginning, can't undo!");
+				return null;
+			}
 		}
+		
 
 		//this is the hot path. We actually care about performance.
 		int[] ins;
@@ -296,6 +316,7 @@ public class VM
 		// CurrentFrame().ip;
 		ip = CurrentFrame().ip;
 		ins = CurrentFrame().Instructions();
+		Console.WriteLine($"Undo: {Op.InstructionToString(ins[ip])}");
 		var insBytes = BitConverter.GetBytes(ins[ip]);
 		//fetch
 		OpCode op = (OpCode)insBytes[0];
@@ -305,17 +326,16 @@ public class VM
 			case OpCode.OpConstant:
 				UnPush();
 				var constIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]); 
-				
+				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpCall:
 				var p = UnPush();//first, trash the result of the return.
-				var numArgs = Op.ReadUInt8(ins[ip -1 ]);
+				var numArgs = Op.ReadUInt8(insBytes[1]);
 				CurrentFrame().ip--;
 				return DeexecuteFunction(numArgs);
 				break;
 			case OpCode.OpClosure:
 				var cIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]);
-				var numFreeVars = Op.ReadUInt8(ins[ip - 1]);
 				UnPush();
 				CurrentFrame().ip--;
 				return null;
@@ -378,11 +398,25 @@ public class VM
 				return null;
 			case OpCode.OpJump:
 				int pos = Op.ReadUInt16([insBytes[1], insBytes[2]]);
+				var reverse = Op.ReadUInt8(insBytes[3]) == 0;
+				if (!reverse)
+				{
+					//don't jump forward jumps.
+					CurrentFrame().ip--;
+					return null;
+				}
 				CurrentFrame().ip = pos - 1; //+1 when the loop ends :p
 				return null;
 			case OpCode.OpJumpNotTruthy:
 				//push truthy value w checked before back onto the stack.
 				pos = Op.ReadUInt16([insBytes[1], insBytes[2]]);
+				reverse = Op.ReadUInt8(insBytes[3]) == 0;
+				if (!reverse)
+				{
+					//don't jump forward jumps.
+					CurrentFrame().ip--;
+					return null;
+				}
 				var condition = UnPop();
 				bool jmp = !IsTruthy((Object)condition);
 				_conditionalHistory[OpCode.OpJumpNotTruthy].Push(jmp);
@@ -400,41 +434,33 @@ public class VM
 				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpSetGlobal:
-				o = UnPop();
-				//var globalIndex = Op.ReadUInt16([ins[ip - 2], ins[ip -1]]);
-				//globals[globalIndex] = (Object)o;
-				//todo: we don't know the previous value of this variable.
+				var oldVal = _unstack.Pop();
+				//o = UnPop();//set global doesn' push the value onto the stack, it leaves it there.
+				//it will get removed by the next op, usually.
+				var globalIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]);
+				_globals[globalIndex] = (Object)oldVal;
+				//todo: we don't know the previous value of this variable. 
 				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpSetLocal:
-				o = UnPop();//todo: this won't work, the previous value MIGHT be garbage!
+				oldVal = _unstack.Pop();
 				var localIndex = Op.ReadUInt8(insBytes[1]);
 				_frame = CurrentFrame();
-				//set the stack in our buffer area to our object. THis is going to be a tricky one to UNDO
-				if (o == null)
-				{
-					//when we set it the first time, it was WHO KNOWs. now? who knows.
-					_stack[_frame.basePointer + (int)localIndex] = Null; //popscrubObject is to force errors if we pop an instruction.
-				}
-				else
-				{
-					_stack[_frame.basePointer + (int)localIndex] = o; //popscrubObject is to force errors if we pop an instruction.
-				}
-
+				_stack[_frame.basePointer + (int)localIndex] = oldVal;
 				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpGetGlobal:
-				var globalIndex = Op.ReadUInt16([insBytes[1],insBytes[2]]);
+				globalIndex = Op.ReadUInt16([insBytes[1],insBytes[2]]);
 				// Push(globals[globalIndex]);
 				UnPush();
 				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpGetLocal:
 				localIndex = Op.ReadUInt8(insBytes[1]);
-				CurrentFrame().ip --;
 				//_frame = CurrentFrame();
 				UnPush();
 				// return Push(stack[_frame.basePointer + (int)localIndex]);
+				CurrentFrame().ip--;
 				return null;
 			case OpCode.OpGetBuiltin:
 				var builtInIndex = Op.ReadUInt8(insBytes[1]);
@@ -556,9 +582,9 @@ public class VM
 
 	private ScrubVMError? UnCallClosure(Closure cl, int numArgs)
 	{
-		if (numArgs != cl.CompiledFunction.NumLocals)
+		if (numArgs != cl.CompiledFunction.NumArgs)
 		{
-			return new ScrubVMError("Wrong number of arguments? huh?");
+			return new ScrubVMError("Wrong number of arguments? But we are undo-ing? huh?");
 		}
 		//go into a frame like normal, then move up the stack and call?
 		//when we reach the top of the function, we will need to take it off the stack, but the call is a lateral move to a new Instructions, basically.

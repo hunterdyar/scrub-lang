@@ -48,9 +48,9 @@ public class CompileTests
 		CompileTest("if(false){3}else{1}",
 			[new Integer(3),new Integer(1)],
 			Op.Make(OpCode.OpFalse),
-			Op.Make(OpCode.OpJumpNotTruthy,4),
+			Op.Make(OpCode.OpJumpNotTruthy,4,1),
 			Op.Make(OpCode.OpConstant,0),
-			Op.Make(OpCode.OpJump,5),
+			Op.Make(OpCode.OpJump,5,1),
 			Op.Make(OpCode.OpConstant, 1),
 			Op.Make(OpCode.OpPop));
 		
@@ -81,9 +81,9 @@ public class CompileTests
 		CompileTest("if (true) { 10 } \n 3333\n",
 			[new Integer(10), new Integer(20), new Integer(3333)],
 			Op.Make(OpCode.OpTrue),
-			Op.Make(OpCode.OpJumpNotTruthy, 4),
+			Op.Make(OpCode.OpJumpNotTruthy, 4,1),
 			Op.Make(OpCode.OpConstant, 0),
-			Op.Make(OpCode.OpJump, 5),
+			Op.Make(OpCode.OpJump, 5,1),
 			Op.Make(OpCode.OpNull),
 			Op.Make(OpCode.OpPop),
 			Op.Make(OpCode.OpConstant, 1),

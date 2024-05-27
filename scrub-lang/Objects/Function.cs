@@ -13,9 +13,9 @@ public class Function : Object
 	{
 		if (prependReturn)
 		{
-			CompiledFunction = new int[instructions.Length + 1];
-			CompiledFunction[0] = (byte)OpCode.OpReturnValue;
-			instructions.CopyTo(CompiledFunction, 1);
+			//CompiledFunction = new int[instructions.Length + 1];
+			//CompiledFunction[0] = Op.Make(OpCode.OpReturnValue,0,0);//hmmmmmmmmmmmmmmmm
+			//instructions.CopyTo(CompiledFunction, 1);
 		}
 		else
 		{
@@ -30,6 +30,10 @@ public class Function : Object
 
 	public override string ToString()
 	{
+		if (CompiledFunction == null)
+		{
+			return "NUll Function";
+		}
 		return $"Compiled Function: [{CompiledFunction.ToDelimitedString(",")}]" + (string.IsNullOrEmpty(Name) ? "" : $"({Name})"); 
 	}
 }
