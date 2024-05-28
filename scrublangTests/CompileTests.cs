@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Text;
-using NuGet.Frameworks;
-using NUnit.Framework.Internal;
 using scrub_lang.Compiler;
 using scrub_lang.Objects;
 using scrub_lang.Parser;
@@ -48,11 +46,14 @@ public class CompileTests
 		CompileTest("if(false){3}else{1}",
 			[new Integer(3),new Integer(1)],
 			Op.Make(OpCode.OpFalse),
-			Op.Make(OpCode.OpJumpNotTruthy,4,0),
-			Op.Make(OpCode.OpConstant,0),
-			Op.Make(OpCode.OpJump,5,0),
-			Op.Make(OpCode.OpConstant, 1),
-			Op.Make(OpCode.OpPop));
+			Op.Make(OpCode.OpJumpNotTruthy,5,0),//do the consequence or jump to alternative
+			Op.Make(OpCode.OpConstant,0),//the consequence
+			Op.Make(OpCode.OpJump,7,0),//to after everything, we did the consequence
+			Op.Make(OpCode.OpJump,1,1),//(undo only) jump to the start, we have just undone the alternative
+			Op.Make(OpCode.OpConstant, 1),//5 //the alternative
+			Op.Make(OpCode.OpJumpNotTruthy, 3, 1),//(undo only) undo the alternative or jump to conditional
+			Op.Make(OpCode.OpPop)//7
+			);
 		
 		
 		//we don't want pops until after both branches. i think when we skip the alternative, we're skipping or not skipping a pop.

@@ -47,6 +47,7 @@ namespace MyGuiCsProject{
             Add(ReplPane);
             Add(StatePane);
             ReplInput.SetFocus();
+            
         }
     }
 }

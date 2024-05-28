@@ -425,7 +425,8 @@ public class Compiler
 			//Emit(OpCode.OpJump, CurrentScope.Instuctions.Count+1);//skip self and next? +2? 
 			//curr+jumpx2
 			//the opposite side of the JUMP command.... minus one. this is for going backwards, it must be skipped when going forwards
-			Emit(condExpr.Alternative.Location,OpCode.OpJumpNotTruthy, afterConsequencePos,1);//problem: the truth/false position is one too far back?
+			//the -2 are the jumps we added
+			Emit(condExpr.Alternative.Location,OpCode.OpJumpNotTruthy, afterConsequencePos-2,1);//problem: the truth/false position is one too far back?
 			var afterAlternativePos = CurrentScope.Instructions.Count;
 			if (Scopes.Count > 1)
 			{

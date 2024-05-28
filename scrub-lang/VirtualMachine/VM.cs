@@ -570,9 +570,10 @@ public class VM
 			//todo: write tests for this.
 			return new ScrubVMError($"Wrong number of arguments! {CurrentLocation}");
 		}
+
 		var frame = new Frame(cl,sp-numArgs);
 		PushFrame(frame);
-		sp = frame.basePointer + cl.CompiledFunction.NumLocals;//give us a buffer of the number of local variables we will store in this area on the stack.
+		sp = frame.basePointer + cl.CompiledFunction.NumArgs+cl.CompiledFunction.NumLocals;//give us a buffer of the number of local variables we will store in this area on the stack.
 		return null;
 	}
 
@@ -1030,10 +1031,5 @@ public class VM
 	{
 		return b ? True : False;
 	}
-	public static IExpression Parse(string input)
-	{
-		Tokenizer = new Tokenizer.Tokenizer(input);
-		Parser = new Parser.Parser(Tokenizer);
-		return Parser.ParseProgram();
-	}
+	
 }

@@ -24,12 +24,18 @@
     &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6a4bc699_002D8539_002D4e6a_002D87d6_002Df312bbc7bd6d/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="TestConditionalCompile" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.CompileTests.TestConditionalCompile&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a9ca8841_002D0f3c_002D4e81_002Daadb_002D639d38854b18/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="VMTests #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
+	
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c2f72073_002D8b20_002D441b_002D9325_002Dee955750816f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="VMTests #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests&lt;/TestId&gt;&#xD;

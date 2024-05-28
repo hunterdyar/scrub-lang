@@ -1,4 +1,6 @@
-﻿using scrub_lang.Compiler;
+﻿using System.Net.Mime;
+using System.Text;
+using scrub_lang.Compiler;
 using scrub_lang.Objects;
 using Object = scrub_lang.Objects.Object;
 
@@ -9,6 +11,7 @@ public class Status
 {
 	private VM _vm;
 	private SymbolTable Symbols => _vm.Symbols;
+	
 	public Status(VM vm)
 	{
 		_vm = vm;
@@ -31,10 +34,17 @@ public class Status
 	{
 		Dictionary<string, VariableState> state = new Dictionary<string, VariableState>();
 		//from bottom to top.
-		foreach (var frame in  _vm.Frames)
+		foreach (var frame in  _vm.Frames.Reverse())
 		{
 			foreach (var symbol in frame.closure.CompiledFunction.Symbols.Table.Values)
 			{
+				if (state.ContainsKey(symbol.Name))
+				{
+					//Note that we are looping from end to beginning. So any key that already exists will the most local, shadowing the others.
+					//so we don't add them. In the future, we will want to display this so feedback on variable name hiding.
+					continue;
+				}
+				
 				if (symbol.Scope == ScopeDef.Builtin || symbol.Scope == ScopeDef.Function)
 				{
 					continue;

@@ -71,7 +71,7 @@ static class Scrub
 		IExpression p;
 		try
 		{
-			p = VM.Parse(input);
+			p = scrub_lang.Scrub.Parse(input);
 		}
 		catch (ParseException pe)
 		{

@@ -90,7 +90,7 @@ public struct Definition
 			if (OperandWidths.Length == 2)
 			{
 				//two operands
-				if (OperandWidths[1] == 1)
+				if (OperandWidths[1] == 1)//1 1
 				{
 					operands[1] = b;
 				}
@@ -98,18 +98,22 @@ public struct Definition
 				{
 					//the only option here now is "op a bc", we only have 3 bytes of operands.
 					operands[1] = bc;
-					return (op,operands);
+					return (op,operands);//2 1
 				}
-			}else if (OperandWidths.Length == 3)
+			}else if (OperandWidths.Length == 3)//1 1 1
 			{
 				//3 operands is only possible with op a,b,c.
 				operands[1] = b;
 				operands[2] = c;
 				return (op,operands);
 			}
-		}else if (OperandWidths[0] == 2)
+		}else if (OperandWidths[0] == 2)// 2
 		{
 			operands[0] = ab;
+			if (OperandWidths.Length > 1)//2 1
+			{
+				operands[1] = c;
+			}
 		}
 		else
 		{
