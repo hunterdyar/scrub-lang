@@ -9,6 +9,7 @@ namespace MyGuiCsProject{
         public TextView OutputView;
         public FrameView ReplPane;
         public FrameView StatePane;
+        public TabView ProgramTabs;
         private VMRunner _runner;
         public REPL()
         {
@@ -21,16 +22,23 @@ namespace MyGuiCsProject{
             {
                 BorderStyle = BorderStyle.None
             };
-            ReplPane = new FrameView("Read-Execute-Print-Loop")
+            ProgramTabs = new TabView()
             {
                 X = 0,
                 Y = 0,
                 Width = Dim.Percent(60),
                 Height = Dim.Fill(3)
             };
+            ReplPane = new FrameView("Read-Execute-Print-Loop")
+            {
+                X = 0,
+                Y = 0,
+                Width = Dim.Fill(),
+                Height = Dim.Fill()
+            };
             StatePane = new FrameView("State")
             { 
-                X = Pos.Right(ReplPane),
+                X = Pos.Right(ProgramTabs),
                 Y = 0,
                 Width = Dim.Percent(40),
                 Height = Dim.Fill(3)
@@ -71,7 +79,7 @@ namespace MyGuiCsProject{
             PlayBar controls = new PlayBar(_runner)
             {
                 X = 0,
-                Y = Pos.Bottom(ReplPane),
+                Y = Pos.Bottom(ProgramTabs),
                 Width = Dim.Percent(60),
                 Height = 3,
                 CanFocus = true,
@@ -88,8 +96,23 @@ namespace MyGuiCsProject{
                 Title = "Last Result"
             };
 
+            //todo: create a files view that shows recent files and a button that opens a dialogue.
+            var files = new OpenDialog()
+            {
+                Width = Dim.Fill(),
+                Height = Dim.Fill(),
+                AllowedFileTypes = ["scrub","txt","text"],
+                AllowsMultipleSelection = false,
+                CanChooseDirectories = false,
+                ColorScheme = Colors.TopLevel,
+            };
+
+            var filetab = new TabView.Tab("Open File", files);
+            var repltab = new TabView.Tab("REPL", ReplPane);
+            ProgramTabs.AddTab(repltab,true);
+            ProgramTabs.AddTab(filetab,false);
             Add(controls);
-            Add(ReplPane);
+            Add(ProgramTabs);
             Add(StatePane);
             Add(last);
 
