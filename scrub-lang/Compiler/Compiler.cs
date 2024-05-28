@@ -330,6 +330,12 @@ public class Compiler
 				case TokenType.BitwiseRightShift:
 					Emit(bin.Location, OpCode.OpBitShiftRight);
 					break;
+				case TokenType.Modulo:
+					Emit(bin.Location, OpCode.OpMod);
+					break;
+				case TokenType.PowerOf:
+					Emit(bin.Location, OpCode.OpPow);
+					break;
 				default:
 					return new ScrubCompilerError($"Unable to Compile Operator {Token.OperatorToString(bin.Operator)}");
 			}

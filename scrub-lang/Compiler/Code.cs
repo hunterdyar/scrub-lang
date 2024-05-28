@@ -27,6 +27,8 @@ public enum OpCode: byte
 	OpNegate = 18,
 	OpIndex = 19,
 	OpConcat = 21, 
+	OpPow = 22,
+	OpMod = 23,
 
 	//special ops.
 	OpReturnValue = 31,
@@ -136,6 +138,8 @@ public static class Op
 		{ OpCode.OpAdd, new Definition("Add", new int[] { })},
 		{ OpCode.OpMult, new Definition("Mult", new int[] { })},
 		{ OpCode.OpSubtract, new Definition("Subtract", new int[] { })},
+		{ OpCode.OpPow, new Definition("Power", new int[] { }) },
+		{ OpCode.OpMod, new Definition("Modulo", new int[] { }) },
 		{ OpCode.OpDivide, new Definition("Divide", new int[] { }) },
 		{ OpCode.OpTrue, new Definition("True", new int[] { })},
 		{ OpCode.OpFalse, new Definition("False", new int[] { })},

@@ -193,6 +193,8 @@ public class VM
 			case OpCode.OpBitAnd:
 			case OpCode.OpBitOr:
 			case OpCode.OpBitXor:
+			case OpCode.OpPow:
+			case OpCode.OpMod:
 				return RunBinaryOperation(op);
 			case OpCode.OpBitShiftLeft:
 			case OpCode.OpBitShiftRight:
@@ -360,6 +362,8 @@ public class VM
 			case OpCode.OpBitXor:
 			case OpCode.OpBitShiftLeft:
 			case OpCode.OpBitShiftRight:
+			case OpCode.OpPow:
+			case OpCode.OpMod:
 				//binary ops are all the same. pop pop push. we reverse it with poppushpush.
 				UnPush();//remove the result of the op
 				UnPop();//restore the previous values. I think this will do it in the right order?
@@ -876,6 +880,12 @@ public class VM
 				break;
 			case OpCode.OpBitXor:
 				result = left ^ right;
+				break;
+			case OpCode.OpMod:
+				result = left % right;
+				break;
+			case OpCode.OpPow:
+				result = new Integer((int)Math.Pow(left.NativeInt, right.NativeInt));
 				break;
 			case OpCode.OpConcat:
 				//todo: optimize these to use internal casts, instead of round-trip through native casts.
