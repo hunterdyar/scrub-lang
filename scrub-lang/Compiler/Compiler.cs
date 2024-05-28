@@ -25,6 +25,22 @@ public class Compiler
 		_scopeIndex = 0;
 		DefineBuiltins();
 	}
+
+	public bool TryCompile(IExpression root, out ScrubCompilerError? error, out Program? program)
+	{
+		var r = Compile(root);
+		if (r != null)
+		{
+			error = r;
+			program = null;
+			return false;
+		}
+
+		error = null;
+		program = GetProgram();
+		return true;
+
+	}
 	public Compiler(Environment env)
 	{
 		if (env.SymbolTable != null)
