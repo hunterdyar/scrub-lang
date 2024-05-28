@@ -49,6 +49,10 @@ public class VariableData : DataTable
 		}
 		foreach(var variable in _runner.Status.GetVariables())
 		{
+			if (variable.Object == null)
+			{
+				continue;
+			}
 			var r = NewRow();
 			r["name"] = variable.Name;
 			r["value"] = variable.Object.ToString();

@@ -15,6 +15,7 @@ public class VMRunner
 	public Action OnComplete;
 	public Action OnError;
 	public Action OnOutput;
+	public Action<string> OnNewResult;
 	//core references
 	public Status Status => _status;
 	private Status _status;
@@ -25,10 +26,16 @@ public class VMRunner
 	private Object[] Globals;
 	//convenience
 	public VMState? State => _vm?.State;
+	public Object? LastResult;
 
 	//loads but does not start executing. Resets previous state.
 	public void CompileProgram(string program, Environment? env = null)
 	{
+		if (String.IsNullOrEmpty(program))
+		{
+			//not an error, but nothing to do.
+			return;
+		}
 		if (env == null)
 		{
 			env = new Environment();
@@ -41,29 +48,19 @@ public class VMRunner
 		}
 		catch (ParseException pe)
 		{
-			_output.AppendLine("Parse Error:" + pe.Message);
+			_output.AppendLine("Parse Error: " + pe.Message);
 			OnOutput?.Invoke();
 			return;
 		}
 		var compiler = new Compiler.Compiler(env);
-		try
+		if (!compiler.TryCompile(root, out var error, out var prog))
 		{
-			var result = compiler.Compile(root);
-			if (result != null)
-			{
-				_output.AppendLine("Compile Error:" + result.Message);
-				OnOutput?.Invoke();
-				// OnError?.Invoke();
-				return;
-			}
+			_output.AppendLine("Compiler Error: " + error.Message);
+			OnOutput?.Invoke();
+			return;
 		}
-		catch (CompileException)
-		{
-			throw new CompileException("i need to change how these errors get returned still");
-		}
-		//
 		//todo: use some kind of streamwriter here. file and log file?
-		_vm = new VM(compiler.GetProgram());
+		_vm = new VM(prog);
 		_environment = compiler.Environment();
 		_status = new Status(_vm);
 	}
@@ -108,16 +105,24 @@ public class VMRunner
 			if (lastPopped != null)
 			{
 				_output.AppendLine(lastPopped.ToString());
+				LastResult = lastPopped;
+				OnNewResult?.Invoke(LastResult.ToString());
 			}
 			else
 			{
-				_output.AppendLine("Finished.");
+				if (State == VMState.Complete)
+				{
+					_output.AppendLine("Finished.");
+				}else if (State == VMState.Paused)
+				{
+					_output.AppendLine("--paused--");
+				}
 			}
 			OnOutput?.Invoke();
 		}
 		Globals = _vm.Globals;//save for REPL oop.s
 		
-		///
+		
 		if (State == VMState.Paused)
 		{
 			OnPaused?.Invoke();
@@ -134,16 +139,32 @@ public class VMRunner
 		}
 	}
 
+	public void Pause()
+	{
+		if (_vm != null)
+		{
+			// todo... if running
+			if (_vm.State != VMState.Paused)
+			{
+				_vm.Pause();
+			}
+		}
+	}
+	
 	public void RunNextExpression()
 	{
 		//uh... keep running until we hit some special 'expressionbreak' on the same frame we are on.
 		//that's the best I got for now lol.
 	}
+
+	public void RunPrevExpression()
+	{
+		
+	}
 	public void RunNextOperation()
 	{
 		if (_vm == null)
 		{
-			throw new NullReferenceException("Cannot advance a program that has not started");
 			return;
 		}
 		
@@ -153,20 +174,19 @@ public class VMRunner
 			//todo: results.
 		}
 	}
-	
-	public void UndoOneOp()
+
+	public void RunPreviousOperation()
 	{
 		if (_vm == null)
 		{
-			throw new NullReferenceException("Cannot revert a program that has not started");
 			return;
 		}
 
 		if (_vm.State == VMState.Paused)
 		{
 			_vm.PreviousOne();
+			//todo: results. to the history!
 		}
 	}
 
-	
 }
