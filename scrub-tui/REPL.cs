@@ -1,15 +1,22 @@
+using MyGuiCsProject.Views;
+using scrub_lang.VirtualMachine;
+
 namespace MyGuiCsProject{
     using Terminal.Gui;
-    public partial class REPL : Window
+    public class REPL : Window
     {
         public TextField ReplInput;
-        public ScrollView OutputView;
+        public TextView OutputView;
         public FrameView ReplPane;
         public FrameView StatePane;
-        public FrameView ReplTopPane;
-        public FrameView RepBottomPane;
+        private VMRunner _runner;
         public REPL()
         {
+            _runner = new VMRunner();
+            _runner.OnOutput += OnOutputUpdate;
+            //load file?
+            ColorScheme = Colors.ColorSchemes["TopLevel"];
+            /// //Laout
             Border = new Border()
             {
                 BorderStyle = BorderStyle.None
@@ -28,26 +35,65 @@ namespace MyGuiCsProject{
                 Width = Dim.Percent(40),
                 Height = Dim.Fill()
             };
-            OutputView = new ScrollView()
+            OutputView = new TextView()
             {
                 X = 0,
                 Y = 0,
                 Width = Dim.Fill(),
-                Height = Dim.Fill(1)
-            };
-            ReplInput = new TextField("Input")
+                Height = Dim.Fill(1),
+                WordWrap = true,
+                ReadOnly = true,
+            }; 
+            OutputView.ColorScheme = Colors.Base;
+            ReplInput = new TextField("")
             {
                 X = 0,
                 Y = Pos.Bottom(OutputView),
                 Width = Dim.Fill(),
-                Height = 1
+                Height = 1,
             };
+            
             ReplPane.Add(OutputView);
             ReplPane.Add(ReplInput);
+            ReplInput.ColorScheme = Colors.Dialog;
+
+            TableView variableTable = new TableView()
+            {
+                X = 0,
+                Y = 0,
+                Width = Dim.Fill(),
+                Height = Dim.Fill(),
+            };
+            variableTable.Table = new VariableData(_runner);
+            StatePane.Add(variableTable);
             Add(ReplPane);
             Add(StatePane);
             ReplInput.SetFocus();
-            
+            //input
+            KeyDown += OnKeyPress;
+        }
+
+        private void OnOutputUpdate()
+        {
+            OutputView.Text = _runner.Output.ToString();
+        }
+
+        private void RunLine(string program)
+        {
+            _runner.RunWithEnvironment(program);
+        }
+        private void OnKeyPress(KeyEventEventArgs obj)
+        {
+            if (obj.KeyEvent.Key == Key.Enter)
+            {
+                if (ReplInput.Text == "")
+                {
+                    return;
+                }
+                var program = ReplInput.Text.ToString();
+                ReplInput.Text = "";
+                RunLine(program);
+            }
         }
     }
 }

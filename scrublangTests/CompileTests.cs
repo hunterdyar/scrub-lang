@@ -134,7 +134,7 @@ public class CompileTests
 			{
 				Assert.Fail(e.Message);
 			}
-			var byteCode = c.ByteCode();
+			var byteCode = c.GetProgram();
 			bool failed = false;
 
 			//todo: fix constants with our own objects. I think the easier fix is to allow comparison of our objects and native versions with equality.

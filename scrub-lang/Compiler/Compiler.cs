@@ -708,7 +708,10 @@ public class Compiler
 		ReplaceInstruction(opPos, newInstruction);
 	}
 	//this is what gets passed to the VM.
-	public Program ByteCode()
+	/// <summary>
+	/// gets bytecode, et al.
+	/// </summary>
+	public Program GetProgram()
 	{
 		//todo: decide how to encode the Location Lookup tables and pass them to the VM for errors.
 		return new Program(CurrentScope.Instructions.ToArray(),_constants.ToArray(),CurrentScope.OpLocationLookup, _symbolTable);

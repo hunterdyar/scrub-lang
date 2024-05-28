@@ -24,7 +24,7 @@ public static class Scrub
 	{
 		Compiler.Compiler c = new Compiler.Compiler();
 		c.Compile(program);
-		return c.ByteCode();
+		return c.GetProgram();
 	}
 
 }

@@ -78,9 +78,16 @@ public class VM
 		_constants = program.Constants.ToList();
 	}
 
-	public void SetGlobals( Object[] globalsStore)
+	public void SetGlobals( Object[]? globalsStore)
 	{
-		_globals = globalsStore;
+		if (globalsStore != null)
+		{
+			_globals = globalsStore;
+		}
+		else
+		{
+			//oops, we put a null in here.
+		}
 	}
 
 	
@@ -97,7 +104,7 @@ public class VM
 		}
 		else
 		{
-			Console.WriteLine("Can't run, already running!");
+			return new ScrubVMError("Can't Run VM that is already running");
 		}
 		//is paused or initiated, jump on in!
 		while (_state == VMState.Running)
@@ -106,6 +113,7 @@ public class VM
 			if (res != null)
 			{
 				_state = VMState.Error;
+				return res;
 			}
 		}
 

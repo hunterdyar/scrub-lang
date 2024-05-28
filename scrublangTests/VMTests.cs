@@ -34,7 +34,7 @@ public class VMTests
 				throw new VMException(error.ToString());
 			}
 
-			var vm = new VM(comp.ByteCode());
+			var vm = new VM(comp.GetProgram());
 
 			var vmerror = vm.Run();
 			if (vmerror != null)

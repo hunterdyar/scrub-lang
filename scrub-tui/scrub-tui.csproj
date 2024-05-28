@@ -12,4 +12,8 @@
       <PackageReference Include="Terminal.Gui" Version="1.16.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\scrub-lang\scrub-lang.csproj" />
+    </ItemGroup>
+
 </Project>

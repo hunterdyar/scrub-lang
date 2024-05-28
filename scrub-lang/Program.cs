@@ -93,7 +93,7 @@ static class Scrub
 			return ce.Message;
 		}
 
-		var vm = new VM(comp.ByteCode());
+		var vm = new VM(comp.GetProgram());
 		if (globals != null)
 		{
 			vm.SetGlobals(globals);
