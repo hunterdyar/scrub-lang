@@ -26,6 +26,7 @@ public class PlayBar : FrameView
 			X = Pos.Right(StepBackwardsButton),
 			Text = "||",
 		};
+		
 		PauseButton.Clicked += PauseButtonOnClicked;
 
 		PlayButton = new Button()

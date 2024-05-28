@@ -36,12 +36,13 @@ namespace MyGuiCsProject{
                 Width = Dim.Fill(),
                 Height = Dim.Fill()
             };
+            
             StatePane = new FrameView("State")
             { 
                 X = Pos.Right(ProgramTabs),
                 Y = 0,
                 Width = Dim.Percent(40),
-                Height = Dim.Fill(3)
+                Height = Dim.Fill(3),
             };
             OutputView = new TextView()
             {
@@ -72,7 +73,10 @@ namespace MyGuiCsProject{
                 Y = 0,
                 Width = Dim.Fill(),
                 Height = Dim.Fill(),
+                FullRowSelect = true,
+                MultiSelect = false,
             };
+            
             variableTable.Table = new VariableData(_runner);
             StatePane.Add(variableTable);
 
@@ -97,15 +101,7 @@ namespace MyGuiCsProject{
             };
 
             //todo: create a files view that shows recent files and a button that opens a dialogue.
-            var files = new OpenDialog()
-            {
-                Width = Dim.Fill(),
-                Height = Dim.Fill(),
-                AllowedFileTypes = ["scrub","txt","text"],
-                AllowsMultipleSelection = false,
-                CanChooseDirectories = false,
-                ColorScheme = Colors.TopLevel,
-            };
+            var files = new FilesView();
 
             var filetab = new TabView.Tab("Open File", files);
             var repltab = new TabView.Tab("REPL", ReplPane);
@@ -136,6 +132,10 @@ namespace MyGuiCsProject{
         {
             if (obj.KeyEvent.Key == Key.Enter)
             {
+                if (!ReplInput.HasFocus)
+                {
+                    return;
+                }
                 if (_runner.State == VMState.Paused)
                 {
                     _runner.RunUntilStop();
