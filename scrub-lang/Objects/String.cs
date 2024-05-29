@@ -40,7 +40,16 @@ public class String : Objects.Object
 		}
 		else
 		{
-			Bits = Concatenate(stringsys.Select(x => x.Bits).ToArray());
+			//Bits = Concatenate(stringsys.Select(x => x.Bits).ToArray());
+			
+			//this is low-key a very stupid way of doing things, but it's all getting refactored when i go back to byte arrays as the underlying data structure.
+			StringBuilder sb = new StringBuilder();
+			foreach (var str in stringsys)
+			{
+				sb.Append(str.ToNativeString());
+			}
+			var utf = Encoding.UTF8.GetBytes(sb.ToString());
+			Bits = new BitArray(utf);
 		}
 	}
 

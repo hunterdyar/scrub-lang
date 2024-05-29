@@ -336,6 +336,9 @@ public class Compiler
 				case TokenType.PowerOf:
 					Emit(bin.Location, OpCode.OpPow);
 					break;
+				case TokenType.IncrementConcatenate:
+					Emit(bin.Location, OpCode.OpConcat);
+					break;
 				default:
 					return new ScrubCompilerError($"Unable to Compile Operator {Token.OperatorToString(bin.Operator)}");
 			}

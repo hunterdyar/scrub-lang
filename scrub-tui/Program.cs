@@ -5,7 +5,7 @@ Application.Init();
 
 try
 {
-    Application.Run<REPL>();
+    Application.Run<ScrubTUI>();
 }
 finally
 {

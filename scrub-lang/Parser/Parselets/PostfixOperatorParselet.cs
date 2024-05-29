@@ -15,7 +15,15 @@ public class PostfixOperatorParselet : IInfixParselet
 	{
 		if (token.TokenType == TokenType.IncrementConcatenate)
 		{
-			return new IncrementExpression(left, token.TokenType, token.Location);
+			//todo: more robust a++ vs. 'a++b' parsing without lookahead???
+			if (parser.Peek(TokenType.Break) || parser.Peek(TokenType.CloseParen) || parser.Peek(TokenType.CloseBracket) || parser.Peek(TokenType.Comma))
+			{
+				return new IncrementExpression(left, token.TokenType, token.Location);
+			}
+			else
+			{
+				return new BinaryConcatenateExpression(left, token.TokenType, parser.ParseExpression(), token.Location);
+			}
 		}else if (token.TokenType == TokenType.Decrement)
 		{
 			return new DecrementExpression(left, token.TokenType, token.Location);

@@ -7,23 +7,36 @@ public class LastResultView : FrameView
 {
 	private VMRunner _runner;
 	private Label _resultLabel;
-	
+	private Label _timeLabel;
 	public LastResultView(VMRunner runner)
 	{
 		_runner = runner;
 		_runner.OnNewResult += OnNewResult;
+		
+		Title = "Last Result";
+		int timeWidth = 7;
 		_resultLabel = new Label()
 		{
 			X = 0,
 			Y = 0,
-			Width = Dim.Fill(),
+			Width = Dim.Fill(timeWidth),
 			Height = Dim.Fill()
 		};
+		_timeLabel = new Label()
+		{
+			X = Pos.Right(_resultLabel),
+			Y = 0,
+			Width = timeWidth,
+			Height = Dim.Fill(),
+			TextAlignment = TextAlignment.Right
+		};
 		Add(_resultLabel);
+		Add(_timeLabel);
 	}
 
-	private void OnNewResult(string result)
+	private void OnNewResult(string result, TimeSpan time)
 	{
 		_resultLabel.Text = result;
+		_timeLabel.Text = time.TotalMilliseconds.ToString("N1") + "ms";
 	}
 }

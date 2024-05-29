@@ -68,7 +68,7 @@ public static class Builtins
 	{
 		foreach (var arg in args)
 		{
-			context.outputStream.WriteLine(arg);
+			context.OutputStream.WriteLine(arg);
 		}
 
 		//return new Null();//this might break things, because we are comparing by reference to the VM null.

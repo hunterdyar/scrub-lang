@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
 using scrub_lang.Parser;
@@ -14,20 +15,20 @@ public class VMRunner
 	public Action OnPaused;
 	public Action OnComplete;
 	public Action OnError;
-	public Action OnOutput;
-	public Action<string> OnNewResult;
+	public Action<string, TimeSpan> OnNewResult;
 	//core references
 	public Status Status => _status;
 	private Status _status;
 	private VM? _vm;
 	private Environment _environment;
-	public StringBuilder Output => _output;
-	private StringBuilder _output = new StringBuilder();
+	public StringWriter Output => _output;
+	private StringWriter _output = new StringWriter();
 	private Object[] Globals;
 	//convenience
 	public VMState? State => _vm?.State;
 	public Object? LastResult;
-
+	public TimeSpan LastExecutionTime => new TimeSpan(_executionStopWatch.ElapsedTicks);
+	private Stopwatch _executionStopWatch = new Stopwatch();
 	//loads but does not start executing. Resets previous state.
 	public void CompileProgram(string program, Environment? env = null)
 	{
@@ -48,30 +49,31 @@ public class VMRunner
 		}
 		catch (ParseException pe)
 		{
-			_output.AppendLine("Parse Error: " + pe.Message);
-			OnOutput?.Invoke();
+			_output.WriteLine("Parse Error: " + pe.Message);
 			return;
 		}
 		var compiler = new Compiler.Compiler(env);
 		if (!compiler.TryCompile(root, out var error, out var prog))
 		{
-			_output.AppendLine("Compiler Error: " + error.Message);
-			OnOutput?.Invoke();
+			_output.WriteLine("Compiler Error: " + error.Message);
 			return;
 		}
 		//todo: use some kind of streamwriter here. file and log file?
-		_vm = new VM(prog);
+		_vm = new VM(prog, _output);
 		_environment = compiler.Environment();
 		_status = new Status(_vm);
 	}
 
 	public void RunWithEnvironment(string program)
 	{
+		_executionStopWatch.Restart();
 		CompileProgram(program, _environment);
 		if (_vm != null){
 			_vm.SetGlobals(Globals);
 			RunUntilStop();
 		}
+
+		_executionStopWatch.Stop();
 	}
 	
 	/// <summary>
@@ -79,46 +81,47 @@ public class VMRunner
 	/// </summary>
 	public void Run(string program)
 	{
+		_executionStopWatch.Restart();
 		CompileProgram(program);
 		if (_vm != null)
 		{
 			RunUntilStop();
 		}
+		_executionStopWatch.Stop();
 	}
 
 	public void RunUntilStop()
 	{
 		if (_vm == null)
 		{
-			throw new VMException("VM in runner is null. Program must be compiled before it can be run.");
+			_output.WriteLine("A program must be compiled before it can be run.");
+			return;
 		}
 		var res = _vm.Run();
 		if (res != null)
 		{
 			//report.
-			_output.AppendLine(res.Message);
-			OnOutput?.Invoke();
+			_output.WriteLine(res.Message);
 		}
 		else
 		{
 			var lastPopped = _vm.LastPopped();
 			if (lastPopped != null)
 			{
-				_output.AppendLine(lastPopped.ToString());
+				_output.WriteLine(lastPopped.ToString());
 				LastResult = lastPopped;
-				OnNewResult?.Invoke(LastResult.ToString());
+				OnNewResult?.Invoke(LastResult.ToString(),LastExecutionTime);
 			}
 			else
 			{
 				if (State == VMState.Complete)
 				{
-					_output.AppendLine("Finished.");
+					_output.WriteLine("Finished.");
 				}else if (State == VMState.Paused)
 				{
-					_output.AppendLine("--paused--");
+					_output.WriteLine("--paused--");
 				}
 			}
-			OnOutput?.Invoke();
 		}
 		Globals = _vm.Globals;//save for REPL oop.s
 		

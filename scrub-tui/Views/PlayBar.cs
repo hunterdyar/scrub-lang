@@ -48,6 +48,12 @@ public class PlayBar : FrameView
 		Add(PlayButton);
 		Add(StepForwardButton);
 		
+		//
+		// StepBackwardsButton.ClearKeybinding(Command.Accept);
+		// StepBackwardsButton.AddKeyBinding(Key.a,Command.Accept);
+		// StepBackwardsButton.HotKey = Key.a;
+		// StepForwardButton.HotKey = Key.d;
+		
 	}
 
 	private void StepForwardButtonOnClicked()
@@ -70,5 +76,15 @@ public class PlayBar : FrameView
 	{
 		_runner.RunPreviousOperation();
 	}
-	
+
+	public override bool ProcessHotKey(KeyEvent keyEvent)
+	{
+		// if (keyEvent.Key == Key.Enter)
+		// {
+		//
+		// 	return true;
+		// }
+
+		return base.ProcessHotKey(keyEvent);
+	}
 }

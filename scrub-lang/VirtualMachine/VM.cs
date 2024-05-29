@@ -42,7 +42,7 @@ public class VM
 	private int sp = 0;//stack pointer
 	// ReSharper disable once InconsistentNaming
 	private int usp = 0; //unstack pointer.
-	public TextWriter outputStream;
+	public TextWriter OutputStream;
 	
 	//the ENGINE
 	public VMState State => _state;
@@ -58,10 +58,10 @@ public class VM
 	public VM(Program program, TextWriter? writer = null)
 	{
 		//optional non-default output.
-		outputStream = writer;
-		if (outputStream == null)
+		OutputStream = writer;
+		if (OutputStream == null)
 		{
-			outputStream = Console.Out;
+			OutputStream = Console.Out;
 		}
 		Program = program;//keep a copy.
 		
@@ -195,12 +195,11 @@ public class VM
 			case OpCode.OpBitXor:
 			case OpCode.OpPow:
 			case OpCode.OpMod:
+			case OpCode.OpConcat:
 				return RunBinaryOperation(op);
 			case OpCode.OpBitShiftLeft:
 			case OpCode.OpBitShiftRight:
 				return RunBitShiftOperation(op);
-			case OpCode.OpConcat:
-				return new ScrubVMError("Concatenation Operator Not Yet Implemented");
 			case OpCode.OpPop:
 				Pop();
 				return null;
@@ -903,7 +902,7 @@ public class VM
 		switch (op)
 		{
 			case OpCode.OpAdd:
-				result = new String(left,right);
+				result = new String(left, right);
 				break;
 			case OpCode.OpConcat:
 				result = new String(left, right);
