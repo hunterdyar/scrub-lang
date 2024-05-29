@@ -5,48 +5,48 @@ namespace MyGuiCsProject.Views;
 
 public class PlayBar : FrameView
 {
-	public Button PlayButton;
-	public Button PauseButton;
-	public Button StepForwardButton;
-	public Button StepBackwardsButton;
-	private VMRunner _runner;
+	private readonly Button _playButton;
+	private readonly Button _pauseButton;
+	private readonly Button _stepForwardButton;
+	private readonly Button _stepBackwardsButton;
+	private readonly VMRunner _runner;
 
 	public PlayBar(VMRunner runner)
 	{
 		_runner = runner;
-		StepBackwardsButton = new Button()
+		_stepBackwardsButton = new Button()
 		{
 			X = 0,
 			Y = 0,
 			Text = "|<",
 		};
-		StepBackwardsButton.Clicked += StepBackwardsButtonOnClicked;
-		PauseButton = new Button()
+		_stepBackwardsButton.Clicked += StepBackwardsButtonOnClicked;
+		_pauseButton = new Button()
 		{
-			X = Pos.Right(StepBackwardsButton),
+			X = Pos.Right(_stepBackwardsButton),
 			Text = "||",
 		};
 		
-		PauseButton.Clicked += PauseButtonOnClicked;
+		_pauseButton.Clicked += PauseButtonOnClicked;
 
-		PlayButton = new Button()
+		_playButton = new Button()
 		{
-			X = Pos.Right(PauseButton),
+			X = Pos.Right(_pauseButton),
 			Text = "|>",
 		};
-		PlayButton.Clicked+= PlayButtonOnClicked;
+		_playButton.Clicked+= PlayButtonOnClicked;
 		
-		StepForwardButton = new Button()
+		_stepForwardButton = new Button()
 		{
-			X = Pos.Right(PlayButton),
+			X = Pos.Right(_playButton),
 			Text = ">|",
 		};
-		StepForwardButton.Clicked+= StepForwardButtonOnClicked;
+		_stepForwardButton.Clicked+= StepForwardButtonOnClicked;
 		
-		Add(StepBackwardsButton);
-		Add(PauseButton);
-		Add(PlayButton);
-		Add(StepForwardButton);
+		Add(_stepBackwardsButton);
+		Add(_pauseButton);
+		Add(_playButton);
+		Add(_stepForwardButton);
 		
 		//
 		// StepBackwardsButton.ClearKeybinding(Command.Accept);

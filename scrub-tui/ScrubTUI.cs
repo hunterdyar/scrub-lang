@@ -9,12 +9,12 @@ namespace MyGuiCsProject{
         public TabView ProgramTabs;
         
         //views
-        private FilesView FilesView;
-        private REPLView ReplPane;
-        private VariableStateView StatePane;
-        private VMRunner _runner;
-        private LastResultView lastResult;
-        private PlayBar controls;
+        private readonly FilesView _filesView;
+        private readonly REPLView _replPane;
+        private readonly VariableStateView _statePane;
+        private readonly VMRunner _runner;
+        private readonly LastResultView _lastResult;
+        private readonly PlayBar _controls;
         
         public ScrubTUI()
         {
@@ -33,8 +33,8 @@ namespace MyGuiCsProject{
                 Width = Dim.Percent(60),
                 Height = Dim.Fill(3)
             };
-            ReplPane = new REPLView(_runner);
-            StatePane = new VariableStateView("State", _runner)
+            _replPane = new REPLView(_runner);
+            _statePane = new VariableStateView("State", _runner)
             {
                 X = Pos.Right(ProgramTabs),
                 Y = 0,
@@ -42,7 +42,7 @@ namespace MyGuiCsProject{
                 Height = Dim.Fill(3),
             };
 
-            controls = new PlayBar(_runner)
+            _controls = new PlayBar(_runner)
             {
                 X = 0,
                 Y = Pos.Bottom(ProgramTabs),
@@ -52,10 +52,10 @@ namespace MyGuiCsProject{
                 Title = "Controls",
             };
 
-            lastResult = new LastResultView(_runner)
+            _lastResult = new LastResultView(_runner)
             {
-                X = Pos.Right(controls),
-                Y = Pos.Bottom(StatePane),
+                X = Pos.Right(_controls),
+                Y = Pos.Bottom(_statePane),
                 Height = 3,
                 Width = Dim.Percent(40),
                 CanFocus = false,
@@ -63,16 +63,16 @@ namespace MyGuiCsProject{
             };
 
             //todo: create a files view that shows recent files and a button that opens a dialogue.
-            FilesView = new FilesView();
+            _filesView = new FilesView();
 
-            var filetab = new TabView.Tab("Open File", FilesView);
-            var repltab = new TabView.Tab("REPL", ReplPane);
+            var filetab = new TabView.Tab("Open File", _filesView);
+            var repltab = new TabView.Tab("REPL", _replPane);
             ProgramTabs.AddTab(repltab, true);
             ProgramTabs.AddTab(filetab, false);
-            Add(controls);
+            Add(_controls);
             Add(ProgramTabs);
-            Add(StatePane);
-            Add(lastResult);
+            Add(_statePane);
+            Add(_lastResult);
 
             
             //todo: how input should work. https://gui-cs.github.io/Terminal.Gui/docs/keyboard.html
@@ -82,9 +82,9 @@ namespace MyGuiCsProject{
 
         private void OnKeyPress(KeyEventEventArgs obj)
         {
-            if (ReplPane.Visible)
+            if (_replPane.Visible)
             {
-                ReplPane.HandleKey(obj);
+                _replPane.HandleKey(obj);
             }
         }
     }

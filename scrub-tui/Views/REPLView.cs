@@ -1,16 +1,15 @@
-﻿using System.Runtime.CompilerServices;
-using scrub_lang.VirtualMachine;
+﻿using scrub_lang.VirtualMachine;
 using Terminal.Gui;
 
 namespace MyGuiCsProject.Views;
 
 public class REPLView : FrameView
 {
-	public TextView OutputView;
-	public TextField ReplInput;
-	private Button _doItButton;
-	private VMRunner _runner;
-	private List<string> _replHistory = new List<string>();
+	private readonly TextView _outputView;
+	private readonly TextField _replInput;
+	private readonly Button _doItButton;
+	private readonly VMRunner _runner;
+	private readonly List<string> _replHistory = new List<string>();
 	private int _historyPos;
 	public REPLView(VMRunner runner)
 	{
@@ -18,7 +17,7 @@ public class REPLView : FrameView
 		_runner.Output.OnUpdate += OnOutputUpdate;
 
 		Title = "Read-Execute-Print-Loop";
-		OutputView = new TextView()
+		_outputView = new TextView()
 		{
 			X = 0,
 			Y = 0,
@@ -27,20 +26,20 @@ public class REPLView : FrameView
 			WordWrap = true,
 			ReadOnly = true,
 		};
-		OutputView.ColorScheme = Colors.Base;
-		ReplInput = new TextField("")
+		_outputView.ColorScheme = Colors.Base;
+		_replInput = new TextField("")
 		{
 			X = 0,
-			Y = Pos.Bottom(OutputView),
+			Y = Pos.Bottom(_outputView),
 			Width = Dim.Fill(8),
 			Height = 1,
 		};
-		ReplInput.ColorScheme = Colors.Dialog;
+		_replInput.ColorScheme = Colors.Dialog;
 
 		_doItButton = new Button()
 		{
-			X = Pos.Right(ReplInput),
-			Y = Pos.Bottom(OutputView),
+			X = Pos.Right(_replInput),
+			Y = Pos.Bottom(_outputView),
 			Width = 8,
 			Height = 1,
 			Text = "run"
@@ -52,8 +51,8 @@ public class REPLView : FrameView
 		_doItButton.Clicked += Submit;
 		// _doItButton.Clicked += DoItButtonOnClicked;
 		
-		Add(OutputView);
-		Add(ReplInput);
+		Add(_outputView);
+		Add(_replInput);
 		Add(_doItButton);
 	}
 
@@ -83,9 +82,9 @@ public class REPLView : FrameView
 
 	private void OnOutputUpdate()
 	{
-		OutputView.Text = _runner.Output.ToString();
-		ReplInput.Enabled = _runner.State != VMState.Paused || _runner.State != VMState.Paused;
-		OutputView.MoveEnd();
+		_outputView.Text = _runner.Output.ToString();
+		_replInput.Enabled = _runner.State != VMState.Paused || _runner.State != VMState.Paused;
+		_outputView.MoveEnd();
 	}
 
 	public void Submit()
@@ -101,14 +100,14 @@ public class REPLView : FrameView
 			return;
 		}
 
-		if (ReplInput.Text == "")
+		if (_replInput.Text == "")
 		{
 			//resume if it's running. maybe do this no matter what
 			return;
 		}
 
-		var program = ReplInput.Text.ToString();
-		ReplInput.Text = "";
+		var program = _replInput.Text.ToString();
+		_replInput.Text = "";
 		RunLine(program);
 		_replHistory.Add(program);
 		_historyPos = _replHistory.Count;
@@ -121,7 +120,7 @@ public class REPLView : FrameView
 		{
 			var current = _replHistory[_historyPos - 1];
 			_historyPos--;
-			ReplInput.Text = current;
+			_replInput.Text = current;
 		}
 	}
 
@@ -132,7 +131,7 @@ public class REPLView : FrameView
 		{
 			var current = _replHistory[_historyPos];
 			_historyPos++;
-			ReplInput.Text = current;
+			_replInput.Text = current;
 		}
 	}
 
