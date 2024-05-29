@@ -1,7 +1,6 @@
 ﻿using scrub_lang.Compiler;
 using scrub_lang.Evaluator;
 using scrub_lang.Objects;
-using scrub_lang.Parser;
 using Array = scrub_lang.Objects.Array;
 using Object = scrub_lang.Objects.Object;
 using String = scrub_lang.Objects.String;
@@ -10,11 +9,6 @@ namespace scrub_lang.VirtualMachine;
 
 public class VM
 {
-	//references for passing around everything with just the vm object.
-	//end keeping the last-used parser from getting gc'd.
-	public static Parser.Parser? Parser { get; private set; }
-	public static Tokenizer.Tokenizer? Tokenizer { get; private set; }
-	//
 	public const int StackSize = 2048;
 	public const int GlobalsSize = UInt16.MaxValue;
 	//some consts because why have many number when two number do.
