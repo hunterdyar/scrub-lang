@@ -82,9 +82,9 @@ namespace MyGuiCsProject{
 
         private void OnKeyPress(KeyEventEventArgs obj)
         {
-            if (ReplPane.HasFocus)
+            if (ReplPane.Visible)
             {
-                ReplPane.ProcessKeyEvent(obj.KeyEvent);
+                ReplPane.HandleKey(obj);
             }
         }
     }

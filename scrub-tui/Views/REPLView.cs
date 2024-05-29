@@ -6,13 +6,6 @@ namespace MyGuiCsProject.Views;
 
 public class REPLView : FrameView
 {
-	// var container = new FrameView("Read-Execute-Print-Loop")
-	// {
-	// 	X = 0,
-	// 	Y = 0,
-	// 	Width = Dim.Fill(),
-	// 	Height = Dim.Fill()
-	// };
 	public TextView OutputView;
 	public TextField ReplInput;
 	private Button _doItButton;
@@ -64,22 +57,27 @@ public class REPLView : FrameView
 		Add(_doItButton);
 	}
 
-	public void ProcessKeyEvent(KeyEvent key)
+	public void HandleKey(KeyEventEventArgs eventArgs)
 	{
-		if (key.Key == Key.Enter)
+		if (eventArgs.KeyEvent.Key == Key.Enter)
 		{
 			Submit();
+			eventArgs.Handled = true;
 			return;
 		}
 
-		if (key.Key == Key.CursorUp)
+		if (eventArgs.KeyEvent.Key == Key.CursorUp)
 		{
 			PreviousHistory();
+			eventArgs.Handled = true;
+			return;
 		}
 
-		if (key.Key == Key.CursorDown)
+		if (eventArgs.KeyEvent.Key == Key.CursorDown)
 		{
 			NextHistory();
+			eventArgs.Handled = true;
+			return;
 		}
 	}
 
@@ -106,14 +104,14 @@ public class REPLView : FrameView
 		if (ReplInput.Text == "")
 		{
 			//resume if it's running. maybe do this no matter what
-
+			return;
 		}
 
 		var program = ReplInput.Text.ToString();
 		ReplInput.Text = "";
 		RunLine(program);
 		_replHistory.Add(program);
-		_historyPos++;
+		_historyPos = _replHistory.Count;
 	}
 
 	//pressing 'up' in the terminal
