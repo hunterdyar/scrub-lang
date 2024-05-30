@@ -28,6 +28,8 @@ public class VMRunner
 	public VMState? State => _vm?.State;
 	public Object? LastResult;
 	public TimeSpan LastExecutionTime => new TimeSpan(_executionStopWatch.ElapsedTicks);
+	public float Percentage => _vm != null ? _vm.Progress.Percentage : 0;
+
 	private Stopwatch _executionStopWatch = new Stopwatch();
 	//loads but does not start executing. Resets previous state.
 	public void CompileProgram(string program, Environment? env = null)

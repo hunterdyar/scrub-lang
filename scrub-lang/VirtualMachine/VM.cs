@@ -36,6 +36,9 @@ public class VM
 	private int sp = 0;//stack pointer
 	// ReSharper disable once InconsistentNaming
 	private int usp = 0; //unstack pointer.
+	public Progress Progress = new Progress();
+	
+	//set a "max" opcode? or set one on 'complete'?
 	public TextWriter OutputStream;
 	
 	//the ENGINE
@@ -46,7 +49,7 @@ public class VM
 	// ReSharper disable once InconsistentNaming
 	private int ip;
 	private Frame _frame;
-
+	
 	public readonly SymbolTable Symbols;
 	//tdoo: refactor constructors
 	public VM(Program program, TextWriter? writer = null)
@@ -137,6 +140,8 @@ public class VM
 			{
 				return new ScrubVMError("What's all this junk on the stack?");
 			}
+
+			Progress.SetCompleteToCurrent();
 			_state = VMState.Complete;
 			return null;
 		}
@@ -147,6 +152,7 @@ public class VM
 		//ip is instructionPointer
 	
 		CurrentFrame.ip++;//increment at start instead of at end because of all the returns. THis is why we init the frame with an ip of -1.
+		Progress.IncrementCount();
 		//fetch -> decode -> execute
 		ip = CurrentFrame.ip;
 		ins = CurrentFrame.Instructions();
@@ -324,19 +330,20 @@ public class VM
 				UnPush();
 				var constIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]); 
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpCall:
 				var p = UnPush();//first, trash the result of the return.
 				var numArgs = Op.ReadUInt8(insBytes[1]);
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return DeexecuteFunction(numArgs);
-				break;
 			case OpCode.OpClosure:
 				var cIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]);
 				UnPush();
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
-				//return PushClosure((int)cIndex, (int)numFreeVars);
 			case OpCode.OpReturnValue:
 				bool backwrds = 1 == Op.ReadUInt8(insBytes[1]); //is this a return from function or a finished-undoing-function (fstart)
 				if (!backwrds) return null;
@@ -345,6 +352,7 @@ public class VM
 				//pop. The -1 gets rid of the function call too.
 				//sp = _frame.basePointer - 1;
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpAdd:
 			case OpCode.OpSubtract:
@@ -362,12 +370,14 @@ public class VM
 				UnPop();//restore the previous values. I think this will do it in the right order?
 				UnPop();
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpConcat:
 				return new ScrubVMError($"Concatenation Operator Not Yet Implemented {CurrentLocation}");
 			case OpCode.OpPop:
 				UnPop();
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpTrue:
 				var o = UnPush();
@@ -377,10 +387,12 @@ public class VM
 				}
 
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpFalse:
 				UnPush();
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpEqual:
 			case OpCode.OpNotEqual:
@@ -389,6 +401,7 @@ public class VM
 				UnPop(); //restore the previous values
 				UnPop();
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpBang:
 			case OpCode.OpNegate:
@@ -396,6 +409,7 @@ public class VM
 				UnPush();
 				UnPop();
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpJump:
 				int pos = Op.ReadUInt16([insBytes[1], insBytes[2]]);
@@ -404,9 +418,11 @@ public class VM
 				{
 					//don't jump forward jumps.
 					CurrentFrame.ip--;
+					Progress.DecrementCount();
 					return null;
 				}
 				CurrentFrame.ip = pos - 1; //+1 when the loop ends :p
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpJumpNotTruthy:
 				//push truthy value w checked before back onto the stack.
@@ -416,6 +432,7 @@ public class VM
 				{
 					//don't jump forward jumps.
 					CurrentFrame.ip--;
+					Progress.DecrementCount();
 					return null;
 				}
 				var condition = UnPop();
@@ -425,6 +442,8 @@ public class VM
 				{
 					CurrentFrame.ip = pos - 1;//pos-1 or pos+1? or pos? can't think, trial-and-error-ing.
 				}
+
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpNull:
 				o = UnPush();
@@ -433,6 +452,7 @@ public class VM
 					throw new VMException($"Reverse error (expected True, got {o}");
 				}
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpSetGlobal:
 				var oldVal = _unstack.Pop();
@@ -442,6 +462,7 @@ public class VM
 				_globals[globalIndex] = (Object)oldVal;
 				//todo: we don't know the previous value of this variable. 
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpSetLocal:
 				oldVal = _unstack.Pop();
@@ -449,12 +470,14 @@ public class VM
 				_frame = CurrentFrame;
 				_stack[_frame.basePointer + (int)localIndex] = oldVal;
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpGetGlobal:
 				globalIndex = Op.ReadUInt16([insBytes[1],insBytes[2]]);
 				// Push(globals[globalIndex]);
 				UnPush();
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpGetLocal:
 				localIndex = Op.ReadUInt8(insBytes[1]);
@@ -462,12 +485,14 @@ public class VM
 				UnPush();
 				// return Push(stack[_frame.basePointer + (int)localIndex]);
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpGetBuiltin:
 				var builtInIndex = Op.ReadUInt8(insBytes[1]);
-				CurrentFrame.ip --;
-				//var def = Builtins.AllBuiltins[builtInIndex];
 				UnPush();
+				CurrentFrame.ip --;
+				Progress.DecrementCount();
+				//var def = Builtins.AllBuiltins[builtInIndex];
 				return null;
 				//return Push(def.Builtin);
 			case OpCode.OpGetFree:
@@ -476,12 +501,14 @@ public class VM
 				//return Push(currentClosure.FreeVariables[freeIndex]);
 				UnPush();
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpCurrentClosure:
 				//currentClosure = CurrentFrame().closure;
 				// return Push(currentClosure);
 				UnPush();
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 			case OpCode.OpArray:
 				int numElements = Op.ReadUInt16([insBytes[1], insBytes[2]]);
@@ -489,6 +516,7 @@ public class VM
 				sp = sp - numElements;
 				UnPush();
 				CurrentFrame.ip--;
+				Progress.DecrementCount();
 				return null;
 				// return Push(array);
 			case OpCode.OpIndex:
@@ -497,6 +525,7 @@ public class VM
 				var index = UnPop();
 				// return RunIndexExpression(left, index);
 				CurrentFrame.ip --;
+				Progress.DecrementCount();
 				return null;
 		}
 		return null;

@@ -18,6 +18,8 @@ namespace MyGuiCsProject{
         
         public ScrubTUI()
         {
+            int controlsHeight = 3;
+            int timelineHeight = 1;
             _runner = new VMRunner();
             //load file?
             ColorScheme = Colors.ColorSchemes["TopLevel"];
@@ -31,7 +33,7 @@ namespace MyGuiCsProject{
                 X = 0,
                 Y = 0,
                 Width = Dim.Percent(60),
-                Height = Dim.Fill(3)
+                Height = Dim.Fill(timelineHeight + controlsHeight)
             };
             _replPane = new REPLView(_runner);
             _statePane = new VariableStateView("State", _runner)
@@ -39,7 +41,7 @@ namespace MyGuiCsProject{
                 X = Pos.Right(ProgramTabs),
                 Y = 0,
                 Width = Dim.Percent(40),
-                Height = Dim.Fill(3),
+                Height = Dim.Fill(timelineHeight+controlsHeight),
             };
 
             _controls = new PlayBar(_runner)
@@ -47,7 +49,7 @@ namespace MyGuiCsProject{
                 X = 0,
                 Y = Pos.Bottom(ProgramTabs),
                 Width = Dim.Percent(60),
-                Height = 3,
+                Height = controlsHeight,
                 CanFocus = true,
                 Title = "Controls",
             };
@@ -56,7 +58,7 @@ namespace MyGuiCsProject{
             {
                 X = Pos.Right(_controls),
                 Y = Pos.Bottom(_statePane),
-                Height = 3,
+                Height = controlsHeight,
                 Width = Dim.Percent(40),
                 CanFocus = false,
                 Title = "Last Result"
@@ -67,12 +69,22 @@ namespace MyGuiCsProject{
 
             var filetab = new TabView.Tab("Open File", _filesView);
             var repltab = new TabView.Tab("REPL", _replPane);
+            var timeline = new TimelineView(_runner)
+            {
+                X = 0,
+                Y = Pos.Bottom(_controls),
+                Height = timelineHeight,
+                Width = Dim.Percent(100),
+            };
+            
             ProgramTabs.AddTab(repltab, true);
             ProgramTabs.AddTab(filetab, false);
+            
             Add(_controls);
             Add(ProgramTabs);
             Add(_statePane);
             Add(_lastResult);
+            Add(timeline);
 
             
             //todo: how input should work. https://gui-cs.github.io/Terminal.Gui/docs/keyboard.html
