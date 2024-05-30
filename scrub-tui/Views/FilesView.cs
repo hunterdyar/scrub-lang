@@ -12,20 +12,33 @@ public class FilesView : FrameView
 	public Action<string> OnFileSelected;
 	public FilesView()
 	{
+		var welcome = new Label("Welcome to Scrub!")
+		{
+			X = 0,
+			Y = 0,
+			Width = Dim.Fill(),
+			TextAlignment = TextAlignment.Centered
+
+		};
+			
 		openDialog = new OpenDialog()
 		{
 			Width = Dim.Fill(),
 			Height = Dim.Fill(),
+			Y = Pos.Bottom(welcome),
 			AllowedFileTypes = ["scrub", "txt", "text"],
 			AllowsMultipleSelection = false,
 			CanChooseDirectories = false,
 			ColorScheme = Colors.TopLevel,
 		};
+		
 		openFileButton = new Button()
 		{
 			Text = "Open"
 		};
+		
 		openFileButton.Clicked += OpenFileButtonOnClicked;
+		Add(welcome);
 		Add(openFileButton);
 	}
 

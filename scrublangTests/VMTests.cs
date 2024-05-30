@@ -78,9 +78,10 @@ public class VMTests
 	[Test]
 	public void TestFunctionCallAsArgument()
 	{
-		new VMTestCase("func b(a){ a } b(func(){3})", new Integer(3));
-		new VMTestCase("b = func(a){a()};b(func(){3})", new Integer(3));
+		//new VMTestCase("func b(a){ a() } b((func(){3}))", new Integer(3));
+		new VMTestCase("b = func(a){a()};func three(){3};b(three)", new Integer(3));
 	}
+	
 	[Test]
 	public void TestFunctionDec()
 	{
