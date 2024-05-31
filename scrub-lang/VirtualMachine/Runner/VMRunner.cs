@@ -16,6 +16,7 @@ public class VMRunner
 	public Action OnComplete;
 	public Action OnError;
 	public Action<string, TimeSpan> OnNewResult;
+	public Action OnInitialized;//called when there is a new VM object created.
 	//core references
 	public Status Status => _status;
 	private Status _status;
@@ -29,7 +30,8 @@ public class VMRunner
 	public Object? LastResult;
 	public TimeSpan LastExecutionTime => new TimeSpan(_executionStopWatch.ElapsedTicks);
 	public float Percentage => _vm != null ? _vm.Progress.Percentage : 0;
-
+	public ExecutionLog.ExecutionLog Log => _vm != null ? _vm.Log : null;
+	
 	private Stopwatch _executionStopWatch = new Stopwatch();
 	//loads but does not start executing. Resets previous state.
 	public void CompileProgram(string program, Environment? env = null)
@@ -64,6 +66,7 @@ public class VMRunner
 		_vm = new VM(prog, _output);
 		_environment = compiler.Environment();
 		_status = new Status(_vm);
+		OnInitialized?.Invoke();
 	}
 
 	public void RunWithEnvironment(string program)

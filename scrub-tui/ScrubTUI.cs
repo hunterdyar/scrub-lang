@@ -76,9 +76,16 @@ namespace MyGuiCsProject{
                 Height = timelineHeight,
                 Width = Dim.Percent(100),
             };
+            var oplog = new OpLogView(_runner)
+            {
+                Width = Dim.Fill(),
+                Height = Dim.Fill()
+            };
+            var oplogtab = new TabView.Tab("Log", oplog);
             
             ProgramTabs.AddTab(repltab, true);
             ProgramTabs.AddTab(filetab, false);
+            ProgramTabs.AddTab(oplogtab, false);
             
             Add(_controls);
             Add(ProgramTabs);

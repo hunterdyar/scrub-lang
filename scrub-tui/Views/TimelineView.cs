@@ -22,6 +22,7 @@ public class TimelineView : FrameView
 		this.Border = new Border(){
 			BorderStyle = BorderStyle.None
 		};
+		
 		_runner.OnNewResult += (a,b)=> UpdateProgress();
 		_runner.OnComplete += () => UpdateProgress();
 		_runner.OnPaused += () => UpdateProgress();

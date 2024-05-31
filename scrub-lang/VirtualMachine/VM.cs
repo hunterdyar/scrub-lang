@@ -37,7 +37,8 @@ public class VM
 	// ReSharper disable once InconsistentNaming
 	private int usp = 0; //unstack pointer.
 	public Progress Progress = new Progress();
-	
+
+	public ExecutionLog.ExecutionLog Log = new ExecutionLog.ExecutionLog();
 	//set a "max" opcode? or set one on 'complete'?
 	public TextWriter OutputStream;
 	
@@ -371,6 +372,7 @@ public class VM
 				UnPop();
 				CurrentFrame.ip--;
 				Progress.DecrementCount();
+				Log.RemoveOperation();
 				return null;
 			case OpCode.OpConcat:
 				return new ScrubVMError($"Concatenation Operator Not Yet Implemented {CurrentLocation}");
@@ -402,6 +404,7 @@ public class VM
 				UnPop();
 				CurrentFrame.ip--;
 				Progress.DecrementCount();
+				Log.RemoveOperation();
 				return null;
 			case OpCode.OpBang:
 			case OpCode.OpNegate:
@@ -545,6 +548,7 @@ public class VM
 			case ScrubType.Builtin:
 				//uhhhh todo: allow us to define how this works
 				UnPop();
+				Log.RemoveOperation();
 				//
 				return null;
 				break;
@@ -594,6 +598,8 @@ public class VM
 			Push(Null);
 		}
 
+		Log.AddOperation(Frames.Count, "built in function", args.ToDelimitedString(), "");
+
 		return null;
 	}
 
@@ -608,6 +614,7 @@ public class VM
 		var frame = new Frame(cl,sp-numArgs);
 		PushFrame(frame);
 		sp = frame.basePointer + cl.CompiledFunction.NumArgs+cl.CompiledFunction.NumLocals;//give us a buffer of the number of local variables we will store in this area on the stack.
+		Log.AddOperation(Frames.Count, cl.CompiledFunction.Name, "", "");
 		return null;
 	}
 
@@ -628,6 +635,7 @@ public class VM
 		{
 			UnPop();
 		}
+		Log.RemoveOperation();
 		return null;
 	}
 
@@ -754,8 +762,10 @@ public class VM
 			switch (op)
 			{
 				case OpCode.OpEqual:
+					Log.AddOperation(Frames.Count,"==","",(lb == rb).ToString());
 					return Push(NativeBoolToBooleanObject(lb == rb));
 				case OpCode.OpNotEqual:
+					Log.AddOperation(Frames.Count, "!=", "", (lb != rb).ToString());
 					return Push(NativeBoolToBooleanObject(lb != rb));
 				default:
 					return new ScrubVMError($"Unknown Operator {{op}} for {l.GetType()} and {r.GetType()} at {CurrentLocation}");
@@ -764,8 +774,10 @@ public class VM
 		switch (op)
 		{
 			case OpCode.OpEqual:
+				Log.AddOperation(Frames.Count, "==", "", (l == r).ToString());
 				return Push(NativeBoolToBooleanObject(l == r));
 			case OpCode.OpNotEqual:
+				Log.AddOperation(Frames.Count, "!=", "", (l == r).ToString());
 				return Push(NativeBoolToBooleanObject(l != r));
 			default:
 				return new ScrubVMError($"Unknown Operator {{op}} for {l.GetType()} and {r.GetType()} at {CurrentLocation}");
@@ -778,11 +790,17 @@ public class VM
 		{
 			//comparing native types here means we can't do false == 0, which scrub should evaluate to true.
 			case OpCode.OpEqual:
-				return Push(NativeBoolToBooleanObject(a.NativeInt == b.NativeInt));
+				var result = a.NativeInt == b.NativeInt;
+				Log.AddOperation(Frames.Count,"==",a.ToString()+", "+b.ToString(),result.ToString());
+				return Push(NativeBoolToBooleanObject(result));
 			case OpCode.OpNotEqual:
-				return Push(NativeBoolToBooleanObject(a.NativeInt != b.NativeInt));
+				result = a.NativeInt != b.NativeInt;
+				Log.AddOperation(Frames.Count, "!=", a.ToString() + ", " + b.ToString(), result.ToString());
+				return Push(NativeBoolToBooleanObject(result));
 			case OpCode.OpGreaterThan:
-				return Push(NativeBoolToBooleanObject(a.NativeInt > b.NativeInt));
+				result = a.NativeInt > b.NativeInt;
+				Log.AddOperation(Frames.Count, ">", a.ToString() + ", " + b.ToString(), result.ToString());
+				return Push(NativeBoolToBooleanObject(result));
 			default:
 				return new ScrubVMError($"Unknown integer comparison Operator {op} {CurrentLocation}");
 		}
@@ -793,16 +811,19 @@ public class VM
 		//todo: these are broken because, i think, bitwise things?
 		var r = Pop();
 		var l = Pop();
+		string input = l.ToString();
 		var rightType = r.GetType();
 		
 		if (op == OpCode.OpBitShiftLeft && rightType == ScrubType.Int)
 		{
 			l.BitShiftLeft(((Integer)r).NativeInt);
+			Log.AddOperation(Frames.Count, $"Bitshift left {r}", input, l.ToString());
 			return Push(l);
 		}
 		else if (op == OpCode.OpBitShiftRight && rightType == ScrubType.Int)
 		{
 			l.BitShiftLeft(((Integer)r).NativeInt);
+			Log.AddOperation(Frames.Count, $"Bitshift right {r}", input, l.ToString());
 			return Push(l);
 		}
 		else
@@ -916,6 +937,8 @@ public class VM
 			default:
 				return new ScrubVMError($"Unkown Integer Operation {op} at {CurrentLocation}");
 		}
+
+		Log.AddOperation(Frames.Count, op.ToString(), left.ToString() + ", " + right.ToString(), result.ToString());
 		return Push(result);
 	}
 
@@ -926,9 +949,11 @@ public class VM
 		{
 			case OpCode.OpAdd:
 				result = new String(left, right);
+				Log.AddOperation(Frames.Count, "add strings", "", result.ToString());
 				break;
 			case OpCode.OpConcat:
 				result = new String(left, right);
+				Log.AddOperation(Frames.Count, "concat strings", "", result.ToString());
 				break;
 			default:
 				return new ScrubVMError($"Unkown Integer Operation {op} at {CurrentLocation}");
