@@ -7,29 +7,33 @@ public class ExecutionLog
 	public List<OpLog> Log => _log;
 	private List<OpLog> _log = new List<OpLog>();
 	private int logCount;
-	private int logPointer;//points to the next free spot.
+	public int LogPointer => _logPointer;
+	// public ArraySegment<OpLog> ExecutedList = new ArraySegment<OpLog>(_log, 0, 0);
+	private int _logPointer;//points to the next free spot.
 	public void AddOperation(int depth, string name, string input, string output)
 	{
-		if (logPointer >= logCount)
+		if (_logPointer >= logCount)
 		{
-			_log.Add(new OpLog(_log.Count, depth, name, input, output));
+			_log.Add(new OpLog(_log.Count, depth, name, input, output));//hmmm
 		}
 		else
 		{
-			_log[logPointer] = new OpLog(_log.Count, depth, name, input, output);
-			logPointer++;
+			_log[_logPointer] = new OpLog(_log.Count, depth, name, input, output);
+			_logPointer++;
 		}
 	}
 
 	public void RemoveOperation()
 	{
-		if (logPointer > 0)
+		if (_logPointer > 0)
 		{
-			logPointer--;
+			_log.RemoveAt(_log.Count-1);
+			_logPointer--;
 		}
 		else
 		{
-			throw new IndexOutOfRangeException("Cannot remove operation, there are no more operatoins.");
+			//UHOH
+			//throw new IndexOutOfRangeException("Cannot remove operation, there are no more operatoins.");
 		}
 	}
 }

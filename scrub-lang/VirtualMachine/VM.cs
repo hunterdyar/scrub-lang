@@ -102,7 +102,18 @@ public class VM
 		}
 		else
 		{
-			return new ScrubVMError("Can't Run VM that is already running");
+			if (_state == VMState.Running)
+			{
+				return new ScrubVMError("Can't Run VM that is already running");
+			}
+			else if (_state == VMState.Complete)
+			{
+				return new ScrubVMError("Nothing to run, execution complete.");
+			}
+			{
+				//huh
+				return null;
+			}
 		}
 		//is paused or initiated, jump on in!
 		while (_state == VMState.Running)
@@ -129,7 +140,40 @@ public class VM
 			Console.WriteLine("Notice: Pausing already paused VM.");
 		}
 	}
-	
+
+	public ScrubVMError? RunTo(long opNum)
+	{
+		if (Progress.OpCounter < opNum)
+		{ 
+			_state = VMState.Paused;
+			while ((_state == VMState.Running || _state == VMState.Paused) && Progress.OpCounter < opNum)
+			{
+				var res = RunOne();
+				if (res != null)
+				{
+					_state = VMState.Error;
+					return res;
+				}
+			}
+		}
+		//log or progress?
+		else if (Progress.OpCounter > opNum+1)
+		{
+			
+			_state = VMState.Paused;
+			while ((_state == VMState.Running || _state == VMState.Paused) && Progress.OpCounter > opNum+1)
+			{
+				var res = PreviousOne();
+				if (res != null)
+				{
+					_state = VMState.Error;
+					return res;
+				}
+			}
+		}
+
+		return null;
+	}
 	public ScrubVMError? RunOne()
 	{
 		if (CurrentFrame.ip >= CurrentFrame.Instructions().Length - 1)

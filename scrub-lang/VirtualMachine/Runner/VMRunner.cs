@@ -128,7 +128,7 @@ public class VMRunner
 				}
 			}
 		}
-		Globals = _vm.Globals;//save for REPL oop.s
+		Globals = _vm.Globals;//save for REPL oop.
 		
 		
 		if (State == VMState.Paused)
@@ -197,4 +197,11 @@ public class VMRunner
 		}
 	}
 
+	public void RunTo(int logOpNumber)
+	{
+		if (_vm != null)
+		{
+			_vm.RunTo(logOpNumber);
+		}
+	}
 }

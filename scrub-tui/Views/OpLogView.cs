@@ -1,4 +1,5 @@
 ﻿using scrub_lang.VirtualMachine;
+using scrub_lang.VirtualMachine.ExecutionLog;
 using Terminal.Gui;
 
 namespace MyGuiCsProject.Views;
@@ -19,9 +20,16 @@ public class OpLogView : FrameView
 			Width = Dim.Fill(),
 			CanFocus = false,
 			AllowsMultipleSelection = false,
-			AllowsMarking = false,
+			AllowsMarking = true,
 		};
+		_listView.OpenSelectedItem += ListViewOnOpenSelectedItem;
 		Add(_listView);
+	}
+
+	private void ListViewOnOpenSelectedItem(ListViewItemEventArgs obj)
+	{
+		var log = (OpLog)obj.Value;
+		_runner.RunTo(log.OpNumber);
 	}
 
 	private void OnComplete()
