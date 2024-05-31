@@ -2,6 +2,7 @@
 
 public class ExecutionLog 
 {
+	//todo: This needs to get sent into the VM by reference, so we can keep a non-null version around in the runner. 
 	//A linear ... and tree-based ... execution for the VM.
 	public List<OpLog> Log => _log;
 	private List<OpLog> _log = new List<OpLog>();
