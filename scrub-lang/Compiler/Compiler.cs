@@ -200,7 +200,7 @@ public class Compiler
 		}
 		else if (expression is AssignExpression assignExpression)
 		{
-			bool resolved = _symbolTable.TryResolve(assignExpression.Identifier.Identifier, out var symbol);
+			bool resolved = _symbolTable.TryResolve(assignExpression.Assignee.Identifier, out var symbol);
 			//compile error.
 			var err = Compile(assignExpression.Value);
 			if (err != null)
@@ -231,7 +231,7 @@ public class Compiler
 			else
 			{
 				//This symbol does not exist yet. Creating it.
-				symbol = _symbolTable.Define(assignExpression.Identifier.Identifier);
+				symbol = _symbolTable.Define(assignExpression.Assignee.Identifier);
 				if (symbol.Scope == ScopeDef.Global)
 				{
 					//location is this or identifier?
@@ -246,7 +246,12 @@ public class Compiler
 				return null;
 			}
 			//return null			
-		}else if (expression is IdentifierExpression identExpr)
+		}else if (expression is IndexAssignExpression indexAssignExpression)
+		{
+			//todo: implement this.
+			return new ScrubCompilerError("Assigning to an array not implemented yet.");
+		}
+		else if (expression is IdentifierExpression identExpr)
 		{
 			if (_symbolTable.TryResolve(identExpr.Identifier, out var symbol))
 			{

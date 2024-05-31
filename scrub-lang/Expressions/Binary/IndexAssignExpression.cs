@@ -1,0 +1,29 @@
+﻿using System.Text;
+
+namespace scrub_lang.Parser;
+
+public class IndexAssignExpression : IExpression
+{
+	public IndexExpression Assignee => _assignee;
+	private readonly IndexExpression _assignee;
+	public IExpression Value => _valueExpression;
+	private readonly IExpression _valueExpression;
+
+	public Location Location { get; }
+
+	public IndexAssignExpression(IndexExpression assignee, IExpression valueExpr, Location location)
+	{
+		Location = location;
+		_assignee = assignee;
+		_valueExpression = valueExpr;
+	}
+
+	public void Print(StringBuilder sb)
+	{
+		sb.Append('(');
+		_assignee.Print(sb);
+		sb.Append(" = ");
+		_assignee.Print(sb);
+		sb.Append(')');
+	}
+}

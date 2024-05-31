@@ -18,7 +18,7 @@ public class AssignParselet : IInfixParselet
 			return new AssignExpression(name, right, token.Location);
 		}else if (left is IndexExpression index)
 		{
-			//todo: assign index expressions. A built-in called set that it replaces itself with?
+			return new IndexAssignExpression(index, right, token.Location);
 		}
 		throw new ParseException($"The left-hand side of an assignment ({token.Location}) must be an identifier, at {left.Location}");
 	}
