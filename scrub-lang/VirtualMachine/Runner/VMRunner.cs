@@ -34,6 +34,7 @@ public class VMRunner
 	
 	private Stopwatch _executionStopWatch = new Stopwatch();
 	//loads but does not start executing. Resets previous state.
+	
 	public void CompileProgram(string program, Environment? env = null)
 	{
 		if (String.IsNullOrEmpty(program))
@@ -62,7 +63,32 @@ public class VMRunner
 			_output.WriteLine("Compiler Error: " + error.Message);
 			return;
 		}
-		//todo: use some kind of streamwriter here. file and log file?
+		_vm = new VM(prog, _output);
+		_environment = compiler.Environment();
+		_status = new Status(_vm);
+		OnInitialized?.Invoke();
+	}
+
+	public void CompileProgram(StreamReader program)
+	{
+		IExpression root;
+		try
+		{
+			root = Scrub.Parse(program);
+		}
+		catch (ParseException pe)
+		{
+			_output.WriteLine("Parse Error: " + pe.Message);
+			return;
+		}
+
+		var compiler = new Compiler.Compiler();
+		if (!compiler.TryCompile(root, out var error, out var prog))
+		{
+			_output.WriteLine("Compiler Error: " + error.Message);
+			return;
+		}
+
 		_vm = new VM(prog, _output);
 		_environment = compiler.Environment();
 		_status = new Status(_vm);
@@ -85,6 +111,17 @@ public class VMRunner
 	/// Compiles and then Runs.
 	/// </summary>
 	public void Run(string program)
+	{
+		_executionStopWatch.Restart();
+		CompileProgram(program);
+		if (_vm != null)
+		{
+			RunUntilStop();
+		}
+		_executionStopWatch.Stop();
+	}
+
+	public void Run(StreamReader program)
 	{
 		_executionStopWatch.Restart();
 		CompileProgram(program);
@@ -129,7 +166,6 @@ public class VMRunner
 			}
 		}
 		Globals = _vm.Globals;//save for REPL oop.
-		
 		
 		if (State == VMState.Paused)
 		{

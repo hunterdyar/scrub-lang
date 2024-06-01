@@ -8,44 +8,60 @@ public class FilesView : FrameView
 	//It should have some greeting text up top. "Welcome to Scrub!" or some ascii art.
 	private OpenDialog openDialog;
 	private Button openFileButton;
-
+	private ScrubTUI _tui;
 	public Action<string> OnFileSelected;
-	public FilesView()
+	public FilesView(ScrubTUI tui)
 	{
+		_tui = tui;
 		var welcome = new Label("Welcome to Scrub!")
 		{
 			X = 0,
 			Y = 0,
 			Width = Dim.Fill(),
+			Height = Dim.Sized(2),
 			TextAlignment = TextAlignment.Centered
-
 		};
-			
+		Add(welcome);
+
 		openDialog = new OpenDialog()
 		{
 			Width = Dim.Fill(),
 			Height = Dim.Fill(),
+			X = 0,
 			Y = Pos.Bottom(welcome),
 			AllowedFileTypes = ["scrub", "txt", "text"],
 			AllowsMultipleSelection = false,
 			CanChooseDirectories = false,
+			CanChooseFiles = true,
+			
 			ColorScheme = Colors.TopLevel,
 		};
 		
+		
 		openFileButton = new Button()
 		{
-			Text = "Open"
+			X = 0,
+			Y = Pos.Bottom(welcome),
+			TextAlignment = TextAlignment.Centered,
+			Text = "Open",
 		};
 		
 		openFileButton.Clicked += OpenFileButtonOnClicked;
-		Add(welcome);
+		openDialog.Closed += OpenDialogOnClosed;
 		Add(openFileButton);
+	}
+
+	private void OpenDialogOnClosed(Toplevel obj)
+	{
+		if (openDialog.FilePaths.Count > 0)
+		{
+			_tui.RunFile(openDialog.FilePaths[0]);
+		}
 	}
 
 	private void OpenFileButtonOnClicked()
 	{
 		Terminal.Gui.Application.Run(openDialog, OnFileSelectedError);
-		var selected = openDialog.FilePaths[0];
 	}
 
 	private bool OnFileSelectedError(Exception exception)

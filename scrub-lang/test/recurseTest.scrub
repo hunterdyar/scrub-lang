@@ -1,5 +1,4 @@
-﻿
-
+﻿print("count som e things");
 func count(source,char,i,n){
     c = source[i];
     if(c == null){return n};
@@ -8,6 +7,5 @@ func count(source,char,i,n){
 }
 
 x = count("hello","l",0,0)
-
 
 print("Hello has "+x+" l's")

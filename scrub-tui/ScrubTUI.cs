@@ -13,6 +13,7 @@ namespace MyGuiCsProject{
         private readonly FilesView _filesView;
         private readonly REPLView _replPane;
         private readonly VariableStateView _statePane;
+        public VMRunner Runner => _runner; 
         private readonly VMRunner _runner;
         private readonly LastResultView _lastResult;
         private readonly PlayBar _controls;
@@ -73,7 +74,7 @@ namespace MyGuiCsProject{
             };
 
             //todo: create a files view that shows recent files and a button that opens a dialogue.
-            _filesView = new FilesView();
+            _filesView = new FilesView(this);
 
             var filetab = new TabView.Tab("Open File", _filesView);
             var repltab = new TabView.Tab("REPL", _replPane);
@@ -116,6 +117,15 @@ namespace MyGuiCsProject{
             if (_replPane.Visible)
             {
                 _replPane.HandleKey(obj);
+            }
+        }
+
+        public void RunFile(string filePath)
+        {
+            _replPane.TabIndex = 0;//set to program view.
+            using (StreamReader reader = new StreamReader(filePath))
+            {
+                Runner.Run(reader);
             }
         }
     }

@@ -301,7 +301,7 @@ public class VM
 				//don't pop it, just assign it.
 				_unstack.Push(_globals[globalIndex]);//save the previous value.
 				_globals[globalIndex] = (Object)_stack[sp - 1];//was =PopScrobject. might need to be a pop-push to get undo's to work correctly.
-				Log.AddOperation(Frames.Count, $"Assign Global",globalIndex.ToString(),_globals[globalIndex].ToString());
+				Log.AddOperation(Frames.Count, $"Assign Global",globalIndex.ToString(),_globals[globalIndex]?.ToString());
 				return null;
 			case OpCode.OpSetLocal:
 				var localIndex = Op.ReadUInt8(insBytes[1]);
@@ -309,6 +309,7 @@ public class VM
 				_unstack.Push(_stack[_frame.basePointer + (int)localIndex]);//save old value to history.
 				//set the stack in our buffer area to our object. THis is going to be a tricky one to UNDO
 				_stack[_frame.basePointer + (int)localIndex] = (Object)_stack[sp - 1];
+				Log.AddOperation(Frames.Count, $"Assign Local", localIndex.ToString(), _globals[localIndex]?.ToString());
 				return null;
 			case OpCode.OpGetGlobal:
 				globalIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]);
@@ -518,7 +519,6 @@ public class VM
 				//it will get removed by the next op, usually.
 				var globalIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]);
 				_globals[globalIndex] = (Object)oldVal;
-				//todo: we don't know the previous value of this variable. 
 				CurrentFrame.ip--;
 				Progress.DecrementCount();
 				Log.RemoveOperation();
@@ -530,6 +530,7 @@ public class VM
 				_stack[_frame.basePointer + (int)localIndex] = oldVal;
 				CurrentFrame.ip--;
 				Progress.DecrementCount();
+				Log.RemoveOperation();
 				return null;
 			case OpCode.OpGetGlobal:
 				globalIndex = Op.ReadUInt16([insBytes[1],insBytes[2]]);
