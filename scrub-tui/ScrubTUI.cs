@@ -44,8 +44,8 @@ namespace MyGuiCsProject{
                 Width = Dim.Percent(40),
                 Height = Dim.Fill(timelineHeight + controlsHeight), 
             };
-            _replPane = new REPLView(_runner);
-            _statePane = new VariableStateView("State", _runner)
+            _replPane = new REPLView(this);
+            _statePane = new VariableStateView("State", this)
             {
                 X = 0,
                 Y = 0,
@@ -53,7 +53,7 @@ namespace MyGuiCsProject{
                 Height = Dim.Fill()
             };
 
-            _controls = new PlayBar(_runner)
+            _controls = new PlayBar(this)
             {
                 X = 0,
                 Y = Pos.Bottom(ProgramTabs),
@@ -63,7 +63,7 @@ namespace MyGuiCsProject{
                 Title = "Controls",
             };
 
-            _lastResult = new LastResultView(_runner)
+            _lastResult = new LastResultView(this)
             {
                 X = Pos.Right(_controls),
                 Y = Pos.Bottom(StatusStabs),
@@ -73,21 +73,20 @@ namespace MyGuiCsProject{
                 Title = "Last Result"
             };
 
-            //todo: create a files view that shows recent files and a button that opens a dialogue.
             _filesView = new FilesView(this);
 
             var filetab = new TabView.Tab("Open File", _filesView);
             var repltab = new TabView.Tab("REPL", _replPane);
             var variablesTab = new TabView.Tab("Variables", _statePane);
             
-            var timeline = new TimelineView(_runner)
+            var timeline = new TimelineView(this)
             {
                 X = 0,
                 Y = Pos.Bottom(_controls),
                 Height = timelineHeight,
                 Width = Dim.Percent(100),
             };
-            var oplog = new OpLogView(_runner)
+            var oplog = new OpLogView(this)
             {
                 Width = Dim.Fill(),
                 Height = Dim.Fill()
@@ -107,8 +106,7 @@ namespace MyGuiCsProject{
             Add(timeline);
 
             
-            //todo: how input should work. https://gui-cs.github.io/Terminal.Gui/docs/keyboard.html
-            
+            //todo: how input should work. https://gui-cs.github.io/Terminal.Gui/docs/keyboard.htmls
             KeyPress+= OnKeyPress;
         }
 

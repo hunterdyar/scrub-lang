@@ -5,13 +5,13 @@ namespace MyGuiCsProject.Views;
 
 public class LastResultView : FrameView
 {
-	private VMRunner _runner;
+	private ScrubTUI _tui;
 	private Label _resultLabel;
 	private Label _timeLabel;
-	public LastResultView(VMRunner runner)
+	public LastResultView(ScrubTUI tui)
 	{
-		_runner = runner;
-		_runner.OnNewResult += OnNewResult;
+		_tui = tui;
+		_tui.Runner.OnNewResult += OnNewResult;
 		
 		Title = "Last Result";
 		int timeWidth = 7;

@@ -8,13 +8,13 @@ public class REPLView : FrameView
 	private readonly TextView _outputView;
 	private readonly TextField _replInput;
 	private readonly Button _doItButton;
-	private readonly VMRunner _runner;
+	private readonly ScrubTUI _tui;
 	private readonly List<string> _replHistory = new List<string>();
 	private int _historyPos;
-	public REPLView(VMRunner runner)
+	public REPLView(ScrubTUI tui)
 	{
-		_runner = runner;
-		_runner.Output.OnUpdate += OnOutputUpdate;
+		_tui = tui;
+		_tui.Runner.Output.OnUpdate += OnOutputUpdate;
 
 		Title = "Read-Execute-Print-Loop";
 		_outputView = new TextView()
@@ -82,8 +82,8 @@ public class REPLView : FrameView
 
 	private void OnOutputUpdate()
 	{
-		_outputView.Text = _runner.Output.ToString();
-		_replInput.Enabled = _runner.State != VMState.Paused || _runner.State != VMState.Paused;
+		_outputView.Text = _tui.Runner.Output.ToString();
+		_replInput.Enabled = _tui.Runner.State != VMState.Paused || _tui.Runner.State != VMState.Paused;
 		_outputView.MoveEnd();
 	}
 
@@ -94,9 +94,9 @@ public class REPLView : FrameView
 		// 	return;
 		// }
 		
-		if (_runner.State == VMState.Paused)
+		if (_tui.Runner.State == VMState.Paused)
 		{
-			_runner.RunUntilStop();
+			_tui.Runner.RunUntilStop();
 			return;
 		}
 
@@ -137,6 +137,6 @@ public class REPLView : FrameView
 
 	private void RunLine(string program)
 	{
-		_runner.RunWithEnvironment(program);
+		_tui.Runner.RunWithEnvironment(program);
 	}
 }

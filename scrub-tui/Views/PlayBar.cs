@@ -12,11 +12,11 @@ public class PlayBar : FrameView
 	private readonly Button _pauseButton;
 	private readonly Button _stepForwardButton;
 	private readonly Button _stepBackwardsButton;
-	private readonly VMRunner _runner;
+	private readonly ScrubTUI _tui;
 
-	public PlayBar(VMRunner runner)
+	public PlayBar(ScrubTUI tui)
 	{
-		_runner = runner;
+		_tui = tui;
 		_stepBackwardsButton = new Button()
 		{
 			X = 0,
@@ -61,23 +61,22 @@ public class PlayBar : FrameView
 
 	private void StepForwardButtonOnClicked()
 	{
-		_runner.RunNextOperation();
+		_tui.Runner.RunNextOperation();
 	}
 
 	private void PlayButtonOnClicked()
 	{
-		//todo: broadcast play clicked event so we can submit the enter button? 
-		_runner.RunUntilStop();
+		_tui.Runner.RunUntilStop();
 	}
 
 	private void PauseButtonOnClicked()
 	{
-		_runner.Pause();
+		_tui.Runner.Pause();
 	}
 
 	private void StepBackwardsButtonOnClicked()
 	{
-		_runner.RunPreviousOperation();
+		_tui.Runner.RunPreviousOperation();
 	}
 
 	public override bool ProcessHotKey(KeyEvent keyEvent)

@@ -7,13 +7,13 @@ namespace MyGuiCsProject.Views;
 public class OpLogView : FrameView
 {
 	private ListView _listView;
-	private VMRunner _runner;
+	private ScrubTUI _tui;
 	
-	public OpLogView(VMRunner runner)
+	public OpLogView(ScrubTUI tui)
 	{
-		_runner = runner;
-		_runner.OnInitialized += OnInitialized;
-		_runner.OnComplete += OnComplete;
+		_tui = tui;
+		_tui.Runner.OnInitialized += OnInitialized;
+		_tui.Runner.OnComplete += OnComplete;
 		_listView = new ListView()
 		{
 			Height = Dim.Fill(),
@@ -29,17 +29,17 @@ public class OpLogView : FrameView
 	private void ListViewOnOpenSelectedItem(ListViewItemEventArgs obj)
 	{
 		var log = (OpLog)obj.Value;
-		_runner.RunTo(log.OpNumber);
+		_tui.Runner.RunTo(log.OpNumber);
 	}
 
 	private void OnComplete()
 	{
-		_listView.SetSource(_runner.Log.Log);
+		_listView.SetSource(_tui.Runner.Log.Log);
 	}
 
 	void OnInitialized()
 	{
-		_listView.SetSource(_runner.Log.Log);
+		_listView.SetSource(_tui.Runner.Log.Log);
 	}
 	
 }

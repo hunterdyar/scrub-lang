@@ -6,12 +6,12 @@ namespace MyGuiCsProject.Views;
 
 public class VariableStateView : FrameView
 {
-	private VMRunner _runner;
+	private ScrubTUI _tui;
 	private TableView _table;
-	public VariableStateView(string title, VMRunner runner)
+	public VariableStateView(string title, ScrubTUI tui)
 	{
 		Title = title;
-		_runner = runner;
+		_tui = tui;
 		_table = new TableView()
 		{
 			X = 0,
@@ -21,7 +21,7 @@ public class VariableStateView : FrameView
 			FullRowSelect = true,
 			MultiSelect = false,
 		};
-		_table.Table = new VariableData(_runner);
+		_table.Table = new VariableData(_tui.Runner);
 		Add(_table);
 	}
 }

@@ -5,14 +5,14 @@ namespace MyGuiCsProject.Views;
 
 public class TimelineView : FrameView
 {
-	private VMRunner _runner;
+	private ScrubTUI _tui;
 	private ProgressBar _bar;
 	//static height var?
 	//we want to put some opcounters on top of the bar in the inverse color as the bar.
-	public TimelineView(VMRunner runner)
+	public TimelineView(ScrubTUI tui)
 	{
 		Title = "Timeline";
-		_runner = runner;
+		_tui = tui;
 		_bar = new ProgressBar()
 		{
 			Width = Dim.Fill(),
@@ -23,16 +23,16 @@ public class TimelineView : FrameView
 			BorderStyle = BorderStyle.None
 		};
 		
-		_runner.OnNewResult += (a,b)=> UpdateProgress();
-		_runner.OnComplete += UpdateProgress;
-		_runner.OnPaused += UpdateProgress;
-		_runner.OnError += UpdateProgress;
+		_tui.Runner.OnNewResult += (a,b)=> UpdateProgress();
+		_tui.Runner.OnComplete += UpdateProgress;
+		_tui.Runner.OnPaused += UpdateProgress;
+		_tui.Runner.OnError += UpdateProgress;
 		Add(_bar);
 	}
 
 	private void UpdateProgress()
 	{
-		var p = _runner.Percentage;
+		var p = _tui.Runner.Percentage;
 		_bar.Fraction = p;
 		if (p == 1)
 		{

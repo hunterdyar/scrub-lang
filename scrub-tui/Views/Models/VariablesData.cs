@@ -7,8 +7,6 @@ namespace MyGuiCsProject.Views;
 public class VariableData : DataTable
 {
 	private VMRunner _runner;
-	// public DataTable Table => _table;
-	// private DataTable _table;
 	
 	public VariableData(VMRunner runner)
 	{
