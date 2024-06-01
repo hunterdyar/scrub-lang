@@ -143,10 +143,10 @@ public class VM
 
 	public ScrubVMError? RunTo(long opNum)
 	{
-		if (Progress.OpCounter < opNum)
+		if (Log.LogPointer < opNum)
 		{ 
 			_state = VMState.Paused;
-			while ((_state == VMState.Running || _state == VMState.Paused) && Progress.OpCounter < opNum)
+			while ((_state == VMState.Running || _state == VMState.Paused) && Log.LogPointer < opNum)
 			{
 				var res = RunOne();
 				if (res != null)
@@ -155,13 +155,18 @@ public class VM
 					return res;
 				}
 			}
+
+			if (_state != VMState.Complete)
+			{
+				_state = VMState.Paused;
+			}
 		}
 		//log or progress?
-		else if (Progress.OpCounter > opNum+1)
+		else if (Log.LogPointer > opNum)
 		{
 			
 			_state = VMState.Paused;
-			while ((_state == VMState.Running || _state == VMState.Paused) && Progress.OpCounter > opNum+1)
+			while ((_state == VMState.Running || _state == VMState.Paused) && Log.LogPointer > opNum)
 			{
 				var res = PreviousOne();
 				if (res != null)
@@ -169,6 +174,11 @@ public class VM
 					_state = VMState.Error;
 					return res;
 				}
+			}
+
+			if (_state != VMState.Initialized)
+			{
+				_state = VMState.Paused;
 			}
 		}
 
@@ -210,7 +220,7 @@ public class VM
 		switch (op)
 		{
 			case OpCode.OpConstant:
-				var constIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]); 
+				var constIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]);
 				return Push(_constants[constIndex]);
 			case OpCode.OpCall:
 				var numArgs = Op.ReadUInt8(insBytes[1]);
@@ -291,6 +301,7 @@ public class VM
 				//don't pop it, just assign it.
 				_unstack.Push(_globals[globalIndex]);//save the previous value.
 				_globals[globalIndex] = (Object)_stack[sp - 1];//was =PopScrobject. might need to be a pop-push to get undo's to work correctly.
+				Log.AddOperation(Frames.Count, $"Assign Global",globalIndex.ToString(),_globals[globalIndex].ToString());
 				return null;
 			case OpCode.OpSetLocal:
 				var localIndex = Op.ReadUInt8(insBytes[1]);
@@ -510,6 +521,7 @@ public class VM
 				//todo: we don't know the previous value of this variable. 
 				CurrentFrame.ip--;
 				Progress.DecrementCount();
+				Log.RemoveOperation();
 				return null;
 			case OpCode.OpSetLocal:
 				oldVal = _unstack.Pop();

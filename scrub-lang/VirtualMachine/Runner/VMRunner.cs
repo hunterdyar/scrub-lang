@@ -179,7 +179,7 @@ public class VMRunner
 		if (_vm.State == VMState.Paused)
 		{
 			_vm.RunOne();
-			//todo: results.
+			OnPaused?.Invoke();
 		}
 	}
 
@@ -193,7 +193,7 @@ public class VMRunner
 		if (_vm.State == VMState.Paused)
 		{
 			_vm.PreviousOne();
-			//todo: results. to the history!
+			OnPaused?.Invoke();
 		}
 	}
 
@@ -202,6 +202,8 @@ public class VMRunner
 		if (_vm != null)
 		{
 			_vm.RunTo(logOpNumber);
+			//todo: check state.
+			OnPaused?.Invoke();
 		}
 	}
 }

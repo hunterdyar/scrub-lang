@@ -10,11 +10,14 @@ public class ExecutionLog
 	public int LogPointer => _logPointer;
 	// public ArraySegment<OpLog> ExecutedList = new ArraySegment<OpLog>(_log, 0, 0);
 	private int _logPointer;//points to the next free spot.
+	
+	//this only works when every operation has a symmetric add/remove. the vm code calls some functions in the switch, so it's not a trivial thing.s
 	public void AddOperation(int depth, string name, string input, string output)
 	{
 		if (_logPointer >= logCount)
 		{
 			_log.Add(new OpLog(_log.Count, depth, name, input, output));//hmmm
+			_logPointer++;
 		}
 		else
 		{

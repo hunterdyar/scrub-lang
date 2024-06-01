@@ -24,9 +24,9 @@ public class TimelineView : FrameView
 		};
 		
 		_runner.OnNewResult += (a,b)=> UpdateProgress();
-		_runner.OnComplete += () => UpdateProgress();
-		_runner.OnPaused += () => UpdateProgress();
-		_runner.OnError += () => UpdateProgress();
+		_runner.OnComplete += UpdateProgress;
+		_runner.OnPaused += UpdateProgress;
+		_runner.OnError += UpdateProgress;
 		Add(_bar);
 	}
 
@@ -34,5 +34,16 @@ public class TimelineView : FrameView
 	{
 		var p = _runner.Percentage;
 		_bar.Fraction = p;
+		if (p == 1)
+		{
+			_bar.ColorScheme = Colors.Base;
+		}else if (p == 0)
+		{
+			_bar.ColorScheme = Colors.Menu;
+		}
+		else
+		{
+			_bar.ColorScheme = Colors.TopLevel;
+		}
 	}
 }

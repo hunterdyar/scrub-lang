@@ -7,7 +7,8 @@ namespace MyGuiCsProject{
     {
         //Left Tabs
         public TabView ProgramTabs;
-        
+        //right tabs
+        public TabView StatusStabs;
         //views
         private readonly FilesView _filesView;
         private readonly REPLView _replPane;
@@ -35,13 +36,20 @@ namespace MyGuiCsProject{
                 Width = Dim.Percent(60),
                 Height = Dim.Fill(timelineHeight + controlsHeight)
             };
-            _replPane = new REPLView(_runner);
-            _statePane = new VariableStateView("State", _runner)
+            StatusStabs = new TabView()
             {
                 X = Pos.Right(ProgramTabs),
                 Y = 0,
                 Width = Dim.Percent(40),
-                Height = Dim.Fill(timelineHeight+controlsHeight),
+                Height = Dim.Fill(timelineHeight + controlsHeight), 
+            };
+            _replPane = new REPLView(_runner);
+            _statePane = new VariableStateView("State", _runner)
+            {
+                X = 0,
+                Y = 0,
+                Width = Dim.Fill(),
+                Height = Dim.Fill()
             };
 
             _controls = new PlayBar(_runner)
@@ -57,7 +65,7 @@ namespace MyGuiCsProject{
             _lastResult = new LastResultView(_runner)
             {
                 X = Pos.Right(_controls),
-                Y = Pos.Bottom(_statePane),
+                Y = Pos.Bottom(StatusStabs),
                 Height = controlsHeight,
                 Width = Dim.Percent(40),
                 CanFocus = false,
@@ -69,6 +77,8 @@ namespace MyGuiCsProject{
 
             var filetab = new TabView.Tab("Open File", _filesView);
             var repltab = new TabView.Tab("REPL", _replPane);
+            var variablesTab = new TabView.Tab("Variables", _statePane);
+            
             var timeline = new TimelineView(_runner)
             {
                 X = 0,
@@ -85,11 +95,13 @@ namespace MyGuiCsProject{
             
             ProgramTabs.AddTab(repltab, true);
             ProgramTabs.AddTab(filetab, false);
-            ProgramTabs.AddTab(oplogtab, false);
             
-            Add(_controls);
+            StatusStabs.AddTab(oplogtab, false);
+            StatusStabs.AddTab(variablesTab,false);
+            
             Add(ProgramTabs);
-            Add(_statePane);
+            Add(StatusStabs);
+            Add(_controls);
             Add(_lastResult);
             Add(timeline);
 

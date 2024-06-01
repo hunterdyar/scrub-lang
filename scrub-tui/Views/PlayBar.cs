@@ -3,6 +3,9 @@ using Terminal.Gui;
 
 namespace MyGuiCsProject.Views;
 
+/// <summary>
+/// Play/Pause controls, etc.
+/// </summary>
 public class PlayBar : FrameView
 {
 	private readonly Button _playButton;
@@ -79,12 +82,6 @@ public class PlayBar : FrameView
 
 	public override bool ProcessHotKey(KeyEvent keyEvent)
 	{
-		// if (keyEvent.Key == Key.Enter)
-		// {
-		//
-		// 	return true;
-		// }
-
 		return base.ProcessHotKey(keyEvent);
 	}
 }

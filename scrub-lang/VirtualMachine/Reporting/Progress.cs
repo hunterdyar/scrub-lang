@@ -13,7 +13,7 @@ public class Progress
 		var max = MaxCounter;
 		if (max != 0 && _opCounter != 0)
 		{
-			return _opCounter / max;
+			return (float)_opCounter / (float)max;
 		}
 
 		return 0;
