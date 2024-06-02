@@ -1,11 +1,12 @@
 ﻿using System.Text;
 using scrub_lang.Compiler;
+using scrub_lang.Evaluator;
 using scrub_lang.Objects;
+using scrub_lang.Tokenizer;
 
 namespace scrub_lang.Parser;
 
 //so you typed some number into the program, huh?
-//todo: return ints or doubles as appropriate.
 public class NumberLiteralExpression : IExpression
 {
 	public string Literal => _literal;
@@ -22,14 +23,20 @@ public class NumberLiteralExpression : IExpression
 	private double _litDouble;
 	public Location Location { get; }
 	
-	//problem: - is an operator, so it will never be negative. unsigned will have to be a special case (like Ob)
-	
-	public NumberLiteralExpression(string literal, Location location)
+	public NumberLiteralExpression(string literal, Location location, int baseVal = 10)
 	{
 		Location = location;
-		_isInt = int.TryParse(literal, out _litInt);
-		_isDouble = double.TryParse(literal, out _litDouble);
 		this._literal = literal;
+		if (baseVal == 10)
+		{
+			_isInt = int.TryParse(literal, out _litInt);
+		}
+		else
+		{
+			_litInt = Convert.ToInt32(literal, baseVal);
+			_isInt = true;
+		}
+
 	}
 
 	public void Print(StringBuilder sb)
@@ -49,6 +56,6 @@ public class NumberLiteralExpression : IExpression
 			return new Integer(AsInt);
 		}
 
-		throw new CompileException($"Unable to Convert '{_literal}' into Object");
+		return new ScrubCompilerError($"Unable to Convert '{_literal}' into Object");
 	}
 }

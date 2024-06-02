@@ -15,8 +15,8 @@ public class PostfixOperatorParselet : IInfixParselet
 	{
 		if (token.TokenType == TokenType.IncrementConcatenate)
 		{
-			//todo: more robust a++ vs. 'a++b' parsing without lookahead???
-			if (parser.Peek(TokenType.Break) || parser.Peek(TokenType.CloseParen) || parser.Peek(TokenType.CloseBracket) || parser.Peek(TokenType.Comma))
+			//todo: more robust a++ vs. 'a++b' parsing without lookahead. i think the conditions for binary are more knowable? identifier, literal, open brackets, open function... hmmm
+			if (parser.Peek(TokenType.Break) || parser.Peek(TokenType.CloseParen) || parser.Peek(TokenType.CloseBracket) || parser.Peek(TokenType.Comma) || parser.Peek(TokenType.Colon) || parser.Peek(TokenType.Question))
 			{
 				return new IncrementExpression(left, token.TokenType, token.Location);
 			}

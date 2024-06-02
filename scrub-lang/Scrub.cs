@@ -3,9 +3,11 @@ using scrub_lang.Parser;
 
 namespace scrub_lang;
 
+/// <summary>
+/// General entry-point for non-runner parsing and compiling.
+/// </summary>
 public static class Scrub
 {
-	//todo: move these out of VM class.
 	public static IExpression Parse(string input)
 	{
 		var lexer  = new Tokenizer.Tokenizer(input);
