@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Text;
+using scrub_lang.Objects;
 using Object = scrub_lang.Objects.Object;
 
 namespace scrub_lang;
@@ -37,6 +38,19 @@ public static class UtilityExtensions
 		if (a.GetType() != b.GetType())
 		{
 			return false;
+		}
+
+		//we use int arrays instead of a bytearray in function... for now....
+		if (a.GetType() == ScrubType.Function)
+		{
+			var af = (Function)a;
+			var bf = (Function)b;
+			if (af.CompiledFunction.Length != bf.CompiledFunction.Length)
+			{
+				return false;
+			}
+
+			return af.CompiledFunction.SequenceEqual(bf.CompiledFunction);
 		}
 
 		if (a.Bits.Length != b.Bits.Length)

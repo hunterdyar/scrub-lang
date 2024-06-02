@@ -25,12 +25,11 @@ public struct OpLog
 		{
 			sb.Append("  ");
 		}
-
-		sb.Append('(');
-		sb.Append(Input);
-		sb.Append(") ");
+		
 		sb.Append(OpName);
-		sb.Append(" -> ");
+		sb.Append(" (");
+		sb.Append(Input);
+		sb.Append(") -> ");
 		sb.Append(Output);
 		return sb.ToString();
 	}

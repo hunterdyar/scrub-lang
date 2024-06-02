@@ -7,9 +7,9 @@ public class FilesView : FrameView
 {
 	//THis is the files tab, and the landing page.
 	//It should have some greeting text up top. "Welcome to Scrub!" or some ascii art.
-	private OpenDialog openDialog;
-	private Button openFileButton;
-	private ListView recentFilesListView;
+	private OpenDialog _openDialog;
+	private Button _openFileButton;
+	private ListView _recentFilesListView;
 	private ScrubTUI _tui;
 	public Action<string> OnFileSelected;
 
@@ -26,44 +26,43 @@ public class FilesView : FrameView
 		};
 		Add(welcome);
 
-		openDialog = new OpenDialog()
+		_openDialog = new OpenDialog()
 		{
 			Width = Dim.Fill(),
 			Height = Dim.Fill(),
 			X = 0,
-			Y = Pos.Bottom(welcome),
+			Y = 0,
 			AllowedFileTypes = ["scrub", "txt", "text"],
 			AllowsMultipleSelection = false,
 			CanChooseDirectories = false,
 			CanChooseFiles = true,
-
 			ColorScheme = Colors.TopLevel,
 		};
 
 
-		openFileButton = new Button()
+		_openFileButton = new Button()
 		{
 			X = 0,
 			Y = Pos.Bottom(welcome),
 			TextAlignment = TextAlignment.Centered,
 			Text = "Open",
 		};
-		Add(openFileButton);
+		Add(_openFileButton);
 
 
-		recentFilesListView = new ListView(ScrubTUIProgram.RecentFiles)
+		_recentFilesListView = new ListView(ScrubTUIProgram.RecentFiles)
 		{
 			X = 0,
 			Width = Dim.Fill(),
 			TextAlignment = TextAlignment.Centered,
-			Y = Pos.Bottom(openFileButton)+1,
+			Y = Pos.Bottom(_openFileButton)+1,
 			Height = Dim.Fill(),
 		};
-		Add(recentFilesListView);
+		Add(_recentFilesListView);
 
-		openFileButton.Clicked += OpenFileButtonOnClicked;
-		openDialog.Closed += OpenDialogOnClosed;
-		recentFilesListView.OpenSelectedItem += RecentFilesListViewOnOpenSelectedItem;
+		_openFileButton.Clicked += OpenFileButtonOnClicked;
+		_openDialog.Closed += OpenDialogOnClosed;
+		_recentFilesListView.OpenSelectedItem += RecentFilesListViewOnOpenSelectedItem;
 	}
 
 	private void RecentFilesListViewOnOpenSelectedItem(ListViewItemEventArgs obj)
@@ -76,17 +75,17 @@ public class FilesView : FrameView
 
 	private void OpenDialogOnClosed(Toplevel obj)
 	{
-		if (openDialog.FilePaths.Count > 0)
+		if (_openDialog.FilePaths.Count > 0)
 		{
-			_tui.RunFile(openDialog.FilePaths[0]);
+			_tui.RunFile(_openDialog.FilePaths[0]);
 		}
 
-		ScrubTUIProgram.AddRecentFile(openDialog.FilePaths[0]);
+		ScrubTUIProgram.AddRecentFile(_openDialog.FilePaths[0]);
 	}
 
 	private void OpenFileButtonOnClicked()
 	{
-		Terminal.Gui.Application.Run(openDialog, OnFileSelectedError);
+		Terminal.Gui.Application.Run(_openDialog, OnFileSelectedError);
 	}
 
 	private bool OnFileSelectedError(Exception exception)

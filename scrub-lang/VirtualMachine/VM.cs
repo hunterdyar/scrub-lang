@@ -228,6 +228,7 @@ public class VM
 			case OpCode.OpClosure:
 				var cIndex = Op.ReadUInt16([insBytes[1], insBytes[2]]); 
 				var numFreeVars = Op.ReadUInt8(insBytes[3]);
+				Log.AddOperation(Frames.Count,"Load Closure to stack",cIndex.ToString(),"");
 				return PushClosure((int)cIndex, (int)numFreeVars);
 			case OpCode.OpReturnValue:
 				bool frwd = 0 == Op.ReadUInt8(insBytes[1]); //is this a return from function or a finished-undoing-function (fstart)
@@ -400,6 +401,7 @@ public class VM
 				UnPush();
 				CurrentFrame.ip--;
 				Progress.DecrementCount();
+				Log.RemoveOperation();
 				return null;
 			case OpCode.OpReturnValue:
 				bool backwrds = 1 == Op.ReadUInt8(insBytes[1]); //is this a return from function or a finished-undoing-function (fstart)

@@ -81,6 +81,13 @@ public class VMTests
 		//new VMTestCase("func b(a){ a() } b((func(){3}))", new Integer(3));
 		new VMTestCase("b = func(a){a()};func three(){3};b(three)", new Integer(3));
 	}
+
+	[Test]
+	public void TestFunctionCalls()
+	{
+		new VMTestCase("func add(a,b){a+b};add(1,2)", new Integer(3));
+		new VMTestCase("func sub(a,b){a-b};sub(1,2)", new Integer(-1));
+	}
 	
 	[Test]
 	public void TestFunctionDec()
