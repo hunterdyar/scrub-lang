@@ -1,7 +1,7 @@
 ﻿using scrub_lang.VirtualMachine;
 using Terminal.Gui;
 
-namespace MyGuiCsProject.Views;
+namespace ScrubTUI.Views;
 
 /// <summary>
 /// Play/Pause controls, etc.

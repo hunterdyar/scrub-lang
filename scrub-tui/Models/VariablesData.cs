@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using scrub_lang.VirtualMachine;
 
-namespace MyGuiCsProject.Views;
+namespace ScrubTUI.Views;
 
 
 public class VariableData : DataTable

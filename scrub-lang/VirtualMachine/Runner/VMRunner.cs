@@ -123,6 +123,7 @@ public class VMRunner
 
 	public void Run(StreamReader program)
 	{
+		_output.Clear();
 		_executionStopWatch.Restart();
 		CompileProgram(program);
 		if (_vm != null)

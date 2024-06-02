@@ -1,7 +1,7 @@
-using MyGuiCsProject.Views;
+using ScrubTUI.Views;
 using scrub_lang.VirtualMachine;
 
-namespace MyGuiCsProject{
+namespace ScrubTUI {
     using Terminal.Gui;
     public class ScrubTUI : Window
     {
@@ -18,6 +18,9 @@ namespace MyGuiCsProject{
         private readonly LastResultView _lastResult;
         private readonly PlayBar _controls;
         
+        //Tabs for making active
+        private TabView.Tab replTab;
+        private TabView.Tab filesTab;
         public ScrubTUI()
         {
             int controlsHeight = 3;
@@ -75,8 +78,8 @@ namespace MyGuiCsProject{
 
             _filesView = new FilesView(this);
 
-            var filetab = new TabView.Tab("Open File", _filesView);
-            var repltab = new TabView.Tab("REPL", _replPane);
+            filesTab = new TabView.Tab("Open File", _filesView);
+            replTab = new TabView.Tab("REPL", _replPane);
             var variablesTab = new TabView.Tab("Variables", _statePane);
             
             var timeline = new TimelineView(this)
@@ -92,9 +95,9 @@ namespace MyGuiCsProject{
                 Height = Dim.Fill()
             };
             var oplogtab = new TabView.Tab("Log", oplog);
-            
-            ProgramTabs.AddTab(repltab, true);
-            ProgramTabs.AddTab(filetab, false);
+
+            ProgramTabs.AddTab(filesTab, true);
+            ProgramTabs.AddTab(replTab, false);
             
             StatusStabs.AddTab(oplogtab, false);
             StatusStabs.AddTab(variablesTab,false);
@@ -120,7 +123,7 @@ namespace MyGuiCsProject{
 
         public void RunFile(string filePath)
         {
-            _replPane.TabIndex = 0;//set to program view.
+            ProgramTabs.SelectedTab = replTab;
             using (StreamReader reader = new StreamReader(filePath))
             {
                 Runner.Run(reader);

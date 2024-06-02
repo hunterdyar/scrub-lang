@@ -30,4 +30,10 @@ public class StringWriter : TextWriter
 	{
 		return _sb.ToString();
 	}
+
+	public void Clear()
+	{
+		_sb.Clear();
+		OnUpdate?.Invoke();
+	}
 }

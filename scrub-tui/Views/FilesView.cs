@@ -1,6 +1,7 @@
-﻿using Terminal.Gui;
+﻿using scrub_lang.Compiler;
+using Terminal.Gui;
 
-namespace MyGuiCsProject.Views;
+namespace ScrubTUI.Views;
 
 public class FilesView : FrameView
 {
@@ -8,8 +9,10 @@ public class FilesView : FrameView
 	//It should have some greeting text up top. "Welcome to Scrub!" or some ascii art.
 	private OpenDialog openDialog;
 	private Button openFileButton;
+	private ListView recentFilesListView;
 	private ScrubTUI _tui;
 	public Action<string> OnFileSelected;
+
 	public FilesView(ScrubTUI tui)
 	{
 		_tui = tui;
@@ -33,11 +36,11 @@ public class FilesView : FrameView
 			AllowsMultipleSelection = false,
 			CanChooseDirectories = false,
 			CanChooseFiles = true,
-			
+
 			ColorScheme = Colors.TopLevel,
 		};
-		
-		
+
+
 		openFileButton = new Button()
 		{
 			X = 0,
@@ -45,10 +48,30 @@ public class FilesView : FrameView
 			TextAlignment = TextAlignment.Centered,
 			Text = "Open",
 		};
-		
+		Add(openFileButton);
+
+
+		recentFilesListView = new ListView(ScrubTUIProgram.RecentFiles)
+		{
+			X = 0,
+			Width = Dim.Fill(),
+			TextAlignment = TextAlignment.Centered,
+			Y = Pos.Bottom(openFileButton)+1,
+			Height = Dim.Fill(),
+		};
+		Add(recentFilesListView);
+
 		openFileButton.Clicked += OpenFileButtonOnClicked;
 		openDialog.Closed += OpenDialogOnClosed;
-		Add(openFileButton);
+		recentFilesListView.OpenSelectedItem += RecentFilesListViewOnOpenSelectedItem;
+	}
+
+	private void RecentFilesListViewOnOpenSelectedItem(ListViewItemEventArgs obj)
+	{
+		var path = obj.Value.ToString();
+		_tui.RunFile(path);
+		//move file to top of list... todo: probably a cleaner way to do this.
+		ScrubTUIProgram.AddRecentFile(path);
 	}
 
 	private void OpenDialogOnClosed(Toplevel obj)
@@ -57,6 +80,8 @@ public class FilesView : FrameView
 		{
 			_tui.RunFile(openDialog.FilePaths[0]);
 		}
+
+		ScrubTUIProgram.AddRecentFile(openDialog.FilePaths[0]);
 	}
 
 	private void OpenFileButtonOnClicked()

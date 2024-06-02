@@ -1,7 +1,7 @@
 ﻿using scrub_lang.VirtualMachine;
 using Terminal.Gui;
 
-namespace MyGuiCsProject.Views;
+namespace ScrubTUI.Views;
 
 public class REPLView : FrameView
 {
@@ -54,6 +54,15 @@ public class REPLView : FrameView
 		Add(_outputView);
 		Add(_replInput);
 		Add(_doItButton);
+	}
+
+	public override void OnVisibleChanged()
+	{
+		if (Visible)
+		{
+			OnOutputUpdate();
+		}
+		base.OnVisibleChanged();
 	}
 
 	public void HandleKey(KeyEventEventArgs eventArgs)
