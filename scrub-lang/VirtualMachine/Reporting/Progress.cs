@@ -1,5 +1,5 @@
 ﻿namespace scrub_lang.VirtualMachine;
-
+//todo: this an the execution log need to get combined.
 public class Progress
 {
 	public long OpCounter => _opCounter;

@@ -77,7 +77,7 @@ namespace ScrubTUI {
             };
 
             _filesView = new FilesView(this);
-
+            _filesView.OnFileSelected += RunFile;
             filesTab = new TabView.Tab("Open File", _filesView);
             replTab = new TabView.Tab("REPL", _replPane);
             var variablesTab = new TabView.Tab("Variables", _statePane);
@@ -128,6 +128,7 @@ namespace ScrubTUI {
             {
                 Runner.Run(reader);
             }
+       //     _replPane.ForceOutputUpdate();
         }
     }
 }

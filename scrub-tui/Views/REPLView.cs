@@ -14,7 +14,7 @@ public class REPLView : FrameView
 	public REPLView(ScrubTUI tui)
 	{
 		_tui = tui;
-		_tui.Runner.Output.OnUpdate += OnOutputUpdate;
+		_tui.Runner.Output.OnUpdate += ForceOutputUpdate;
 
 		Title = "Read-Execute-Print-Loop";
 		_outputView = new TextView()
@@ -56,15 +56,6 @@ public class REPLView : FrameView
 		Add(_doItButton);
 	}
 
-	public override void OnVisibleChanged()
-	{
-		if (Visible)
-		{
-			OnOutputUpdate();
-		}
-		base.OnVisibleChanged();
-	}
-
 	public void HandleKey(KeyEventEventArgs eventArgs)
 	{
 		if (eventArgs.KeyEvent.Key == Key.Enter)
@@ -89,10 +80,10 @@ public class REPLView : FrameView
 		}
 	}
 
-	private void OnOutputUpdate()
+	public void ForceOutputUpdate()
 	{
-		_outputView.Text = _tui.Runner.Output.ToString();
 		_replInput.Enabled = _tui.Runner.State != VMState.Paused || _tui.Runner.State != VMState.Paused;
+		_outputView.Text = _tui.Runner.Output.ToString();
 		_outputView.MoveEnd();
 	}
 

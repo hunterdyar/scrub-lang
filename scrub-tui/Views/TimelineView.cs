@@ -27,6 +27,7 @@ public class TimelineView : FrameView
 		_tui.Runner.OnComplete += UpdateProgress;
 		_tui.Runner.OnPaused += UpdateProgress;
 		_tui.Runner.OnError += UpdateProgress;
+		_tui.Runner.OnOperationStep += UpdateProgress;
 		Add(_bar);
 	}
 

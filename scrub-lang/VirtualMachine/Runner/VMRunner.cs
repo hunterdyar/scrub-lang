@@ -15,6 +15,7 @@ public class VMRunner
 	public Action OnPaused;
 	public Action OnComplete;
 	public Action OnError;
+	public Action OnOperationStep;
 	public Action<string, TimeSpan> OnNewResult;
 	public Action OnInitialized;//called when there is a new VM object created.
 	//core references
@@ -31,7 +32,7 @@ public class VMRunner
 	public TimeSpan LastExecutionTime => new TimeSpan(_executionStopWatch.ElapsedTicks);
 	public float Percentage => _vm != null ? _vm.Progress.Percentage : 0;
 	public ExecutionLog.ExecutionLog Log => _vm != null ? _vm.Log : null;
-	
+
 	private Stopwatch _executionStopWatch = new Stopwatch();
 	//loads but does not start executing. Resets previous state.
 	
@@ -213,10 +214,11 @@ public class VMRunner
 			return;
 		}
 		
-		if (_vm.State == VMState.Paused)
+		if (_vm.State == VMState.Paused || _vm.State == VMState.Initialized)
 		{
 			_vm.RunOne();
-			OnPaused?.Invoke();
+			//OnPaused?.Invoke();
+			OnOperationStep?.Invoke();
 		}
 	}
 
@@ -227,10 +229,11 @@ public class VMRunner
 			return;
 		}
 
-		if (_vm.State == VMState.Paused)
+		if (_vm.State == VMState.Paused || _vm.State == VMState.Complete)
 		{
 			_vm.PreviousOne();
-			OnPaused?.Invoke();
+			//OnPaused?.Invoke();
+			OnOperationStep?.Invoke();
 		}
 	}
 

@@ -47,6 +47,12 @@ public static class ScrubTUIProgram
 	    //remove from wherever and insert at beginning of list.
 	    if (ScrubTUIProgram.RecentFiles.Contains(path))
 	    {
+		    if (ScrubTUIProgram.RecentFiles.IndexOf(path) == 0)
+		    {
+			    //don't bother updating most recent.
+			    return;
+		    }
+		    
 		    ScrubTUIProgram.RecentFiles.Remove(path);
 	    }
 	    

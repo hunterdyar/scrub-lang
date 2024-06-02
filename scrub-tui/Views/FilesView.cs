@@ -75,12 +75,13 @@ public class FilesView : FrameView
 
 	private void OpenDialogOnClosed(Toplevel obj)
 	{
+		ScrubTUIProgram.AddRecentFile(_openDialog.FilePaths[0]);
+
 		if (_openDialog.FilePaths.Count > 0)
 		{
-			_tui.RunFile(_openDialog.FilePaths[0]);
+			OnFileSelected?.Invoke(_openDialog.FilePaths[0]);
 		}
 
-		ScrubTUIProgram.AddRecentFile(_openDialog.FilePaths[0]);
 	}
 
 	private void OpenFileButtonOnClicked()

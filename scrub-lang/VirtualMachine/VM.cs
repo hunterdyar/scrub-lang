@@ -367,7 +367,12 @@ public class VM
 				return null;
 			}
 		}
-		
+
+		if (_state == VMState.Complete || _state == VMState.Error)
+		{
+			//todo: we assume we can undo an error we just reached going forward...
+			_state = VMState.Paused;
+		}
 
 		//this is the hot path. We actually care about performance.
 		int[] ins;
