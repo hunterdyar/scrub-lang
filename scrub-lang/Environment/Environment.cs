@@ -2,7 +2,7 @@
 
 namespace scrub_lang.Evaluator;
 
-//todo: refactor this. I think we are passing two symbol tables around? 
+//todo: refactor this. We aren't using this (see Program class). Either use it or ... dont use it...
 public class Environment
 {
 	public SymbolTable? SymbolTable;

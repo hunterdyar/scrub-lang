@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using scrub_lang.Parser;
 using scrub_lang.Tokenizer.Tokens;
 
 namespace scrub_lang.Tokenizer;
@@ -9,11 +10,22 @@ public class StringTState(Tokenizer context) : TokenizerStateBase(context)
 	private bool escapeNext = false;
 	private bool setFirst = false;
 	public int firstLine = -1;
-	public int firstCol = -1;	
+	public int firstCol = -1;
 
-	//todo: single-quote strings
+	private char stringType;
 	public Location StartLocation => new Location(firstLine, firstCol);
 	//the first " gets ignored by the code that creates us. That's not ideal for clarity of ownership, but its fine i guess.
+	public StringTState(Tokenizer context, char stringType) : this(context)
+	{
+		if (stringType != '"' && stringType != '\'')
+		{
+			throw new ParseException("Invalid String Encapsulation (single or double quote strings only");
+		}
+
+		this.stringType = stringType;
+	}
+
+
 	public override void Consume(char c, Location loc)
 	{
 		//mark the string by it's start point for errors, not it's end point.
@@ -32,17 +44,17 @@ public class StringTState(Tokenizer context) : TokenizerStateBase(context)
 			return;
 		}
 		
-		if (c == '\'')
+		if (c == '\\')
 		{
 			escapeNext = true;
 			return;
 		}
 
-		if (c == '"')
+		if (c == stringType)
 		{
 			context.AddToken(new Token(TokenType.String,_builder.ToString(),firstLine,firstCol));
 			context.ExitState(this);
-			//ignore this closign " in order to consume it.
+			//ignore this closing " or ' in order to consume it.
 		}
 		
 		_builder.Append(c);

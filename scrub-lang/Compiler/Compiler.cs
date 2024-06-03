@@ -249,7 +249,7 @@ public class Compiler
 		}else if (expression is IndexAssignExpression indexAssignExpression)
 		{
 			//todo: implement this.
-			return new ScrubCompilerError("Assigning to an array not implemented yet.");
+			return new ScrubCompilerError("Assigning to an array not yet implemented.");
 		}
 		else if (expression is IdentifierExpression identExpr)
 		{
@@ -743,7 +743,6 @@ public class Compiler
 	/// </summary>
 	public Program GetProgram()
 	{
-		//todo: decide how to encode the Location Lookup tables and pass them to the VM for errors.
 		return new Program(CurrentScope.Instructions.ToArray(),_constants.ToArray(),CurrentScope.OpLocationLookup, _symbolTable);
 	}
 

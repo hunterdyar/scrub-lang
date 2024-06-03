@@ -126,13 +126,13 @@ public class Tokenizer
 				AddToken(new Token(TokenType.BitwiseNot, c, loc));
 				return;
 			case '"':
-				_state = new StringTState(this);
+				_state = new StringTState(this, '"');
 				//we "consume" the first " by ignoring it.
 				//_state.Consume(c,l,col);
 				return;
 			case '\'':
-				_state = new StringTState(this);
-				//we "consume" the first " by ignoring it.
+				_state = new StringTState(this, '\'');
+				//we "consume" the first ' by ignoring it.
 				//_state.Consume(c,l,col);
 				return;
 			case ',':
