@@ -9,6 +9,7 @@ namespace scrub_lang.VirtualMachine;
 //VM Report takes a virtual machine and provides usable information about it's state.
 public class Status
 {
+	private List<Object> _stack;
 	private VM _vm;
 	private SymbolTable Symbols => _vm.Symbols;
 	
@@ -20,14 +21,14 @@ public class Status
 	
 	public List<Object> Stack(int numItems)
 	{
-		//todo: cache list. Or at least don't reallocate. 
-		List<Object> stack = new List<Object>();
+		//todo: we can avoid the add/removes if we know how many recents we want, and keep the stack that large.
+		_stack.Clear();
 		for (int i = 0; i < Math.Min(numItems, _vm.StackPointer); i++)
 		{
-			stack.Add(_vm.Stack[_vm.StackPointer-i]);
+			_stack.Add(_vm.Stack[_vm.StackPointer-i]);
 		}
 
-		return stack;
+		return _stack;
 	}
 
 	public List<VariableState> GetVariables()

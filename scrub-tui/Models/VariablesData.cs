@@ -14,6 +14,7 @@ public class VariableData : DataTable
 		_runner.OnComplete += UpdateState;
 		_runner.OnPaused += UpdateState;
 		_runner.OnError += UpdateState;
+		_runner.OnOperationStep += UpdateState;
 		//_table = new DataTable();
 
 		var nameCol = new DataColumn();

@@ -370,7 +370,7 @@ public class VM
 
 		if (_state == VMState.Complete || _state == VMState.Error)
 		{
-			//todo: we assume we can undo an error we just reached going forward...
+			//todo: we assume we can undo an error we just reached going forward...? right? that should work?
 			_state = VMState.Paused;
 		}
 
