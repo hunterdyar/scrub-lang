@@ -1,5 +1,7 @@
 # The Scrub Language
 
+![a screenshot of the tui](./documentation/screenshot1_alpha.png)
+
 Scrub is a language and runtime environment designed for learners.
 
 The goal of the language is to create an investigable playground for students to learn see how programming languages work. Scrub provides a window into the black box of programming languages.
