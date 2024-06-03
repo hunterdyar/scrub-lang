@@ -12,15 +12,14 @@ public static class Builtins
 	static Builtins()
 	{
 		//Not doing an array literal because I think we're using the indexes?
-		_builtins = new (string, Builtin)[5];
+		_builtins = new (string, Builtin)[7];
 		_builtins[0] = ("print", new Builtin(Print));
 		_builtins[1] = ("len", new Builtin(Len));
 		_builtins[2] = ("push", new Builtin(Push));
 		_builtins[3] = ("pause", new Builtin(PauseVM));
 		_builtins[4] = ("first", new Builtin(First));
-		//todo: last
-		//todo: abs
-		//todo: sin
+		_builtins[5] = ("last", new Builtin(Last));
+		_builtins[6] = ("abs", new Builtin(AbsoluteValue));
 		//todo: sin
 		//todo: cos, etc.
 	}
@@ -108,7 +107,7 @@ public static class Builtins
 	{
 		if (args.Length != 1)
 		{
-			NewError($"Wrong number of arguments for Len. Need 1, got {args.Length}.");
+			NewError($"Wrong number of arguments for First. Need 1, got {args.Length}.");
 		}
 
 		switch (args[0].GetType())
@@ -128,6 +127,51 @@ public static class Builtins
 				return new Integer(args[0].Bits.Length / 8);
 		}
 	}
+
+	static Object? Last(VM context, Object[] args)
+	{
+		if (args.Length != 1)
+		{
+			NewError($"Wrong number of arguments for Last. Need 1, got {args.Length}.");
+		}
+
+		switch (args[0].GetType())
+		{
+			case ScrubType.Array:
+				var arr = (Array)args[0];
+				if (arr.Length.NativeInt == 0)
+				{
+					return VM.Null; //should this be new null?
+				}
+
+				return (arr.NativeArray[^1]);
+			case ScrubType.String:
+			//todo: return first byte of the string
+			default:
+				return NewError($"Cannot get Last of {args[0].GetType()}.");
+				//or: yes, we can get the number of bytes of ANY data type! but that doesn't make sense for ints, it would always be 4
+				return new Integer(args[0].Bits.Length / 8);
+		}
+	}
+
+	static Object? AbsoluteValue(VM context, Object[] args)
+	{
+		if (args.Length != 1)
+		{
+			NewError($"Wrong number of arguments for Abs. Need 1, got {args.Length}.");
+		}
+
+		switch (args[0].GetType())
+		{
+			case ScrubType.Int:
+				return new Integer(int.Abs(((Integer)args[0]).NativeInt));
+			default:
+				return NewError($"Cannot get Abs of {args[0].GetType()}.");
+				//or: yes, we can get the number of bytes of ANY data type! but that doesn't make sense for ints, it would always be 4
+				return VM.Null;
+		}
+	}
+	
 	static public Object NewError(string message)
 	{
 		//todo: update this when we make an error type...
