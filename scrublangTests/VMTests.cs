@@ -127,22 +127,26 @@ public class VMTests
 		//why?
 		//my best guess is when we add or remove pops, we lost count.
 		// new VMTestCase("""
-		//                a = 0;
-		//                b = 0;
+		//                a = 0
+		//                b = 0
+		//                
 		//                if(a > 5)
 		//                {
+		//                
 		//                     b = b+1
 		//                }else{
+		//                
 		//                     b = b-1
 		//                }
 		//                """, new Integer(-1));
-		//todo: i am unable to compare closures (closures, compiled objects) correctly.
 		//new VMTestCase("func (){}", new Closure(new Function([(byte)OpCode.OpNull],0),null));
 	//	new VMTestCase("a = func(b){return 1};a(500)", new Integer(1));
 	//	new VMTestCase("func a(){return null};a()", VM.Null);
 	//	new VMTestCase("a = func b(){0;return 12;0;0};a()", new Integer(12));
 	//	new VMTestCase("b = func(a){101;return a+1;100};c = b;c(2)", new Integer(3));
 	//	new VMTestCase("b = func(a){return a()};c = b;c(func(){3})", new Integer(3));
+	
+	//todo: this is failing because a free variable (or, room for a free variable on the stack) for b is not being created. We try to read it, and read from garbage on the stack instead. 
 		new VMTestCase("""
 		               func f(a){
 		                   b = 0;
@@ -151,7 +155,6 @@ public class VMTests
 		                        b = b+1
 		                   }else{ 
 		                        b = b-1
-		                        b;b;b;
 		                   }
 		                   
 		                   return b

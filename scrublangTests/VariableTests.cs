@@ -22,6 +22,6 @@ public class VariableTests
 		new VMTestCase("0b0", new Integer(0));
 		new VMTestCase("0b11", new Integer(3));
 		new VMTestCase("0b01 + 0b11", new Integer(4));
-		new VMTestCase("0b11111111", new Integer(255)); //7 is half, it's a signed integer.
+		new VMTestCase("0b11111111", new Integer(255));
 	}
 }
