@@ -1,32 +1,26 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/CodeInspection/PencilsConfiguration/ActualSeverity/@EntryValue">ERROR</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=2b14180a_002D2544_002D41af_002Dbf00_002D4577ce6a0d54/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="VMTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
 	
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=30c5efd1_002Dd36a_002D4655_002Dba17_002D63975823d880/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Tests #14" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrublangTests.Tests&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestGlobalAssignStatements&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestIntegerArithmetic&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestFunctionDec&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestFib&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestRescursiveCallFib&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestFunctionReturns&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestFunctionEarlyReturns&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestFunctionEarlyReturnOutOfConsequence&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestEarlyReturnOutOfAlernative&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=338bbfc8_002D28d2_002D4ec2_002D9e50_002D79194af42536/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="VMTests #4" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	
+	
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=338bbfc8_002D28d2_002D4ec2_002D9e50_002D79194af42536/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="VMTests #4" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5002ee23_002D19f1_002D4409_002D9e4b_002D53063e55d839/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="TestFunctionReturns" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestFunctionReturns&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6a4bc699_002D8539_002D4e6a_002D87d6_002Df312bbc7bd6d/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="TestConditionalCompile" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="S:\csharp\scrub-lang\scrublangTests" Presentation="&amp;lt;scrublangTests&amp;gt;" /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=97f71156_002D2b68_002D4f37_002D801f_002Db3b46020975b/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="TestFunctionReturns #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestFunctionReturns&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests.TestClosures&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a9ca8841_002D0f3c_002D4e81_002Daadb_002D639d38854b18/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="VMTests #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
@@ -35,9 +29,10 @@
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c2f72073_002D8b20_002D441b_002D9325_002Dee955750816f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="VMTests #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c2f72073_002D8b20_002D441b_002D9325_002Dee955750816f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="VMTests #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrub_lang.VirtualMachine.VMTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::7D1048ED-4706-4421-9B01-F8A68E05EAE5::net8.0::scrublangTests.VariableTests.HexLiteralTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=fbb5552f_002D8ce6_002D4251_002Daf3e_002Dd67898b4b17f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="TestEarlyReturnOutOfAlernative" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;

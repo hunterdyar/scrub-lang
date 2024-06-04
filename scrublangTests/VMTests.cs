@@ -118,6 +118,58 @@ public class VMTests
 		//aaxnew VMTestCase("func a(){a = 1;b=2;a};a()", new Integer(1));
 
 	}
+
+	[Test]
+	public void TestClosures()
+	{
+
+		new VMTestCase("""
+		               newAdder = func(a, b) {
+		                   func(c) { a + b + c };
+		               };
+		               adder = newAdder(1, 2);
+		               adder(8);
+		               """, new Integer(11));
+
+		new VMTestCase("""
+		               func newAdder(a, b) {
+		                   c = a + b;
+		                   return func(d) { c + d };
+		               };
+		               adder = newAdder(1, 2);
+		               adder(8);
+		               """, new Integer(11));
+		
+		new VMTestCase("""
+		               func newClosure(a){
+		               return func(){a;};
+		               }
+		               closure = newClosure(99)
+		               closure()
+""", new Integer(99));
+		
+		new VMTestCase("""
+		               global = 55;
+		               
+		               func f1() {
+		               a = 66;
+		               
+		                   func f2() {
+		                       b = 77;
+		               
+		                       func f3() {
+		                           c = 88;
+		               
+		                           global + a + b + c;
+		                       }
+		                       f3()
+		                   }
+		                   f2()
+		               }
+		               f1()
+		               
+		               """, new Integer(55+66+77+88));
+	}
 	[Test]
 	public void TestFunctionReturns()
 	{
@@ -146,7 +198,7 @@ public class VMTests
 	//	new VMTestCase("b = func(a){101;return a+1;100};c = b;c(2)", new Integer(3));
 	//	new VMTestCase("b = func(a){return a()};c = b;c(func(){3})", new Integer(3));
 	
-	//todo: this is failing because a free variable (or, room for a free variable on the stack) for b is not being created. We try to read it, and read from garbage on the stack instead. 
+	//todo: this is failing because a variable (or, room for a local variable on the stack) for b is not being created. We try to read it, and read from garbage on the stack instead. 
 		new VMTestCase("""
 		               func f(a){
 		                   b = 0;

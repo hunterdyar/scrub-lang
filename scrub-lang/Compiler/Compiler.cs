@@ -11,7 +11,7 @@ namespace scrub_lang.Compiler;
 
 public class Compiler
 {
-	private SymbolTable _symbolTable = new SymbolTable();
+	private SymbolTable _symbolTable = new SymbolTable();//todo: rename to SymbolTable() or CurrentSymbolTable ot something more clear it changes.
 	private List<Object> _constants = new List<Object>();//ScrubObject?
 	public Stack<CompilationScope> Scopes = new Stack<CompilationScope>();
 	private int _scopeIndex = 0;//we don't need scope index now that scopes is a stack; but it's useful to glance at when debugging.
@@ -530,7 +530,7 @@ public class Compiler
 				_symbolTable.DefineFunctionName(funcLiteralExpr.Name);
 				n = funcLiteralExpr.Name;
 			}
-			
+			//after enterng scope and before compiling the body, we define each parameter. 
 			var args = funcLiteralExpr.Arguments;
 			foreach (var arg in args)
 			{
@@ -564,7 +564,7 @@ public class Compiler
 			}
 			var freeSymbols = _symbolTable.FreeTable;//we grab a reference to this before we leave the scope, and iterate over/load them them after. That's basically the point.
 			var numLocals = _symbolTable.NumDefinitions;
-			
+			SymbolTable symbolTableRef = _symbolTable;//leavescope changes _symbolTable! what a tragic bug to get stuck on!
 			//Add a function literal direclty onto the stack.
 			var instructions = LeaveScope();
 
@@ -574,7 +574,9 @@ public class Compiler
 				EmitLoadSymbol(funcLiteralExpr.Location,freeSymbol);
 			}
 			
-			var compiledFunction = new Function(instructions.Item1,args.Count, _symbolTable,instructions.Item2);
+			var compiledFunction = new Function(instructions.Item1,args.Count, numLocals, instructions.Item2);
+			compiledFunction.Symbols = symbolTableRef;
+			compiledFunction.Name = n;//todo: move to constructor. for debugging.
 			
 			var funcIndex = AddConstant(compiledFunction);
 			Emit(funcLiteralExpr.Location,OpCode.OpClosure,funcIndex,freeSymbols.Count);//closures wrap functions. all functions are closures, even when there aren't any free variables.

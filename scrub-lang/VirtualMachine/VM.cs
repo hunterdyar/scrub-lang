@@ -69,7 +69,7 @@ public class VM
 		//reference for reports
 		Symbols = program.Symbols;
 		//instructions
-		var mainFunction = new Function(program.Instructions, 0,program.Symbols,program.Lookup,false);
+		var mainFunction = new Function(program.Instructions, 0,0,program.Lookup,false);
 		var mainClosure = new Closure(mainFunction);//all functions are closures. The program is a function. the program is a closure. it's closures all the way down.
 		var mainFrame = new Frame(mainClosure,0,-1);
 		Frames.Push(mainFrame);
@@ -677,7 +677,8 @@ public class VM
 
 		var frame = new Frame(cl,sp-numArgs);
 		PushFrame(frame);
-		sp = frame.basePointer + cl.CompiledFunction.NumArgs+cl.CompiledFunction.NumLocals;//give us a buffer of the number of local variables we will store in this area on the stack.
+		sp = frame.basePointer +cl.CompiledFunction.NumLocals;//give us a buffer of the number of local variables we will store in this area on the stack.
+		//sp = frame.basePointer + cl.CompiledFunction.NumArgs+cl.CompiledFunction.NumLocals;//give us a buffer of the number of local variables we will store in this area on the stack.
 		Log.AddOperation(Frames.Count, cl.CompiledFunction.Name, "", "");
 		return null;
 	}
