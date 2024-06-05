@@ -37,6 +37,10 @@ public class Status
 		//from bottom to top.
 		foreach (var frame in  _vm.Frames.Reverse())
 		{
+			if (frame.closure?.CompiledFunction?.Symbols == null)
+			{
+				continue;
+			}
 			foreach (var symbol in frame.closure.CompiledFunction.Symbols.Table.Values)
 			{
 				if (state.ContainsKey(symbol.Name))

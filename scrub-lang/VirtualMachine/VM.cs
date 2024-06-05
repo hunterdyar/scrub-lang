@@ -410,6 +410,7 @@ public class VM
 				return null;
 			case OpCode.OpReturnValue:
 				bool backwrds = 1 == Op.ReadUInt8(insBytes[1]); //is this a return from function or a finished-undoing-function (fstart)
+				CurrentFrame.ip--;
 				if (!backwrds) return null;
 				//we already popped it off the stack in anti-call.
 				_frame = PopFrame();
