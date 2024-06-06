@@ -308,7 +308,6 @@ public class VM
 				var localIndex = Op.ReadUInt8(insBytes[1]);
 				_frame = CurrentFrame;
 				_unstack.Push(_stack[_frame.basePointer + (int)localIndex]);//save old value to history.
-				//set the stack in our buffer area to our object. THis is going to be a tricky one to UNDO
 				_stack[_frame.basePointer + (int)localIndex] = (Object)_stack[sp - 1];
 				Log.AddOperation(Frames.Count, $"Assign Local", localIndex.ToString(), _globals[localIndex]?.ToString());
 				return null;
@@ -344,8 +343,8 @@ public class VM
 				
 				return Push(array);
 			case OpCode.OpIndex:
-				var index = Pop();
-				var left = Pop();
+				var index = Pointer.Resolve(Pop());
+				var left = Pointer.Resolve(Pop());
 				return RunIndexExpression(left, index);
 		}
 		return null;
@@ -764,8 +763,9 @@ public class VM
 	{
 		var elements = new Object[endIndex - startIndex];
 		for (int i = startIndex; i < endIndex; i++)
-		{
-			elements[i - startIndex] = (Object)_stack[i];//todo: wrap this cast with error handling.
+		{//todo: wrap this cast with error handling.
+			var o = (Object)_stack[i]; //todo: wrap this cast with error handling.
+			elements[i - startIndex] = new Pointer(o);
 		}
 
 		return new Array(elements);
@@ -874,9 +874,8 @@ public class VM
 
 	private ScrubVMError? RunBitShiftOperation(OpCode op)
 	{
-		//todo: these are broken because, i think, bitwise things?
-		var r = Pop();
-		var l = Pop();
+		var r = Pointer.Resolve(Pop());
+		var l = Pointer.Resolve(Pop());
 		string input = l.ToString();
 		var rightType = r.GetType();
 		
@@ -910,8 +909,8 @@ public class VM
 
 	private ScrubVMError? RunBinaryOperation(OpCode op)
 	{
-		var r = Pop();
-		var l = Pop();
+		var r = Pointer.Resolve(Pop());
+		var l = Pointer.Resolve(Pop());
 		
 		//Do we cast to Object here, to get the type?
 		var leftType = l.GetType();
