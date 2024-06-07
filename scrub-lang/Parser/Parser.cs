@@ -32,9 +32,11 @@ public class Parser
 		Register(TokenType.IfKeyword,new IfParselet());
 		Register(TokenType.String, new LiteralParselet());
 		Register(TokenType.ReturnKeyword,new ReturnParselet());
+		Register(TokenType.ImportKeyword, new ImportParselet());
 		Register(TokenType.OpenBracket,new ArrayLiteralParselet());//prefix
 		Register(TokenType.OpenBracket,new ArrayLookupParselet());//infix
 		Register(TokenType.Break, new BreakInfixParselet());//break just returns left, but has a low binding power.
+		
 		//Register(TokenType.Break, new BreakPrefixParselet());//as a prefix, it just returns parse().
 		//+1, -1, ~1, !true
 		Prefix(TokenType.Plus, BindingPower.UnarySum);

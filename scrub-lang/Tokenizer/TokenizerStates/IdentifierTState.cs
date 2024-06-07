@@ -19,6 +19,7 @@ public class IdentifierTState(Tokenizer context) : TokenizerStateBase(context)
 		{"return", TokenType.ReturnKeyword},
 		{"else",TokenType.ElseKeyword},
 		{"null",TokenType.NullKeyword},
+		{"import",TokenType.ImportKeyword}
 	};
 	public override void Consume(char c, Location loc)
 	{

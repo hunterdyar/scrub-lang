@@ -24,5 +24,6 @@ public class ReturnExpression : IExpression
 	public void Print(StringBuilder sb)
 	{
 		sb.Append("return");
+		_retExpression.Print(sb);
 	}
 }

@@ -621,6 +621,9 @@ public class Compiler
 			
 			Emit(callExpr.Location,OpCode.OpCall,callExpr.Args.Length);
 			return null;
+		}else if (expression is ImportExpression importExpression)
+		{
+			return new ScrubCompilerError("Import statements not yet supported.");
 		}
 
 		if (expression == null)
