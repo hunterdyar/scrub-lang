@@ -85,16 +85,21 @@ namespace scrub_lang.VirtualMachine;
 			Array.Copy(vm.Stack,_stackCache,vm.StackPointer);
 			int ip = vm.InstructionPointer;
 			vm.RunOne();
+			var log = vm.Log.LatestOperation;
 			// if (vm.State == VMState.Complete)
 			// {
 			// 	//todo: going from complete 
 			// 	return true;
 			// }
 			vm.PreviousOne();
-			Assert.AreEqual(ip,vm.InstructionPointer,"Instruction Pointers Not Equal");
+			//This isn't true..... if we undo a function call, we enter it's frame (at the back); and ip is current frame's pointer.
+			//calling a function is a "forward" action, it loads up the function to be undone...
+			//going back one step in the current frame would be undoing until we return to this frame.
+			//if we don't do this, we get an infinite loop, because we keep testing the end uselessly, i think?
+			Assert.AreEqual(ip,vm.InstructionPointer,"Instruction Pointers Not Equal. Last Log:" + log);
 			for (int i = 0; i < vm.StackPointer; i++)
 			{
-				Assert.IsTrue(VMTests.CompareObjects(vm.Stack[i], _stackCache[i]));
+				Assert.IsTrue(VMTests.CompareObjects(vm.Stack[i], _stackCache[i]),"Stack not equal. Last Log:"+log);
 			}
 			//copy state, compare with copy.
 			

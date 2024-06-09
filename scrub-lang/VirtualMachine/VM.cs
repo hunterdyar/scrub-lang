@@ -700,8 +700,6 @@ public class VM
 		//go into a frame like normal, then move up the stack and call?
 		//when we reach the top of the function, we will need to take it off the stack, but the call is a lateral move to a new Instructions, basically.
 		var frame = Unframes.Pop();
-		
-		
 		PushFrame(frame);
 		//sp = frame.basePointer + cl.CompiledFunction.NumLocals;
 		while (sp < _frame.basePointer +cl.CompiledFunction.NumLocals)
