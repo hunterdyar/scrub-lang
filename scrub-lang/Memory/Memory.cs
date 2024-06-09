@@ -14,6 +14,8 @@ public class Memory
 	private int _memoryused = 0;
 	private int _memContainerSize = 8;//2^this. Whenever we need more memory we copy the array into an arry that's the next power of two up.
 	
+	//Object GetGlobal(int)
+	//void SetGlobal(int, object)
 	public Memory()
 	{
 		var size = 1 << _memContainerSize;

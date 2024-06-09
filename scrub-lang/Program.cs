@@ -114,7 +114,7 @@ static class Scrub
 				var x = Console.ReadKey();
 				if (x.Key == ConsoleKey.D || x.Key == ConsoleKey.RightArrow)
 				{
-					vmerror = vm.RunOne();//todo 'next and previous' to handle state changing and interface for 'runone, previous one'.
+					vmerror = vm.RunOne();
 					if (vmerror != null)
 					{
 						return vmerror.ToString();

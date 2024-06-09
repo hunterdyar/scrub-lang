@@ -2,7 +2,6 @@
 using scrub_lang.Tokenizer.Tokens;
 
 namespace scrub_lang.Tokenizer;
-//todo: allow hex, octal, and binary literal values.
 public class NumberTState(Tokenizer context) : TokenizerStateBase(context)
 {
 	public enum NumberLiteralType
