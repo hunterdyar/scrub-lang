@@ -96,10 +96,13 @@ namespace scrub_lang.VirtualMachine;
 			//calling a function is a "forward" action, it loads up the function to be undone...
 			//going back one step in the current frame would be undoing until we return to this frame.
 			//if we don't do this, we get an infinite loop, because we keep testing the end uselessly, i think?
+			
+			//no, function calls should work! every op should be able to reset the state. a call undoes and should push or pop the stack! hmmm
+			//but the forward and backward 'return' statements break that rule too, because of this 'forward backward' version thing.'
 			Assert.AreEqual(ip,vm.InstructionPointer,"Instruction Pointers Not Equal. Last Log:" + log);
 			for (int i = 0; i < vm.StackPointer; i++)
 			{
-				Assert.IsTrue(VMTests.CompareObjects(vm.Stack[i], _stackCache[i]),"Stack not equal. Last Log:"+log);
+				Assert.IsTrue(VMTests.CompareObjects(vm.Stack[i], _stackCache[i]));
 			}
 			//copy state, compare with copy.
 			
