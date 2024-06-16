@@ -11,44 +11,7 @@ public class VMTests
 	public static List<VMTestCase> Tests = new List<VMTestCase>();
 	public static int Failures;
 	//VMTestCase struct
-	public struct VMTestCase
-	{
-		public string input;
-		public object expected;
 
-		public VMTestCase(string input,object expected)
-		{
-			this.expected = expected;
-			this.input = input;
-			TestCase();
-		}
-
-		public bool TestCase()
-		{
-			var p = Scrub.Parse(input);
-			var comp = new Compiler.Compiler();
-
-			var error = comp.Compile(p);
-			if (error != null)
-			{
-				throw new VMException(error.ToString());
-			}
-
-			var vm = new VM(comp.GetProgram());
-
-			var vmerror = vm.Run();
-			if (vmerror != null)
-			{
-				throw new VMException(vmerror.ToString());
-			}
-
-			var top = vm.LastPopped();
-			var b= CompareObjects(expected, top);
-			Assert.IsTrue(b);
-			return b;
-		}
-	}
-	
 	[Test]
 	public void TestIntegerArithmetic()
 	{
@@ -378,7 +341,8 @@ public class VMTests
 		new VMTestCase(fib + "fib(20)", new Integer(6765));
 
 	}
-	static bool CompareObjects(object expected, object actual)
+
+	public static bool CompareObjects(object expected, object actual)
 	{
 		if (actual == null)
 		{

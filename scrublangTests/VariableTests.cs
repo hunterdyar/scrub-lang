@@ -2,7 +2,6 @@
 using scrub_lang.VirtualMachine;
 
 namespace scrublangTests;
-using VMTestCase = VMTests.VMTestCase;
 
 public class VariableTests
 {

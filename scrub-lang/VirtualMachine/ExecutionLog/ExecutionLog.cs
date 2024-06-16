@@ -8,6 +8,9 @@ public class ExecutionLog
 	private List<OpLog> _log = new List<OpLog>();
 	private int logCount;
 	public int LogPointer => _logPointer;
+
+	public OpLog LatestOperation => (_logPointer > 0) ? _log[_logPointer - 1] : new OpLog();
+
 	// public ArraySegment<OpLog> ExecutedList = new ArraySegment<OpLog>(_log, 0, 0);
 	private int _logPointer;//points to the next free spot.
 	

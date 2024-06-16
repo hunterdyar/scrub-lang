@@ -249,6 +249,11 @@ public class Compiler
 		}else if (expression is IndexAssignExpression indexAssignExpression)
 		{
 			//todo: implement this.
+			//put value on the stack
+			//put the index on the stack
+			//put the array on the stack
+			//'AssignIndex'
+			//???
 			return new ScrubCompilerError("Assigning to an array not yet implemented.");
 		}
 		else if (expression is IdentifierExpression identExpr)

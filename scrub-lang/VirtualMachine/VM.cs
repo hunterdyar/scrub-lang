@@ -32,6 +32,7 @@ public class VM
 	//StackPointer will always point to the next free slot in the stack. Top element will be sp-1
 	//we put something in SP, then increment it.
 	public int StackPointer => sp;
+
 	// ReSharper disable once InconsistentNaming
 	private int sp = 0;//stack pointer
 	// ReSharper disable once InconsistentNaming
@@ -48,7 +49,8 @@ public class VM
 
 	//just caches
 	// ReSharper disable once InconsistentNaming
-	private int ip;
+	public int InstructionPointer => ip;
+	private int ip => CurrentFrame.ip;
 	private Frame _frame;
 	
 	public readonly SymbolTable Symbols;
@@ -209,7 +211,6 @@ public class VM
 		CurrentFrame.ip++;//increment at start instead of at end because of all the returns. THis is why we init the frame with an ip of -1.
 		Progress.IncrementCount();
 		//fetch -> decode -> execute
-		ip = CurrentFrame.ip;
 		ins = CurrentFrame.Instructions();
 		Console.WriteLine($"({CurrentLocation}) Do: {Op.InstructionToString(ins[ip])}");
 
@@ -308,7 +309,6 @@ public class VM
 				var localIndex = Op.ReadUInt8(insBytes[1]);
 				_frame = CurrentFrame;
 				_unstack.Push(_stack[_frame.basePointer + (int)localIndex]);//save old value to history.
-				//set the stack in our buffer area to our object. THis is going to be a tricky one to UNDO
 				_stack[_frame.basePointer + (int)localIndex] = (Object)_stack[sp - 1];
 				Log.AddOperation(Frames.Count, $"Assign Local", localIndex.ToString(), _globals[localIndex]?.ToString());
 				return null;
@@ -344,8 +344,8 @@ public class VM
 				
 				return Push(array);
 			case OpCode.OpIndex:
-				var index = Pop();
-				var left = Pop();
+				var index = Pointer.Resolve(Pop());
+				var left = Pointer.Resolve(Pop());
 				return RunIndexExpression(left, index);
 		}
 		return null;
@@ -368,10 +368,16 @@ public class VM
 			}
 		}
 
-		if (_state == VMState.Complete || _state == VMState.Error)
+		if ( _state == VMState.Error)
 		{
 			//todo: we assume we can undo an error we just reached going forward...? right? that should work?
 			_state = VMState.Paused;
+		}else if (_state == VMState.Complete)
+		{
+			//todo: this is the opposite of what we do when we are at the end. (one extra run that quits early)
+			_state = VMState.Paused;
+			CurrentFrame.ip = CurrentFrame.Instructions().Length - 1;
+			return null;
 		}
 
 		//this is the hot path. We actually care about performance.
@@ -380,13 +386,14 @@ public class VM
 		//ip is instructionPointer
 	
 		// CurrentFrame().ip;
-		ip = CurrentFrame.ip;
 		ins = CurrentFrame.Instructions();
 		Console.WriteLine($"({CurrentLocation}) Undo: {Op.InstructionToString(ins[ip])}");
 		var insBytes = BitConverter.GetBytes(ins[ip]);
 		//fetch
 		OpCode op = (OpCode)insBytes[0];
 		//decode
+		
+		
 		switch (op)
 		{
 			case OpCode.OpConstant:
@@ -416,7 +423,7 @@ public class VM
 				_frame = PopFrame();
 				//pop. The -1 gets rid of the function call too.
 				//sp = _frame.basePointer - 1;
-				CurrentFrame.ip--;
+				//CurrentFrame.ip--;
 				Progress.DecrementCount();
 				return null;
 			case OpCode.OpAdd:
@@ -693,8 +700,6 @@ public class VM
 		//go into a frame like normal, then move up the stack and call?
 		//when we reach the top of the function, we will need to take it off the stack, but the call is a lateral move to a new Instructions, basically.
 		var frame = Unframes.Pop();
-		
-		
 		PushFrame(frame);
 		//sp = frame.basePointer + cl.CompiledFunction.NumLocals;
 		while (sp < _frame.basePointer +cl.CompiledFunction.NumLocals)
@@ -764,8 +769,9 @@ public class VM
 	{
 		var elements = new Object[endIndex - startIndex];
 		for (int i = startIndex; i < endIndex; i++)
-		{
-			elements[i - startIndex] = (Object)_stack[i];//todo: wrap this cast with error handling.
+		{//todo: wrap this cast with error handling.
+			var o = (Object)_stack[i]; //todo: wrap this cast with error handling.
+			elements[i - startIndex] = new Pointer(o);
 		}
 
 		return new Array(elements);
@@ -874,9 +880,8 @@ public class VM
 
 	private ScrubVMError? RunBitShiftOperation(OpCode op)
 	{
-		//todo: these are broken because, i think, bitwise things?
-		var r = Pop();
-		var l = Pop();
+		var r = Pointer.Resolve(Pop());
+		var l = Pointer.Resolve(Pop());
 		string input = l.ToString();
 		var rightType = r.GetType();
 		
@@ -910,8 +915,8 @@ public class VM
 
 	private ScrubVMError? RunBinaryOperation(OpCode op)
 	{
-		var r = Pop();
-		var l = Pop();
+		var r = Pointer.Resolve(Pop());
+		var l = Pointer.Resolve(Pop());
 		
 		//Do we cast to Object here, to get the type?
 		var leftType = l.GetType();
