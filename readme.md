@@ -1,3 +1,5 @@
+> Note: Current development of scrub is over at the [b- language project](https://github.com/hunterdyar/B-_Language). This is a simpler implementation of an inspectable, 'always debugging' runtime for students. I hope to playtest out a lot of my ideas without the technical debt the reversability of scrub. What's more important, a custom runtime, or the reversable language? I hope to learn through prototyping.
+
 # The Scrub Language
 
 ![a screenshot of the tui](./documentation/screenshot1_alpha.png)
